@@ -1,0 +1,150 @@
+import React from 'react'; import Link from 'next/link'; import { ChevronLeft, MoreHorizontal, Maximize2, ChevronDown } from 'lucide-react'; const ProfitAndLoss = () => { const months = ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Year Total'];
+const incomeData = [ { name: 'Sales', icon: '💰', values: ['-', '-', '-', '-', '-', '-', '-', '0.00'], }, { name: 'Less Cost of Goods Sold', icon: '📦', values: ['-', '-', '-', '-', '-', '-', '-', '0.00'], } ]; const expenseData = [ { name: 'Advertising',
+icon: '📢', values: ['-', '-', '-', '-', '-', '-', '-', '1,000.00'], }, { name: 'Office Expenses & Pos...', icon: '🏢', values: ['-', '-', '-', '-', '-', '-', '-', '490.20'], subItems: [ { name: 'Hardware', values: ['-', '-', '-', '-', '-', '-', '-',
+'490.20'], } ] } ]; return (
+<div className="min-h-screen bg-slate-50 p-8">
+    {/* Header */}
+    <div className="mb-8">
+        <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-navy-900">Profit and Loss</h1>
+            <div className="flex items-center gap-3">
+                <button className="flex items-center px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50">
+              <MoreHorizontal className="w-4 h-4 mr-2" />
+              More Actions
+              <ChevronDown className="w-4 h-4 ml-2" />
+            </button>
+                <button className="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700">
+              Send...
+            </button>
+            </div>
+        </div>
+    </div>
+
+    <div className="flex gap-6">
+        {/* Main Content */}
+        <div className="flex-1 p-6 bg-white rounded-lg shadow">
+            <div className="flex justify-between items-start mb-6">
+                <div>
+                    <h2 className="text-2xl font-semibold text-blue-600 mb-2">Profit and Loss</h2>
+                    <div className="text-gray-600 text-sm">
+                        <p>Gayashan&apos;s Company</p>
+                        <p>Income Billed (USD)</p>
+                        <p>For Jan 1, 2025 - Dec 31, 2025</p>
+                    </div>
+                </div>
+                <button className="p-2 border rounded-lg hover:bg-gray-50">
+              <Maximize2 className="w-4 h-4" />
+            </button>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+                <table className="w-full">
+                    <thead>
+                        <tr className="border-b">
+                            <th className="text-left py-3 w-64"></th>
+                            {months.map(month => (
+                            <th key={month} className={`text-left py-3 px-4 ${month==='Year Total' ? 'text-gray-900' : 'text-blue-600'}`}>
+                                {month}
+                            </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr className="font-medium">
+                            <td colSpan={9} className="py-4">Income (Billed)*</td>
+                        </tr>
+                        {incomeData.map((item, index) => (
+                        <tr key={index} className="border-t">
+                            <td className="py-2 flex items-center gap-2">
+                                <span>{item.icon}</span> {item.name}
+                            </td>
+                            {item.values.map((value, i) => (
+                            <td key={i} className="py-2 px-4">{value}</td>
+                            ))}
+                        </tr>
+                        ))} {/* Rest of the table content... */}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {/* Filters Sidebar */}
+        <div className="w-80">
+            <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">Filters</h2>
+                    <button className="text-blue-600 hover:text-blue-700">
+                Reset all
+              </button>
+                </div>
+
+                <div className="space-y-6">
+                    {/* Date Range */}
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Date Range</label>
+                        <button className="w-full px-4 py-2 text-left border rounded-lg flex items-center justify-between hover:bg-gray-50">
+                  This Year
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                    </div>
+
+                    {/* Group By */}
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Group By</label>
+                        <div className="space-y-2">
+                            <div className="flex items-center">
+                                <input type="radio" name="groupBy" id="month" value="month" defaultChecked className="w-4 h-4 text-blue-600" />
+                                <label htmlFor="month" className="ml-2">Month</label>
+                            </div>
+                            <div className="flex items-center">
+                                <input type="radio" name="groupBy" id="quarter" value="quarter" className="w-4 h-4 text-blue-600" />
+                                <label htmlFor="quarter" className="ml-2">Quarter</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Accounting Method */}
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Accounting Method</label>
+                        <div className="space-y-2">
+                            <div className="flex items-center">
+                                <input type="radio" name="accountingMethod" id="billed" value="billed" defaultChecked className="w-4 h-4 text-blue-600" />
+                                <label htmlFor="billed" className="ml-2">Billed (Accrual)</label>
+                            </div>
+                            <div className="flex items-center">
+                                <input type="radio" name="accountingMethod" id="collected" value="collected" className="w-4 h-4 text-blue-600" />
+                                <label htmlFor="collected" className="ml-2">Collected (Cash-Based)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Breakdown */}
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Breakdown</label>
+                        <div className="space-y-2">
+                            <div className="flex items-center">
+                                <input type="radio" name="breakdown" id="transaction" value="transaction" defaultChecked className="w-4 h-4 text-blue-600" />
+                                <label htmlFor="transaction" className="ml-2">By Transaction type</label>
+                            </div>
+                            <div className="flex items-center">
+                                <input type="radio" name="breakdown" id="account" value="account" className="w-4 h-4 text-blue-600" />
+                                <label htmlFor="account" className="ml-2">By Account</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-between pt-4">
+                        <button className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+                  Close
+                </button>
+                        <button className="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700">
+                  Apply
+                </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+); }; export default ProfitAndLoss;
