@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { X, Calendar } from "lucide-react";
+import { X } from "lucide-react";
 
 interface Payment {
   id: string;
@@ -160,7 +160,7 @@ const AdditionalInvoicePayment = ({
                   {payment.notes}
                 </td>
                 <td className="px-6 py-4 text-right text-sm text-gray-900">
-                  $
+                  Rs. 
                   {payment.amount.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,

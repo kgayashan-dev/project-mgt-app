@@ -1,4 +1,4 @@
-import InvoiceForm from "@/components/sampleInvoice";
+
 import ViewInvoice from "@/components/ViewInvoice";
 import { COMPANY, INVOICEDATA } from "@/constraints/index";
 import AdditionalInvoicePayment from "@/components/AdditionalInvoicePayments";
@@ -19,7 +19,9 @@ async function getInvoiceData(id: string) {
     client: invoice.client || "not em", // Default client name if missing
     location: "Not mentioned", // Default location if missing
     outstandingRevenue: 0, // Default if missing
-    // Ensure this matches your table structure
+    clientAddress: invoice.clientAddress,
+    phoneNumber: invoice.phoneNumber,
+    emailAddress:invoice.emailAddress,
     subtotal: invoice.subtotal,
     rows: invoice.table.length, // Table length as rows
     table: invoice.table,

@@ -4,13 +4,13 @@ import {
   ChevronDown,
   ChevronLeft,
   PencilLine,
-  
+  Minus,
+  Equal,
 } from "lucide-react";
 import Link from "next/link";
 import ProjectServices from "./ProjectServices";
 import ProjectExpences from "./ProjectExpences";
 import ProjectQuotations from "./ProjectQuotations";
-
 type Team = {
   id: string;
   name: string;
@@ -146,7 +146,7 @@ const ProjectDetails = ({ projectArray }: ViewprojectArrayProps) => {
             <div className="bg-white rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  <h2 className="text-xl font-semibold">Hours Logged</h2>
+                  <h2 className="text-xl font-semibold">Profitablity</h2>
                   {/* <button className="flex items-center space-x-1 text-gray-500 hover:text-gray-700">
                     <span>LKR</span>
                   </button>
@@ -155,8 +155,9 @@ const ProjectDetails = ({ projectArray }: ViewprojectArrayProps) => {
                     <ChevronDown className="w-4 h-4" />
                   </button> */}
                 </div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {/* Rs. {formatCurrency(vendorArray.totalOutstanding)} */}
+                <div className="text-md font-bold text-blue-600 flex flex-col justify-center items-center">
+                  <span> (80%)</span>
+                  <span className="regular-12">Profit Margin</span>
                 </div>
               </div>
 
@@ -173,21 +174,20 @@ const ProjectDetails = ({ projectArray }: ViewprojectArrayProps) => {
               </div>
               <div className="py-4 regular-14 text-gray-30 flex justify-between item-center ">
                 <div className="flex flex-col justify-center items-center">
-                  <span>3h 00m</span>
-                  <span>remaining in budget</span>
+                  <span>N/A</span>
                 </div>
                 <div className="flex flex-col justify-center items-center">
-                  <span>0h 00m</span>
-                  <span>unbilled time</span>
+                  <Minus />
+                </div>
+                <div className="flex flex-col justify-center items-center">
+                  <span>N/A</span>
                 </div>
 
                 <div className="flex flex-col justify-center items-center">
-                  <span>Rs. 0</span>
-                  <span>unbilled expenses</span>
+                  <Equal />
                 </div>
                 <div className="flex flex-col justify-center items-center">
-                  <span>{} days</span>
-                  <span>overdue</span>
+                  <span>N/A</span>
                 </div>
               </div>
             </div>
@@ -223,17 +223,17 @@ const ProjectDetails = ({ projectArray }: ViewprojectArrayProps) => {
             <div className="">
               {activeTab === "quotations" && (
                 <div>
-                  <ProjectQuotations />
+                  <ProjectQuotations projectID={projectArray.id}/>
                 </div>
               )}
               {activeTab === "expenses" && (
                 <div>
-                  <ProjectExpences />
+                  <ProjectExpences projectID={projectArray.id} />
                 </div>
               )}
               {activeTab === "services" && (
                 <div>
-                  <ProjectServices />
+                  <ProjectServices projectID={projectArray.id} />
                 </div>
               )}
             </div>

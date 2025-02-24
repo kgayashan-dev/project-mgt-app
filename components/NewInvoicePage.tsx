@@ -637,7 +637,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({ initialData }) => {
               onMouseEnter={() => {}}
               onMouseLeave={() => {}}
             >
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {/* <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <label className="block text-gray-600 mb-2">Notes</label>
                 <textarea
                   value={notes}
@@ -646,7 +646,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({ initialData }) => {
                   className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
                   rows={3}
                 />
-              </div>
+              </div> */}
 
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <label className="block text-gray-600 mb-2">Terms</label>

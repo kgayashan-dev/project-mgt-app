@@ -223,8 +223,8 @@ const Page = () => {
       <h1 className="text-3xl font-bold text-gray-900 mb-12">Reports</h1>
 
       {/* Favorite Reports Section */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+      {/* <section className="mb-12">
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
           Favorite Reports
         </h2>
         <div className="grid grid-cols-6 gap-2">
@@ -242,11 +242,11 @@ const Page = () => {
         <div className="text-blue-600 italic text-sm mt-2">
           Easy access to your favorite reports
         </div>
-      </section>
+      </section> */}
 
       {/* Invoice and Expense Reports */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
           Invoice and Expense Reports
         </h2>
         <div className="grid grid-cols-2 gap-2">
@@ -260,8 +260,10 @@ const Page = () => {
                   <report.icon size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2">{report.title}</h3>
-                  <p className="text-gray-600">{report.description}</p>
+                  <h3 className="regular-14 font-semibold mb-2">
+                    {report.title}
+                  </h3>
+                  <p className="text-gray-600 regular-12">{report.description}</p>
                 </div>
                 <button
                   className={`absolute top-4 right-4 hover:scale-110 transition-transform ${
@@ -286,7 +288,7 @@ const Page = () => {
 
       {/* Payments Reports */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
           Payments Reports
         </h2>
         <div className="grid grid-cols-2 gap-2">
@@ -300,8 +302,10 @@ const Page = () => {
                   <report.icon size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2">{report.title}</h3>
-                  <p className="text-gray-600">{report.description}</p>
+                  <h3 className="regular-14 font-semibold mb-2">
+                    {report.title}
+                  </h3>
+                  <p className="text-gray-600 regular-12">{report.description}</p>
                 </div>
                 <button
                   className={`absolute top-4 right-4 hover:scale-110 transition-transform ${
@@ -324,7 +328,7 @@ const Page = () => {
         </div>
       </section>
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
           Accounting Reports
         </h2>
         <div className="grid grid-cols-2 gap-2">
@@ -338,8 +342,10 @@ const Page = () => {
                   <report.icon size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2">{report.title}</h3>
-                  <p className="text-gray-600">{report.description}</p>
+                  <h3 className="regular-14 font-semibold mb-2">
+                    {report.title}
+                  </h3>
+                  <p className="text-gray-600 regular-12">{report.description}</p>
                 </div>
                 <button
                   className={`absolute top-4 right-4 hover:scale-110 transition-transform ${
@@ -364,7 +370,7 @@ const Page = () => {
 
       {/* Time tracking and project reports */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-6">
           Time Tracking and Project Reports
         </h2>
         <div className="grid grid-cols-2 gap-2">
@@ -378,8 +384,12 @@ const Page = () => {
                   <report.icon size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2">{report.title}</h3>
-                  <p className="text-gray-600">{report.description}</p>
+                  <h3 className="regular-14 font-semibold mb-2">
+                    {report.title}
+                  </h3>
+                  <p className="text-gray-600 regular-12">
+                    {report.description}
+                  </p>
                 </div>
                 <button
                   className={`absolute top-4 right-4 hover:scale-110 transition-transform ${
@@ -403,7 +413,7 @@ const Page = () => {
       </section>
       {/* Logs */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Logs</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-6">Logs</h2>
         <div className="grid grid-cols-2 gap-2">
           {logs.map((log) => (
             <div
@@ -415,8 +425,8 @@ const Page = () => {
                   <log.icon size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2">{log.title}</h3>
-                  <p className="text-gray-600">{log.description}</p>
+                  <h3 className="regular-14 font-semibold mb-2">{log.title}</h3>
+                  <p className="text-gray-600 regular-12">{log.description}</p>
                 </div>
                 <button
                   className={`absolute top-4 right-4 hover:scale-110 transition-transform ${
@@ -438,7 +448,7 @@ const Page = () => {
       </section>
       {/* Payroll */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Logs</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-6">Logs</h2>
         <div className="grid grid-cols-2 gap-2">
           {payroll.map((payroll) => (
             <div
@@ -450,10 +460,12 @@ const Page = () => {
                   <payroll.icon size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2">
+                  <h3 className="regular-14 font-semibold mb-2">
                     {payroll.title}
                   </h3>
-                  <p className="text-gray-600">{payroll.description}</p>
+                  <p className="text-gray-600 regular-12">
+                    {payroll.description}
+                  </p>
                 </div>
                 <button
                   className={`absolute top-4 right-4 hover:scale-110 transition-transform ${

@@ -1,11 +1,13 @@
 import React from "react";
 import { ChevronDown, Search, Plus } from "lucide-react";
-const ProjectQuotations = () => {
+const ProjectQuotations = ({ projectID }: { projectID: undefined }) => {
   return (
     <div className="">
       <div className="mb-6 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Services</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Quotations {projectID}
+          </h1>
           <button className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors">
             <Plus className="h-5 w-5" />
           </button>
@@ -35,14 +37,14 @@ const ProjectQuotations = () => {
                 />
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
-                Client / Invoice Number
+                Client /  Number
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
                 Description
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
                 <div className="flex items-center gap-1">
-                  Issued Date
+                   Date
                   <ChevronDown className="h-4 w-4 text-gray-500" />
                 </div>
               </th>

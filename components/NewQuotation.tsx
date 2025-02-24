@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaTrashAlt } from "react-icons/fa";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import Link from "next/link";
 import html2pdf from "html2pdf.js";
 type Row = {
@@ -232,7 +230,7 @@ const NewQuotation: React.FC<NewQuotationProps> = ({ initialData }) => {
   };
 
   // Conditionally check if values are present
-  const hasNotes = notes.trim() !== "";
+
   const hasTerms = terms.trim() !== "";
 
   return (
@@ -240,7 +238,7 @@ const NewQuotation: React.FC<NewQuotationProps> = ({ initialData }) => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-navy-900">New Quotation</h1>
-        <div className="flex gap-3">
+        <div className="flex gap-3 regular-14">
           <Link
             href={"/user/quotations"}
             className="px-4 py-2 text-gray-600  rounded hover:bg-gray-200"
@@ -253,9 +251,7 @@ const NewQuotation: React.FC<NewQuotationProps> = ({ initialData }) => {
           >
             Save
           </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            Send To...
-          </button>
+
           <button
             onClick={() => clickPdf(quotationDate, quotationNumber)}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
@@ -267,7 +263,7 @@ const NewQuotation: React.FC<NewQuotationProps> = ({ initialData }) => {
 
       <div
         id="quotation-content"
-        className="max-w-3xl  max-h-[150vh]  text-base p-8 bg-white rounded-lg shadow"
+        className="max-w-3xl  max-h-[150vh]  text-base p-8 bg-white rounded-lg shadow relative"
       >
         {/* File Upload and Company Info */}
         <div className="flex justify-between mb-8">
@@ -694,7 +690,7 @@ const NewQuotation: React.FC<NewQuotationProps> = ({ initialData }) => {
         {/* Notes & Terms */}
         <div className="space-y-4 regular-14">
           {/* Notes Section */}
-          {hasNotes && (
+          {/* {hasNotes && (
             <div className="relative">
               <label className="block text-gray-600 mb-2">Notes</label>
               <textarea
@@ -705,7 +701,7 @@ const NewQuotation: React.FC<NewQuotationProps> = ({ initialData }) => {
                 rows={3}
               />
             </div>
-          )}
+          )} */}
 
           {/* Terms Section */}
           {hasTerms && (
@@ -722,23 +718,12 @@ const NewQuotation: React.FC<NewQuotationProps> = ({ initialData }) => {
           )}
 
           {/* Hidden Fields that Appear on Hover */}
-          {!hasNotes && !hasTerms && (
+          { !hasTerms && (
             <div
               className="relative group"
               onMouseEnter={() => {}}
               onMouseLeave={() => {}}
             >
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <label className="block text-gray-600 mb-2">Notes</label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes (optional)"
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                />
-              </div>
-
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <label className="block text-gray-600 mb-2">Terms</label>
                 <textarea

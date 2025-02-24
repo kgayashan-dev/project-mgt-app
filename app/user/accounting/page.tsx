@@ -15,40 +15,6 @@ const AccountingDashboard = () => {
         </div>
       </div>
 
-      {/* Bank Reconciliation Section */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Bank Reconciliation
-        </h2>
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <div className="grid grid-cols-2 gap-8 items-center">
-            <div className="relative">
-              <img
-                src="/image.png"
-                alt="Bank reconciliation preview"
-                className="rounded-lg shadow-md"
-              />
-            </div>
-            <div>
-              <h3 className="text-2xl text-blue-600 font-semibold mb-4">
-                A little bookkeeping goes a long way
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Don&apos;t wait until crunch time to get your books organized.
-                Use Bank Reconciliation on a regular basis to keep your books
-                organized throughout the year.
-                <a href="#" className="text-blue-600 ml-2">
-                  Learn More
-                </a>
-              </p>
-              <button className="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-800">
-                Add Bank Account
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Accounting Reports Section */}
       <section>
         <div className="flex items-center gap-2 mb-6">

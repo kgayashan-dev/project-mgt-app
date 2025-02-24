@@ -2,24 +2,21 @@ import React from "react";
 import Link from "next/link";
 import { ChevronLeft, Printer, PenSquare } from "lucide-react";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
+interface expensArrayData {
+  id: string;
+  expenceType: string;
+  expensMerchant: string;
+  expensSubtotal: string;
+  expensTax: string;
+  expensTotal: string;
+  dexpensDate: string;
 }
 
-const ExpenseDetailPage = ({ params }: PageProps) => {
-  // Mock data - replace with actual data fetching
-  const expense = {
-    type: "Hardware",
-    date: "01/08/2025",
-    merchant: "No Merchant",
-    subtotal: 490.2,
-    fee: 9.8,
-    total: 500.0,
-    id: 1,
-  };
+interface ViewExpensArrayProps {
+  expensData: expensArrayData;
+}
 
+const ExpenseDetailPage = ({ expensData }: ViewExpensArrayProps) => {
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header Section */}
@@ -34,7 +31,7 @@ const ExpenseDetailPage = ({ params }: PageProps) => {
 
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-navy-900">
-            Expense from {expense.merchant}
+            Expense from {expensData.expensMerchant}
           </h1>
           <div className="flex gap-3">
             <button className="px-4 py-2 text-gray-600 hover:bg-gray-10 rounded-lg flex items-center gap-2">
@@ -57,13 +54,15 @@ const ExpenseDetailPage = ({ params }: PageProps) => {
         {/* Icon and Type */}
         <div className="flex items-center gap-3 mb-6">
           <Printer className="text-blue-600 w-6 h-6" />
-          <span className="text-gray-600">{expense.type}</span>
+          <span className="text-gray-600">{expensData.expenceType}</span>
         </div>
 
         {/* Date and Merchant */}
         <div className="mb-16">
-          <div className="text-gray-900">{expense.date}</div>
-          <div className="text-2xl font-semibold mt-2">{expense.merchant}</div>
+          <div className="text-gray-900">{expensData.dexpensDate}</div>
+          <div className="text-2xl font-semibold mt-2">
+            {expensData.expensMerchant}
+          </div>
         </div>
 
         {/* Expense Details */}
@@ -71,19 +70,21 @@ const ExpenseDetailPage = ({ params }: PageProps) => {
           <div className="flex justify-between mb-3">
             <span className="text-gray-600">Subtotal</span>
             <span className="text-gray-900">
-              ${expense.subtotal.toFixed(2)}
+              Rs. {expensData.expensSubtotal.toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between mb-6">
             <span className="text-gray-600">Tax Name</span>
-            <span className="text-gray-900">${expense.fee.toFixed(2)}</span>
+            <span className="text-gray-900">
+              Rs. {expensData.expensTax.toFixed(2)}
+            </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-900 font-medium">
               Grand Total (USD):
             </span>
             <span className="text-2xl font-semibold">
-              ${expense.total.toFixed(2)}
+              Rs. {expensData.expensTotal.toFixed(2)}
             </span>
           </div>
         </div>

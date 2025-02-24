@@ -1,12 +1,21 @@
 import React from "react";
 import { ChevronDown, Search, Plus } from "lucide-react";
-const ProjectExpences = () => {
+
+
+const ProjectExpences = ({ projectID }: { projectID: undefined }) => {
+  // const router = useRouter();
+
   return (
     <div className="">
       <div className="mb-6 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Expences</h1>
-          <button className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Expences {projectID}
+          </h1>
+          <button
+            // onClick={() => router.push(`/user/expenses/${projectID}`)} use expens ID relevant to the project
+            className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
             <Plus className="h-5 w-5" />
           </button>
         </div>
@@ -35,19 +44,19 @@ const ProjectExpences = () => {
                 />
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
-                Client / Invoice Number
+                Merchant/Category
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
-                Description
+                Date/Sourse
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
                 <div className="flex items-center gap-1">
-                  Issued Date
+                  Client/Project/Description
                   <ChevronDown className="h-4 w-4 text-gray-500" />
                 </div>
               </th>
               <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                Amount / Status
+                Amount / Tax / Status
               </th>
             </tr>
           </thead>

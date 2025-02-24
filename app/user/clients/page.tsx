@@ -84,7 +84,7 @@ const ClientsPage = () => {
     <div className="p-6  min-h-screen my-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-semibold text-gray-800">Clients</h1>
+        <h1 className="text-xl font-semibold text-gray-800">Clients</h1>
         <div className="flex items-center gap-4">
           <button
             onClick={handleNextPage}
@@ -99,15 +99,15 @@ const ClientsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
           <p className="text-xl font-medium text-gray-700">Rs0</p>
-          <p className="text-gray-500">overdue</p>
+          <p className="text-gray-500 regular-14">overdue</p>
         </div>
         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
           <p className="text-xl font-medium text-gray-700">Rs0</p>
-          <p className="text-gray-500">total outstanding</p>
+          <p className="text-gray-500 regular-14">total outstanding</p>
         </div>
         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
           <p className="text-xl font-medium text-gray-700">Rs0</p>
-          <p className="text-gray-500">in draft</p>
+          <p className="text-gray-500 regular-14">in draft</p>
         </div>
       </div>
 
@@ -123,16 +123,16 @@ const ClientsPage = () => {
 
         {/* Header Section */}
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-lg font-semibold text-gray-800">All Clients</h1>
+          <h1 className="regular-14 font-semibold text-gray-800">All Clients</h1>
           <div className="flex items-center gap-2">
             <input
               type="text"
               placeholder="Search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 regular-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button className="flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200">
+            <button className="flex regular-12 items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200">
               Advanced Search
               <svg
                 className="w-4 h-4 ml-2"
@@ -153,7 +153,7 @@ const ClientsPage = () => {
         </div>
 
         {/* Table/Client List */}
-        <div className="space-y-4 text-sm">
+        <div className="space-y-4 regular-12 ">
           {/* Table Header */}
           <div className="grid grid-cols-4 items-center px-4 py-2 bg-gray-10 border-b">
             <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ const ClientsPage = () => {
           ))}
 
           {/* Total Row */}
-          <div className="flex justify-end px-4 py-3 bg-gray-20">
+          <div className="flex justify-end px-4 py-2 bg-gray-20">
             <div className="font-medium">
               Total Outstanding: Rs.{totalOutstanding.toLocaleString()} LKR
             </div>

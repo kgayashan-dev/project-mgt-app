@@ -147,6 +147,12 @@ body {
   .regular-12 {
     @apply text-[12px] font-[400];
   }
+  .regular-9 {
+    @apply text-[9px] font-[400];
+  }
+  .regular-10 {
+    @apply text-[10px] font-[400];
+  }
 
   .medium-14 {
     @apply text-[14px] font-[600];

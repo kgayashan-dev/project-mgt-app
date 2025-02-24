@@ -29,11 +29,38 @@ export const PROJECTS = [
         description: "Frontend Development",
         hours: 50,
         rate: 150.0,
-      },
+      },b
     ],
   },
   {
     id: "PRJ_002",
+    projectName: "Mobile App Development",
+    clientId: "CLT_003",
+    clientName: "Sam",
+    description: "iOS and Android app for inventory management",
+    startDate: "2024-01-15",
+    endDate: "2024-06-30",
+    flatRate: 25000.0,
+    totalHours: 200,
+    status: "in-progress",
+    teamMembers: ["TM_002", "TM_005"],
+    services: [
+      {
+        id: 1,
+        description: "App Architecture",
+        hours: 30,
+        rate: 175.0,
+      },
+      {
+        id: 2,
+        description: "Mobile Development",
+        hours: 140,
+        rate: 160.0,
+      },
+    ],
+  },
+  {
+    id: "PRJ_004",
     projectName: "Mobile App Development",
     clientId: "CLT_003",
     clientName: "Sam",
@@ -122,9 +149,10 @@ export const QUOTATION = [
     id: "790",
     quotationNumber: "790",
     quotationDate: "2025-01-26",
-    client: "Global Solutions LLa",
+    clientName: "Global Solutions LLa",
     discoutPercentage: 1,
     discountAmount: 20,
+    emailAddress: "abcd@gmai.com",
     table: [
       {
         description: "Consulting Services",
@@ -149,11 +177,13 @@ export const QUOTATION = [
   {
     id: "791",
     quotationNumber: "791",
-    client: "Tech Innovators Inc.",
+    clientName: "Tech Innovators Inc.",
+    clientAddress: "B12,Ranwala,Kegalle, ",
     quotationDate: "2025-01-26",
-
     discoutPercentage: 1,
     discountAmount: 20,
+    emailAddress: "abc@gmail.com",
+    additionalInfo: "Additional Information",
     table: [
       {
         description: "Web Development",
@@ -173,6 +203,59 @@ export const QUOTATION = [
     subtotal: 3600,
     totalTax: 720,
     grandTotal: 4320,
+    terms: "lorem Ipsum dolor sit amet, consectetur adipiscing el",
+  },
+  {
+    id: "793",
+    quotationNumber: "793",
+    clientName: "Adapt Information Technologies (Pvt) Ltd ",
+    quotationDate: "2025-01-26",
+    clientAddress: "No. 60,Nawala Road,,Nugegoda",
+    discoutPercentage: 1,
+    discountAmount: 20,
+    emailAddress: "abc@gmail.com",
+    phoneNumber: "0709879871",
+    reference: "Supply and Installation - Amana - Kollupitiya",
+    table: [
+      {
+        description: "CAT6 Cable termination both sides ",
+        rate: 200,
+        unit: "NOS",
+        qty: 15,
+        total: 3000,
+      },
+      {
+        description:
+          "CAT 6 Cable laying for CCTV Avg of 30m including covering materials ",
+        rate: 50,
+        unit: "Nos",
+        qty: 12,
+        total: 600,
+      },
+      {
+        description: "CCTV Mounting both single and double height ",
+        rate: 50,
+        unit: "Nos",
+        qty: 12,
+        total: 600,
+      },
+      {
+        description: "Transport Charges ",
+        rate: 50,
+        unit: "Nos",
+        qty: 12,
+        total: 600,
+      },
+    ],
+    subtotal: 3600,
+    totalTax: 720,
+    grandTotal: 4320,
+    terms: [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+    ],
   },
 ];
 export const COMPANY = [
@@ -190,7 +273,11 @@ export const INVOICEDATA = [
     invoiceNumber: "INV-001",
     invoiceDate: "2025-01-26",
     location: "United Kingdom",
+    phoneNumber: "09890980987",
+    emailAddress: "abc@abc.com",
     dueDate: "2025-02-26",
+    clientAddress: "No. 60,Nawala Road,,Nugegoda",
+
     invoiceReference: "reee",
     invoiceStatus: "Pending",
     table: [
@@ -231,8 +318,13 @@ export const INVOICEDATA = [
     invoiceNumber: "INV-004",
     invoiceDate: "2025-01-27",
     location: "United States",
+    phoneNumber: "09890980987",
+    emailAddress: "abc@abc.com",
+
     dueDate: "2025-02-27",
     invoiceReference: "Reference",
+    clientAddress: "No. 60,Nawala Road,,Nugegoda",
+
     invoiceStatus: "Pending",
 
     table: [
@@ -264,8 +356,11 @@ export const INVOICEDATA = [
     id: "INV-003",
     client: "Tech Innovations Ltd.",
     invoiceNumber: "INV-003",
+    clientAddress: "No. 60,Nawala Road,,Nugegoda",
+    phoneNumber: "09890980987",
     invoiceDate: "2025-01-27",
     location: "United States",
+    emailAddress: "abc@abc.com",
     dueDate: "2025-02-27",
     invoiceReference: "Reference",
     invoiceStatus: "Partial",
@@ -301,6 +396,8 @@ export const INVOICEDATA = [
     invoiceNumber: "INV-004",
     invoiceDate: "2025-01-27",
     location: "United States",
+    clientAddress: "No. 60,Nawala Road,,Nugegoda",
+
     dueDate: "2025-02-27",
     invoiceReference: "Reference",
     invoiceStatus: "Pending",
@@ -458,5 +555,113 @@ export const VENDORDATA = [
     website: "https://www.cloudinfra.com",
     phoneNumber: "+1-555-0132",
     totalOutstanding: 31800.0,
+  },
+];
+export const CATEGORIES = [
+  {
+    type: "Advertising",
+  },
+  {
+    type: "Education and training",
+  },
+  {
+    type: "Employee Benefits",
+  },
+  {
+    type: "Office expences",
+  },
+  {
+    type: "Other expences",
+  },
+  {
+    type: "Personal",
+  },
+  {
+    type: "Rect or lease",
+  },
+];
+
+export const BILLDATA = [
+  {
+    id: "BILL_001",
+    companyName: "TechCorp Solutions",
+    vendorName: "David",
+    billNumber: "001",
+    issueDate: "2024-2-7",
+    dueDate: "2024-2-3",
+    vendor: "Techi Solutions",
+    emailAddress: "contact@techcorp.com",
+    phoneNumber: "+1-555-0123",
+    totalOutstanding: 15750.0,
+    table: [
+      {
+        description: "Sample",
+        category: "Service",
+        rate: 300,
+        qty: 1,
+        total: 300,
+      },
+    ],
+    subTotal: 300,
+    tax: 2,
+    grandTotal: 306,
+    amountDue: 306,
+    clientAddress: "123 Main St, Springfield, IL, USA", // Add clientAddress
+    totalTax: 6, // Add totalTax
+  },
+  {
+    id: "BILL_002",
+    companyName: "GreenTech Innovations",
+    vendorName: "Sarah",
+    billNumber: "002",
+    issueDate: "2024-3-15",
+    dueDate: "2024-4-15",
+    emailAddress: "info@greentech.com",
+    phoneNumber: "+1-555-9876",
+    totalOutstanding: 22500.0,
+    table: [
+      {
+        description: "Solar Panel Installation",
+        category: "Renewable Energy",
+        rate: 5000,
+        qty: 3,
+        total: 15000,
+      },
+      {
+        description: "Energy Storage System",
+        category: "Renewable Energy",
+        rate: 7500,
+        qty: 1,
+        total: 7500,
+      },
+    ],
+    subTotal: 22500,
+    tax: 450,
+    grandTotal: 22950,
+    amountDue: 22950,
+    clientAddress: "456 Green St, EcoCity, CA, USA",
+    totalTax: 450,
+  },
+];
+
+export const EXPENSDATA = [
+  {
+    id: "exp 01",
+    type: "application",
+    merchant: "constructions1",
+    subtotal: 30000,
+    fee: 600,
+    total: 36000,
+    date: "2024-2-2",
+
+  },
+  {
+    id: "exp 02",
+    type: "application 2",
+    merchant: "constructions1",
+    subtotal: 30000,
+    fee: 600,
+    total: 36000,
+    date: "2024-2-3",
   },
 ];

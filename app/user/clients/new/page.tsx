@@ -68,11 +68,13 @@ export default function NewClient() {
     router.push("/user/clients");
   };
 
+  
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-navy-900">New Client</h1>
+        <h1 className="text-xl font-bold text-navy-900">New Client</h1>
         <div className="flex gap-4">
           <button
             onClick={handleRedirect}
@@ -94,15 +96,15 @@ export default function NewClient() {
         <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-6 text-gray-600">
             <Info size={20} />
-            <p>
+            <p className="regular-14">
               Either First and Last Name or Company Name is required to save
               this Client.
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 regular-12">
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block regular-12 font-medium mb-2">
                 Company Name
               </label>
               <input
@@ -117,11 +119,9 @@ export default function NewClient() {
                 }
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 regular-12">
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  First Name
-                </label>
+                <label className="block  font-medium mb-2">First Name</label>
                 <input
                   type="text"
                   className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -135,7 +135,7 @@ export default function NewClient() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block regular-12 font-medium mb-2">
                   Last Name
                 </label>
                 <input
@@ -153,7 +153,7 @@ export default function NewClient() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block regular-12 font-medium mb-2">
                 Email Address
               </label>
               <input
@@ -170,7 +170,7 @@ export default function NewClient() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block regular-12 font-medium mb-2">
                 Phone Number
               </label>
               <input
@@ -188,7 +188,7 @@ export default function NewClient() {
 
             {showBusinessPhone && (
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block regular-12 font-medium mb-2">
                   Business Phone
                 </label>
                 <input
@@ -216,7 +216,7 @@ export default function NewClient() {
 
             {showMobilePhone && (
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block regular-12 font-medium mb-2">
                   Mobile Phone
                 </label>
                 <input
@@ -244,7 +244,7 @@ export default function NewClient() {
 
             {showAddress && (
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block regular-12 font-medium mb-2">
                   Address
                 </label>
                 <textarea

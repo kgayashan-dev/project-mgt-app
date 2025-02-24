@@ -60,7 +60,7 @@ const ExpensePage = () => {
     };
 
     return (
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 regular-12">
         {isExpanded ? (
           <div className="p-4 bg-white">
             <div className="grid grid-cols-2 gap-4">
@@ -189,7 +189,7 @@ const ExpensePage = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-8 mt-6">
-        <h1 className="text-3xl font-bold">Expenses</h1>
+        <h1 className="text-xl font-bold">Expenses</h1>
         <div className="flex gap-2">
           <button className="px-4 py-2 text-gray-600 hover:text-gray-800">
             More Actions
@@ -210,9 +210,9 @@ const ExpensePage = () => {
             <input
               type="text"
               placeholder="Search expenses..."
-              className="flex-1 max-w-2xl px-4 py-2 border rounded-lg"
+              className="flex-1 max-w-2xl px-4 py-2 border regular-12 rounded-lg"
             />
-            <button className="flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200">
+            <button className="flex items-center px-4 py-2 regular-12 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200">
               Advanced Search
               <svg
                 className="w-4 h-4 ml-2"

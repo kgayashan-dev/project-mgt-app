@@ -14,6 +14,7 @@ async function getAllInvoiceData() {
     invoiceNumber: invoice.invoiceNumber,
     invoiceDate: invoice.invoiceDate,
     invoiceDueDate: invoice.dueDate,
+    
     client: invoice.client || "Not specified", // Default client name if missing
     location: "Not mentioned", // Default location if missing
     outstandingRevenue: 0, // Default if missing

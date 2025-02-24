@@ -11,7 +11,7 @@ const Quotations = () => {
   // Filter quotations based on the search query
   const filteredQuotations = QUOTATION.filter((quotation) => {
     return (
-      quotation.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      quotation.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       quotation.quotationNumber.includes(searchQuery)
     );
   });
@@ -53,7 +53,7 @@ const Quotations = () => {
       {/* Search and Advanced Search */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
         <h2 className="text-xl font-bold">Quotation Details</h2>
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full md:w-auto">
+        <div className="flex regular-14 flex-col sm:flex-row gap-4 items-start sm:items-center w-full md:w-auto">
           <div className="relative w-full sm:w-64">
             <input
               type="text"
@@ -134,7 +134,7 @@ const Quotations = () => {
                   onClick={() => handleRowClick(quotation.id)} // Call the function on row click
                   className="border-b hover:bg-gray-100 transition-colors cursor-pointer"
                 >
-                  <td className="p-3">{quotation.client}</td>
+                  <td className="p-3">{quotation.clientName}</td>
                   <td className="p-3">{quotation.quotationNumber}</td>
                   <td className="p-3">
                     {quotation.quotationDate || "Not available"}

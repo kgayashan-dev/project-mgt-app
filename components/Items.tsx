@@ -90,7 +90,7 @@ const ItemsPage = () => {
     <div className="p-6 min-h-screen my-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-semibold text-gray-800">Items</h1>
+        <h1 className="text-xl font-semibold text-gray-800">Items</h1>
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
@@ -105,7 +105,7 @@ const ItemsPage = () => {
       </div>
 
       {/* Search Section */}
-      <div className="flex justify-end items-center mb-4 gap-2">
+      <div className="flex justify-end items-center mb-4 gap-2 regular-14">
         <input
           type="text"
           placeholder="Search"
@@ -134,7 +134,7 @@ const ItemsPage = () => {
       </div>
 
       {/* Table/Item List */}
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4 regular-12">
         {/* Table Header */}
         <div className="grid grid-cols-5 items-center px-4 py-2 bg-gray-100 border-b">
           <span className="font-medium">ID</span>

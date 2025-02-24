@@ -37,13 +37,13 @@ export default async function Page({
   const data = await getprojectData(projectId);
 
   if (!data) {
-    return <div>project not found</div>;
+    return <div>Project not found</div>;
   }
 
   return (
     <div>
-      <p className="text-[10px] mt-4 font-bold">project ID: {projectId}</p>
-      {/* Pass the correct prop to Viewproject */}
+      <p className="text-[10px] mt-4 font-bold">Project ID: {projectId}</p>
+      {/* Pass the correct prop to Project */}
       <Project projectArray={data} />
     </div>
   );
