@@ -6,7 +6,7 @@ import path from 'path';
 // Disable Next.js body parsing for this route
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false,// false
   },
 };
 
