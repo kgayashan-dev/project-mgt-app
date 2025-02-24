@@ -29,7 +29,7 @@ export const PROJECTS = [
         description: "Frontend Development",
         hours: 50,
         rate: 150.0,
-      },b
+      },
     ],
   },
   {

@@ -6,7 +6,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Link from "next/link";
 import html2pdf from "html2pdf.js";
-import { FaImage, FaFilePdf } from "react-icons/fa";
+
 
 type Row = {
   description: string;

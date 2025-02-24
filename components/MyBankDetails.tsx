@@ -145,7 +145,7 @@ const BankDetailsManager = () => {
                 >
                   <td className="p-3">{account.name}</td>
                   <td className="p-3">{account.bank}</td>
-                  <td className="p-3">{account.branch}</td>
+                  <td className="p-3">{account.br}</td>
                   <td className="p-3">{account.accountNumber}</td>
                   <td className="p-3 text-right">
                     <button
