@@ -1,0 +1,42 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE OR ALTER PROCEDURE [dbo].[sp_AddInvoice]
+    @InvoiceNo NVARCHAR(50),
+    @PONumber NVARCHAR(50),
+    @InvoiceDate DATE,
+    @QuotationNo NVARCHAR(50),
+    @Remarks NVARCHAR(MAX),
+    @ClientID bigint,
+    @SubTotal DECIMAL(18,2),
+    @Tax DECIMAL(18,2),
+    @Total DECIMAL(18,2),
+    @Items ItemDetailsType READONLY -- TVP (Table-Valued Parameter)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION sp_AddInvoice
+        INSERT INTO [project_pulse].[dbo].[Invoices] (InvoiceNo, PoNo, InvoiceDate, QuotationNo, Remarks,ClientID, Tax, InvoiceTotal)
+        VALUES (@InvoiceNo, @PONumber, @InvoiceDate, @QuotationNo, @Remarks,@ClientID, @Tax, @Total);
+
+        DECLARE @InvoiceId INT = SCOPE_IDENTITY();
+
+        INSERT INTO InvoiceItems (InvoiceId, Description, Unit, Qty, Rate)
+        SELECT @InvoiceId, Description, Unit, Qty, Rate FROM @Items;
+
+        if @@TRANCOUNT>0
+            COMMIT TRANSACTION sp_AddInvoice
+    END TRY
+    BEGIN CATCH
+        if @@TRANCOUNT>0
+            ROLLBACK TRANSACTION sp_AddInvoice;
+        THROW;
+    END CATCH
+END
+GO
+
+
+
+

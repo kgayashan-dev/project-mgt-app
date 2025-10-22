@@ -1,0 +1,641 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[QuotationItem](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [QuotationId] [nvarchar](50) NULL,
+    [Description] [nvarchar](200) NULL,
+    [Unit] [nvarchar](20) NULL,
+    [Qty] [int] NULL,
+    [Rate] [decimal](18, 2) NULL,
+    [Total] AS ([Qty] * [Rate]) PERSISTED,
+PRIMARY KEY CLUSTERED 
+(
+    [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[QuotationItem] WITH CHECK ADD FOREIGN KEY([QuotationId])
+REFERENCES [dbo].[Quotations] ([Id])
+ON DELETE CASCADE
+GO
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Quotations](
+    [Id] [nvarchar](50) NOT NULL,
+    [QuotationNumber] [nvarchar](50) NOT NULL,
+    [QuotationDate] [datetime] NOT NULL,
+    [ClientName] [nvarchar](100) NOT NULL,
+    [DiscountPercentage] [int] NOT NULL,
+    [DiscountAmount] [decimal](18, 2) NOT NULL,
+    [EmailAddress] [nvarchar](100) NULL,
+    [Subtotal] [decimal](18, 2) NOT NULL,
+    [TotalTax] [decimal](18, 2) NOT NULL,
+    [GrandTotal] [decimal](18, 2) NOT NULL,
+    [Notes] [nvarchar](max) NULL,
+    [CreatedDate] [datetime] NOT NULL DEFAULT GETDATE(),
+PRIMARY KEY CLUSTERED 
+(
+    [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+--================================
+-- Quotation Intert
+--=================================
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_AddQuotation]
+    @Id NVARCHAR(50) = NULL,  -- Make ID optional
+    @QuotationNumber NVARCHAR(50),
+    @QuotationDate DATETIME,
+    @ClientName NVARCHAR(100),
+    @ClientId NVARCHAR(100),
+    @DiscountPercentage INT,
+    @DiscountAmount DECIMAL(18,2),
+    @EmailAddress NVARCHAR(100),
+    @Subtotal DECIMAL(18,2),
+    @TotalTax DECIMAL(18,2),
+    @GrandTotal DECIMAL(18,2),
+    @Notes NVARCHAR(MAX),
+    @Items QuotationItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION
+        
+        DECLARE @NewId NVARCHAR(50);
+        
+        -- Use provided ID or generate new one
+        IF @Id IS NULL OR @Id = ''
+        BEGIN
+            -- Generate new Quotation ID in QID000001 format
+            SELECT @NewId = 'QID' + RIGHT('000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(6)), 6)
+            FROM Quotations;
+        END
+        ELSE
+        BEGIN
+            SET @NewId = @Id;
+        END
+        
+        -- Insert main quotation record
+        INSERT INTO [dbo].[Quotations] (
+            Id, QuotationNumber, QuotationDate, ClientName, ClientId,
+            DiscountPercentage, DiscountAmount, EmailAddress,
+            Subtotal, TotalTax, GrandTotal, Notes, CreatedDate
+        )
+        VALUES (
+            @NewId, @QuotationNumber, @QuotationDate, @ClientName, @ClientId,
+            @DiscountPercentage, @DiscountAmount, @EmailAddress,
+            @Subtotal, @TotalTax, @GrandTotal, @Notes, GETDATE()
+        );
+
+        -- Insert quotation items
+        INSERT INTO QuotationItem (QuotationId, Description, Unit, Qty, Rate)
+        SELECT @NewId, Description, Unit, Qty, Rate FROM @Items;
+
+        -- Return the generated ID
+        SELECT @NewId AS GeneratedQuotationId;
+        
+        COMMIT TRANSACTION
+            
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+
+
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetQuotationById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    WHERE q.Id = @Id
+    ORDER BY qi.Id
+END
+GO
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllQuotations]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    ORDER BY q.QuotationDate DESC, qi.Id
+END
+GO
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetQuotationById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    WHERE q.Id = @Id
+    ORDER BY qi.Id
+END
+GO
+
+-- Get quotation by id or number
+-- New SP for quotation number
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetQuotationByNumber]
+    @QuotationNumber NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    WHERE q.QuotationNumber = @QuotationNumber
+    ORDER BY qi.Id
+END
+GO
+
+-- update quotation
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_UpdateQuotation]
+    @Id NVARCHAR(50),
+    @QuotationNumber NVARCHAR(50),
+    @QuotationDate DATETIME,
+    @ClientName NVARCHAR(100),
+    @ClientId NVARCHAR(100),
+    @DiscountPercentage INT,
+    @DiscountAmount DECIMAL(18,2),
+    @EmailAddress NVARCHAR(100),
+    @Subtotal DECIMAL(18,2),
+    @TotalTax DECIMAL(18,2),
+    @GrandTotal DECIMAL(18,2),
+    @Notes NVARCHAR(MAX),
+    @Items QuotationItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        UPDATE Quotations SET
+            QuotationNumber = @QuotationNumber,
+            QuotationDate = @QuotationDate,
+            ClientName = @ClientName,
+            ClientId = @ClientId,
+            DiscountPercentage = @DiscountPercentage,
+            DiscountAmount = @DiscountAmount,
+            EmailAddress = @EmailAddress,
+            Subtotal = @Subtotal,
+            TotalTax = @TotalTax,
+            GrandTotal = @GrandTotal,
+            Notes = @Notes
+        WHERE Id = @Id;
+
+        DELETE FROM QuotationItem WHERE QuotationId = @Id;
+        
+        INSERT INTO QuotationItem (QuotationId, Description, Unit, Qty, Rate)
+        SELECT @Id, Description, Unit, Qty, Rate FROM @Items;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+
+USE project_pulse;
+
+SELECT 
+    Q.QuotationNumber, 
+    QI.Id 
+FROM 
+    Quotations Q
+INNER JOIN 
+    QuotationItem QI ON Q.Id = QI.QuotationId 
+WHERE 
+    QI.QuotationId = '2';
+
+
+
+
+GO
+
+-- Add ClientId column if it doesn't exist
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+               WHERE TABLE_NAME = 'Quotations' AND COLUMN_NAME = 'ClientId')
+BEGIN
+    ALTER TABLE Quotations 
+    ADD ClientId NVARCHAR(50) NULL
+    
+    -- Add foreign key constraint
+    ALTER TABLE Quotations 
+    ADD CONSTRAINT FK_Quotations_Clients 
+    FOREIGN KEY (ClientId) REFERENCES Clients(Id)
+END
+GO
+
+
+
+
+
+
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_AddQuotation]
+    @Id NVARCHAR(50) = NULL,
+    @QuotationNumber NVARCHAR(50),
+    @QuotationDate DATETIME ,
+    @ClientName NVARCHAR(100),
+    @ClientId NVARCHAR(100),
+    @DiscountPercentage INT,
+    @DiscountAmount DECIMAL(18,2),
+    -- @EmailAddress NVARCHAR(100),
+    @Subtotal DECIMAL(18,2),
+    @TotalTax DECIMAL(18,2),
+    @GrandTotal DECIMAL(18,2),
+    @Notes NVARCHAR(MAX),
+    @Items QuotationItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION
+        
+        DECLARE @NewId NVARCHAR(50);
+        DECLARE @MaxNumber INT;
+        
+        -- Use provided ID or generate new one
+        IF @Id IS NULL OR @Id = '' OR @Id = 'string'
+        BEGIN
+            -- Get the maximum numeric part safely
+            SELECT @MaxNumber = ISNULL(MAX(
+                CASE 
+                    WHEN Id LIKE 'QID%' AND TRY_CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT) IS NOT NULL
+                    THEN CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)
+                    ELSE 0
+                END
+            ), 0)
+            FROM Quotations;
+            
+            SET @NewId = 'QID' + RIGHT('000000' + CAST(@MaxNumber + 1 AS NVARCHAR(6)), 6);
+        END
+        ELSE
+        BEGIN
+            -- If ID is provided, validate it's not already used
+            IF EXISTS (SELECT 1 FROM Quotations WHERE Id = @Id)
+            BEGIN
+                RAISERROR('Quotation ID already exists', 16, 1);
+                RETURN;
+            END
+            SET @NewId = @Id;
+        END
+        
+        -- Validate that quotation number doesn't already exist
+        IF EXISTS (SELECT 1 FROM Quotations WHERE QuotationNumber = @QuotationNumber)
+        BEGIN
+            RAISERROR('Quotation number already exists', 16, 1);
+            RETURN;
+        END
+        
+        -- Insert main quotation record
+        INSERT INTO [dbo].[Quotations] (
+            Id, QuotationNumber, QuotationDate, ClientName, ClientId,
+            DiscountPercentage, DiscountAmount, EmailAddress,
+            Subtotal, TotalTax, GrandTotal, Notes, CreatedDate
+        )
+        VALUES (
+            @NewId, @QuotationNumber, @QuotationDate, @ClientName, @ClientId,
+            @DiscountPercentage, @DiscountAmount,
+            @Subtotal, @TotalTax, @GrandTotal, @Notes, GETDATE()
+        );
+
+        -- Insert quotation items
+        INSERT INTO QuotationItem (QuotationId, Description, Unit, Qty, Rate)
+        SELECT @NewId, Description, Unit, Qty, Rate FROM @Items;
+
+        -- Return the generated ID
+        SELECT @NewId AS GeneratedQuotationId;
+        
+        COMMIT TRANSACTION
+            
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+        
+        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH
+END
+GO
+
+select * from Quotations
+
+GO
+-- get all
+
+
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllQuotations]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId,
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    ORDER BY q.QuotationDate DESC, qi.Id
+END
+GO
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetQuotationById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId,
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    WHERE q.Id = @Id
+    ORDER BY qi.Id
+END
+GO
+
+
+
+
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetQuotationById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId,
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    WHERE q.Id = @Id
+    ORDER BY qi.Id
+END
+GO
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllQuotations]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId,
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    ORDER BY q.QuotationDate DESC, qi.Id
+END
+GO
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetQuotationById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId,
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    WHERE q.Id = @Id
+    ORDER BY qi.Id
+END
+GO
+
+-- Get quotation by id or number
+-- New SP for quotation number
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetQuotationByNumber]
+    @QuotationNumber NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        q.Id, q.QuotationNumber, q.QuotationDate, q.ClientName,q.ClientId,
+        q.DiscountPercentage, q.DiscountAmount, q.EmailAddress,
+        q.Subtotal, q.TotalTax, q.GrandTotal, q.Notes,
+        qi.Id AS ItemId, qi.Description, qi.Unit, qi.Qty, qi.Rate, qi.Total
+    FROM Quotations q
+    LEFT JOIN QuotationItem qi ON q.Id = qi.QuotationId
+    WHERE q.QuotationNumber = @QuotationNumber
+    ORDER BY qi.Id
+END
+GO
+
+-- update quotation
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_UpdateQuotation]
+    @Id NVARCHAR(50),
+    @QuotationNumber NVARCHAR(50),
+    @QuotationDate DATETIME,
+    @ClientName NVARCHAR(100),
+    @ClientId NVARCHAR(100),
+    @DiscountPercentage INT,
+    @DiscountAmount DECIMAL(18,2),
+    @EmailAddress NVARCHAR(100),
+    @Subtotal DECIMAL(18,2),
+    @TotalTax DECIMAL(18,2),
+    @GrandTotal DECIMAL(18,2),
+    @Notes NVARCHAR(MAX),
+    @Items QuotationItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        UPDATE Quotations SET
+            QuotationNumber = @QuotationNumber,
+            QuotationDate = @QuotationDate,
+            ClientName = @ClientName,
+            ClientId = @ClientId,
+            DiscountPercentage = @DiscountPercentage,
+            DiscountAmount = @DiscountAmount,
+            EmailAddress = @EmailAddress,
+            Subtotal = @Subtotal,
+            TotalTax = @TotalTax,
+            GrandTotal = @GrandTotal,
+            Notes = @Notes
+        WHERE Id = @Id;
+
+        DELETE FROM QuotationItem WHERE QuotationId = @Id;
+        
+        INSERT INTO QuotationItem (QuotationId, Description, Unit, Qty, Rate)
+        SELECT @Id, Description, Unit, Qty, Rate FROM @Items;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+
+
+-- Alter table Quotations Drop column EmailAddress
+
+
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_AddQuotation]
+    @Id NVARCHAR(50) = NULL,
+    @QuotationNumber NVARCHAR(50),
+    @QuotationDate DATETIME ,
+    @ClientName NVARCHAR(100),
+    @ClientId NVARCHAR(100),
+    @DiscountPercentage INT,
+    @DiscountAmount DECIMAL(18,2),
+    -- @EmailAddress NVARCHAR(100),
+    @Subtotal DECIMAL(18,2),
+    @TotalTax DECIMAL(18,2),
+    @GrandTotal DECIMAL(18,2),
+    @Notes NVARCHAR(MAX),
+    @Items QuotationItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION
+        
+        DECLARE @NewId NVARCHAR(50);
+        DECLARE @MaxNumber INT;
+        
+        -- Use provided ID or generate new one
+        IF @Id IS NULL OR @Id = '' OR @Id = 'string'
+        BEGIN
+            -- Get the maximum numeric part safely
+            SELECT @MaxNumber = ISNULL(MAX(
+                CASE 
+                    WHEN Id LIKE 'QID%' AND TRY_CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT) IS NOT NULL
+                    THEN CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)
+                    ELSE 0
+                END
+            ), 0)
+            FROM Quotations;
+            
+            SET @NewId = 'QID' + RIGHT('000000' + CAST(@MaxNumber + 1 AS NVARCHAR(6)), 6);
+        END
+        ELSE
+        BEGIN
+            -- If ID is provided, validate it's not already used
+            IF EXISTS (SELECT 1 FROM Quotations WHERE Id = @Id)
+            BEGIN
+                RAISERROR('Quotation ID already exists', 16, 1);
+                RETURN;
+            END
+            SET @NewId = @Id;
+        END
+        
+        -- Validate that quotation number doesn't already exist
+        IF EXISTS (SELECT 1 FROM Quotations WHERE QuotationNumber = @QuotationNumber)
+        BEGIN
+            RAISERROR('Quotation number already exists', 16, 1);
+            RETURN;
+        END
+        
+        -- Insert main quotation record
+        INSERT INTO [dbo].[Quotations] (
+            Id, QuotationNumber, QuotationDate, ClientName, ClientId,
+            DiscountPercentage, DiscountAmount,
+            Subtotal, TotalTax, GrandTotal, Notes, CreatedDate
+        )
+        VALUES (
+            @NewId, @QuotationNumber, @QuotationDate, @ClientName, @ClientId,
+            @DiscountPercentage, @DiscountAmount,
+            @Subtotal, @TotalTax, @GrandTotal, @Notes, GETDATE()
+        );
+
+        -- Insert quotation items
+        INSERT INTO QuotationItem (QuotationId, Description, Unit, Qty, Rate)
+        SELECT @NewId, Description, Unit, Qty, Rate FROM @Items;
+
+        -- Return the generated ID
+        SELECT @NewId AS GeneratedQuotationId;
+        
+        COMMIT TRANSACTION
+            
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+        
+        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH
+END
+GO
+
+select * from Quotations
+
+-- Alter table Quotations Drop column EmailAddress

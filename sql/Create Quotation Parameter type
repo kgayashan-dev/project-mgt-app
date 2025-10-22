@@ -1,0 +1,14 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TYPE [dbo].[QuotationItemDetailsType] AS TABLE(
+    [Description] [nvarchar](200) NULL,
+    [Unit] [nvarchar](20) NULL,
+    [Qty] [int] NULL,
+    [Rate] [decimal](18, 2) NULL
+)
+GO
+
+

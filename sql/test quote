@@ -1,0 +1,23 @@
+SELECT TOP (1000)
+    [Id]
+      , [QuotationId]
+      , [Description]
+      , [Unit]
+      , [Qty]
+      , [Rate]
+      , [Total]
+FROM [project_pulse].[dbo].[QuotationItem]
+  
+GO
+
+-- Select rows from a Table or View '[ ]' in schema '[dbo]'
+SELECT 
+    q.ClientName, q.QuotationNumber,
+    qi.QuotationId
+FROM 
+    [dbo].[Quotations] q
+INNER JOIN 
+    [dbo].[QuotationItem] qi ON q.Id = qi.QuotationId
+WHERE 
+    q.QuotationNumber = 'Q2'
+  GO

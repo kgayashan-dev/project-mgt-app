@@ -1,0 +1,188 @@
+-- make client id foreign key of quotation
+
+-- Add ClientId column if it doesn't exist
+
+
+
+CREATE or ALTER PROCEDURE [dbo].[sp_CreateClient]
+    @Name NVARCHAR(100),
+    @Initials NVARCHAR(10) = NULL,
+    @Location NVARCHAR(200) = NULL,
+    @ContactEmail NVARCHAR(100) = NULL,
+    @PhoneNumber NVARCHAR(20) = NULL,
+    @BusinessType NVARCHAR(50) = NULL,
+    @BillingCycle NVARCHAR(20) = NULL
+AS
+
+
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        DECLARE @NewId NVARCHAR(50);
+        
+        -- Generate new Client ID
+        SELECT @NewId = 'CID' + RIGHT('0000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(7)), 7)
+        FROM Clients;
+        
+        -- Insert new client
+        INSERT INTO Clients (
+            Id, Name, Initials, Location, ContactEmail, 
+            PhoneNumber, BusinessType, BillingCycle, CreatedAt, LastActive
+        )
+        VALUES (
+            @NewId, @Name, @Initials, @Location, @ContactEmail,
+            @PhoneNumber, @BusinessType, @BillingCycle, GETDATE(), GETDATE()
+        );
+        
+        -- Return the generated ID
+        SELECT @NewId AS Id;
+        
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO 
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllClients]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        Id,
+        Name,
+        Initials,
+        Location,
+        ContactEmail,
+        PhoneNumber,
+        BusinessType,
+        BillingCycle,
+        CreatedAt,
+        LastActive,
+        FORMAT(CreatedAt, 'yyyy-MM-dd') AS ClientSince
+    FROM Clients
+    ORDER BY CreatedAt DESC;
+END
+
+
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetClientById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        Id,
+        Name,
+        Initials,
+        Location,
+        ContactEmail,
+        PhoneNumber,
+        BusinessType,
+        BillingCycle,
+        CreatedAt,
+        LastActive,
+        FORMAT(CreatedAt, 'yyyy-MM-dd') AS ClientSince
+    FROM Clients
+    WHERE Id = @Id;
+END
+
+
+
+
+
+GO
+
+CREATE or alter PROCEDURE [dbo].[sp_DeleteClient]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        DELETE FROM Clients 
+        WHERE Id = @Id;
+        
+        IF @@ROWCOUNT = 0
+            THROW 50000, 'Client not found', 1;
+            
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+
+
+GO
+
+CREATE or ALTER PROCEDURE [dbo].[sp_GetNextClientId]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @NextId NVARCHAR(50);
+    
+    SELECT @NextId = 'CID' + RIGHT('0000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(7)), 7)
+    FROM Clients;
+    
+    SELECT @NextId AS NextClientId;
+END
+
+
+
+-- Create indexes for better performance
+CREATE INDEX IX_Clients_Name ON Clients(Name);
+CREATE INDEX IX_Clients_ContactEmail ON Clients(ContactEmail);
+CREATE INDEX IX_Clients_CreatedAt ON Clients(CreatedAt DESC);
+
+
+
+
+
+-- If Quotation table exists but ClientId column doesn't have foreign key
+-- First make sure ClientId column exists and has correct data type
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+               WHERE TABLE_NAME = 'Quotations' AND COLUMN_NAME = 'ClientId')
+BEGIN
+    ALTER TABLE Quotation
+    ADD ClientId NVARCHAR(50) NOT NULL;
+END
+
+-- Then add the foreign key constraint
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys 
+               WHERE name = 'FK_Quotation_Client')
+BEGIN
+    ALTER TABLE Quotations
+    ADD CONSTRAINT FK_Quotation_Client
+    FOREIGN KEY (ClientId) REFERENCES Clients(Id);
+END
+
+select * from Quotations
+
+SELECT 
+    fk.name AS ForeignKeyName,
+    OBJECT_NAME(fk.parent_object_id) AS TableName,
+    COL_NAME(fkc.parent_object_id, fkc.parent_column_id) AS ColumnName,
+    OBJECT_NAME(fk.referenced_object_id) AS ReferencedTableName,
+    COL_NAME(fkc.referenced_object_id, fkc.referenced_column_id) AS ReferencedColumnName
+FROM sys.foreign_keys AS fk
+INNER JOIN sys.foreign_key_columns AS fkc 
+    ON fk.object_id = fkc.constraint_object_id
+WHERE OBJECT_NAME(fk.parent_object_id) = 'Quotations'
+ORDER BY ForeignKeyName;
+-- Add ClientId column if it doesn't exist with proper foreign key
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+               WHERE TABLE_NAME = 'Quotations' AND COLUMN_NAME = 'ClientId')
+BEGIN
+    ALTER TABLE Quotations 
+    ADD ClientId NVARCHAR(50) NULL;
+    
+    -- Add foreign key constraint
+    ALTER TABLE Quotations 
+    ADD CONSTRAINT FK_Quotations_Clients 
+    FOREIGN KEY (ClientId) REFERENCES Clients(Id);
+END
