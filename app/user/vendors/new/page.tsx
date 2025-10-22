@@ -18,7 +18,7 @@ interface NewVendorFormProps {
   onCancel: () => void;
 }
 
-const NewVendorForm = ({ onSubmit, onCancel }: NewVendorFormProps) => {
+const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
   const [formData, setFormData] = useState<VendorFormData>({
     companyName: "",
     firstName: "",
@@ -50,7 +50,7 @@ const NewVendorForm = ({ onSubmit, onCancel }: NewVendorFormProps) => {
       <div className=" mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-navy-900">New Vendor</h1>
+          <h1 className="text-2xl font-bold text-navy-900">New Vendorss</h1>
           <div className="space-x-4">
             <button
               onClick={() => route.back()}
