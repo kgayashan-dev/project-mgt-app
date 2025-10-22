@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaTrashAlt } from "react-icons/fa";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+
 import Link from "next/link";
 import html2pdf from "html2pdf.js";
 

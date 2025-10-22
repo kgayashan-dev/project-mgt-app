@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Router } from "next/router";
 
 interface Vendor {
   id: string;
@@ -69,7 +68,7 @@ const VendorsDashboard = ({ vendorArray }: VendorsDashboardProps) => {
     <div className="space-y-4 px-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Invoices</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Vendors</h1>
         <div></div>
         <div className="mt-6">
           <button

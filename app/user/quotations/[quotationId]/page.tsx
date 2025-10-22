@@ -1,38 +1,55 @@
 import ViewQuotation from "@/components/ViewQuotation";
-import { QUOTATION, COMPANY } from "@/constraints/index";
-
-// Define QuotationId type if not already defined
+// import { COMPANY } from "@/constraints/index";
+const API_URL =  process.env.NEXT_PUBLIC_API_BASE_URL
+// Function to fetch quotation data from your API
 async function getQuotationData(id: string) {
-  const quotation = QUOTATION.find((q) => q.id === id); // Assuming QUOTATION is an array of quotations
+  try {
+    const response = await fetch(`${API_URL}/project_pulse/Quotation/getQuotation/${id}`, {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store' // Important for dynamic data
+    });
 
-  if (!quotation) {
-    return null; // Return null if no matching quotation is found
+    if (!response.ok) {
+      throw new Error(`Failed to fetch quotation: ${response.status}`);
+    }
+
+    const quotation = await response.json();
+
+    if (!quotation) {
+      return null;
+    }
+
+    // Transform the API response to match your ViewQuotation component's expected format
+    return {
+      id: quotation.id,
+      quotationNumber: quotation.quotationNumber,
+      quotationDate: quotation.quotationDate,
+      clientName: quotation.clientName,
+      clientAddress: quotation.location || "Not mentioned", // Map location to clientAddress
+      location: quotation.location || "Not mentioned",
+      outstandingRevenue: quotation.outstandingRevenue || 0,
+      rows: quotation.qItems?.length || 0, // Use qItems length as rows
+      table: quotation.qItems || [], // Map qItems to table
+      subtotal: quotation.subtotal,
+      totalTax: quotation.totalTax,
+      grandTotal: quotation.grandTotal,
+      notes: quotation.notes || "No notes available.",
+      terms: quotation.terms || "Standard terms apply",
+      phoneNumber: quotation.phoneNumber || "Not provided",
+      emailAddress: quotation.emailAddress || "Not provided",
+      discountPercentage: quotation.discountPercentage,
+      discountAmount: quotation.discountAmount,
+      reference: quotation.reference || "N/A",
+      taxPercentage: quotation.taxPercentage || 0,
+      additionalInfo: quotation.additionalInfo || "",
+    };
+  } catch (error) {
+    console.error("Error fetching quotation:", error);
+    return null;
   }
-
-  return {
-    id: quotation.id,
-    quotationNumber: quotation.quotationNumber,
-    quotationDate: quotation.quotationDate,
-    clientName: quotation.clientName,
-    clientAddress: quotation.clientAddress,
-    location: quotation.location || "Not mensioned", // Default location if missing
-    outstandingRevenue: quotation.outstandingRevenue || 0, // Default if missing
-    rows: quotation.table.length, // Table length as rows
-    table: quotation.table, // The table data
-    subtotal: quotation.subtotal,
-    totalTax: quotation.totalTax,
-    grandTotal: quotation.grandTotal,
-    notes: quotation.notes || "No notes available.", // Default if missing
-    terms: quotation.terms, // Default if missing
-    phoneNumber: quotation.phoneNumber, // Default if missing
-    emailAddress: quotation.emailAddress, 
-    discountPercentage: quotation.discountPercentage,
-    discountAmount: quotation.discountAmount,
-    reference: quotation.reference || "N/A",
-    taxPercentage: quotation.taxPercentage || 0, // Default tax percentage if missing
-    additionalInfo: quotation.additionalInfo, // Default if missing
-  
-  };
 }
 
 export default async function Page({
@@ -40,21 +57,25 @@ export default async function Page({
 }: {
   params: { quotationId: string };
 }) {
-  // Await params.quotationId
-  const { quotationId } = await params;  // Add await here to resolve the params
+  const { quotationId } = await params;
 
   const data = await getQuotationData(quotationId);
 
   if (!data) {
-
-    return <div>Quotation not found</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Quotation Not Found</h1>
+          <p className="text-gray-600">The quotation with ID {quotationId} was not found.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div>
       <p className="text-[10px] font-bold pt-8">Quotation ID: {quotationId}</p>
-      {/* Passing the data directly into the ViewQuotation component */}
-      <ViewQuotation quoteArray={data} myCompany={COMPANY} />
+      <ViewQuotation quoteArray={data}  />
     </div>
   );
 }
