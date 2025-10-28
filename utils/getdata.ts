@@ -27,11 +27,11 @@ const fetchData = async (url: string, label: string) => {
 };
 
 
-
-export const getQuotatoinData = () =>
-  fetchData("/project_pulse/Quotation/getAllQuotations", "Quotation data");
 export const getBankData = () =>
   fetchData("/project_pulse/BankAccount/getAllBankAccounts", "Bank data");
+export const getQuotatoinData = () =>
+  fetchData("/project_pulse/Quotation/getAllQuotations", "Quotation data");
+
 export const getBillData = () =>
   fetchData("/project_pulse/Bill/getAllBills", "bill data");
 export const getAllCategories= () =>
