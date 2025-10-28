@@ -16,20 +16,23 @@ async function getClientData(id: string) {
 export default async function Page({
   params,
 }: {
-  params: { clientId: string };
+  params: Promise<{ clientId: string }>;
 }) {
-  const data = await getClientData(params.clientId);
+  // Await the params object
+  const { clientId } = await params;
+  
+  const data = await getClientData(clientId);
 
   if (!data) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Client not found</h1>
-     
+         
         </div>
       </div>
     );
   }
 
-  return <ClientDetailsUI initialData={data} clientId={params.clientId} />;
+  return <ClientDetailsUI initialData={data} clientId={clientId} />;
 }
