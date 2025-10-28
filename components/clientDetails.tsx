@@ -4,15 +4,12 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   ChevronDown,
   FileText,
-  RefreshCw,
+
   Pizza,
   DollarSign,
   Cloud,
-  Lightbulb,
-  FlaskConical,
-} from "lucide-react";
 
-import {
+  FlaskConical,
   ChevronLeft,
   MoreHorizontal,
   PlusSquare,
@@ -23,14 +20,23 @@ import {
 import { useRouter } from "next/navigation";
 
 interface ClientData {
+  id: string;
   name: string;
   initials: string;
   location: string;
-  outstandingRevenue: number;
-  overdueAmount: number;
-  draftAmount: number;
-  unbilledTime: string;
-  unbilledExpenses: number;
+  contactEmail: string;
+  phoneNumber: string;
+  businessType: string;
+  billingCycle: string;
+  createdAt: string;
+  lastActive: string;
+  clientSince: string;
+  // Optional fields that might not be in your API yet
+  outstandingRevenue?: number;
+  overdueAmount?: number;
+  draftAmount?: number;
+  unbilledTime?: string;
+  unbilledExpenses?: number;
 }
 
 interface ClientDetailsProps {
@@ -81,11 +87,11 @@ export default function ClientDetailsUI({
   const [activeSubTab, setActiveSubTab] = useState("invoices");
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -96,7 +102,6 @@ export default function ClientDetailsUI({
 
   const menuItems = [
     { icon: <FileText className="w-5 h-5 text-gray-600" />, label: "Invoice" },
-
     { icon: <Pizza className="w-5 h-5 text-gray-600" />, label: "Expense" },
     { icon: <DollarSign className="w-5 h-5 text-gray-600" />, label: "Credit" },
     {
@@ -104,21 +109,38 @@ export default function ClientDetailsUI({
       label: "Estimate",
       onClick: () => router.push("/user/estimates/new"),
     },
-
     {
       icon: <FlaskConical className="w-5 h-5 text-gray-600" />,
       label: "Project",
     },
   ];
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Default values for financial data (you can remove these once your API includes them)
+  const financialData = {
+    outstandingRevenue: initialData.outstandingRevenue || 0,
+    overdueAmount: initialData.overdueAmount || 0,
+    draftAmount: initialData.draftAmount || 0,
+    unbilledTime: initialData.unbilledTime || "0h 00m",
+    unbilledExpenses: initialData.unbilledExpenses || 0,
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
-      {/* Header section with dropdown */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.back()}
-            className="text-blue-600 flex items-center gap-1"
+            className="text-blue-600 flex items-center gap-1 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
           >
             <ChevronLeft size={20} />
             <span>Clients</span>
@@ -127,26 +149,26 @@ export default function ClientDetailsUI({
 
         <div className="flex items-center gap-4">
           <div className="relative">
-            <button className="text-gray-600 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100">
+            <button className="text-gray-600 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
               More Actions
               <MoreHorizontal size={20} />
             </button>
           </div>
           <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() => router.push("/user/clients/new")}
-              className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              onClick={() => setIsOpen(!isOpen)}
+              className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
             >
               Create New...
-              <ChevronLeft className="rotate-180" size={20} />
+              <ChevronDown size={16} />
             </button>
 
-            {/* {isOpen && (
+            {isOpen && (
               <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                 {menuItems.map((item, index) => (
                   <button
                     key={index}
-                    className="w-full px-4 py-2 flex items-center gap-3 hover:bg-gray-100 text-gray-700"
+                    className="w-full px-4 py-2 flex items-center gap-3 hover:bg-gray-100 text-gray-700 transition-colors"
                     onClick={() => {
                       item.onClick?.();
                       setIsOpen(false);
@@ -157,7 +179,7 @@ export default function ClientDetailsUI({
                   </button>
                 ))}
               </div>
-            )} */}
+            )}
           </div>
         </div>
       </div>
@@ -166,8 +188,8 @@ export default function ClientDetailsUI({
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            {initialData.name}
-            <button className="text-gray-400">
+          {clientId} , {initialData.name} 
+            <button className="text-gray-400 hover:text-gray-600 transition-colors">
               <MoreHorizontal size={20} />
             </button>
           </h1>
@@ -190,7 +212,7 @@ export default function ClientDetailsUI({
         <div className="grid grid-cols-12 gap-6">
           {/* Client Info Card */}
           <div className="col-span-4 bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
                 <span className="text-purple-600 text-xl font-semibold">
                   {initialData.initials}
@@ -204,6 +226,30 @@ export default function ClientDetailsUI({
                 </p>
               </div>
             </div>
+
+            {/* Client Details */}
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="text-gray-800">{initialData.contactEmail}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Phone</p>
+                <p className="text-gray-800">{initialData.phoneNumber}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Business Type</p>
+                <p className="text-gray-800">{initialData.businessType}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Billing Cycle</p>
+                <p className="text-gray-800">{initialData.billingCycle}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Client Since</p>
+                <p className="text-gray-800">{formatDate(initialData.clientSince)}</p>
+              </div>
+            </div>
           </div>
 
           {/* Revenue Card */}
@@ -211,7 +257,7 @@ export default function ClientDetailsUI({
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Outstanding Revenue</h3>
               <span className="text-2xl font-bold">
-                ${initialData.outstandingRevenue}
+                ${financialData.outstandingRevenue}
               </span>
             </div>
             <div className="mb-6">
@@ -219,24 +265,24 @@ export default function ClientDetailsUI({
                 {/* Progress bar would go here */}
               </div>
               <p className="text-gray-600 text-center mt-2">
-                Invoices are all paid
+                {financialData.overdueAmount === 0 ? "Invoices are all paid" : `$${financialData.overdueAmount} overdue`}
               </p>
             </div>
 
             <div className="flex items-center justify-between text-center">
               <MetricCard
                 icon={<Receipt className="mx-auto mb-2" />}
-                value={`$${initialData.draftAmount}`}
+                value={`$${financialData.draftAmount}`}
                 label="in draft"
               />
               <MetricCard
                 icon={<Clock className="mx-auto mb-2" />}
-                value={initialData.unbilledTime}
+                value={financialData.unbilledTime}
                 label="unbilled time"
               />
               <MetricCard
                 icon={<WifiIcon className="mx-auto mb-2" />}
-                value={`$${initialData.unbilledExpenses}`}
+                value={`$${financialData.unbilledExpenses}`}
                 label="unbilled expenses"
               />
             </div>
@@ -265,16 +311,18 @@ export default function ClientDetailsUI({
         ))}
       </div>
 
-      {/* Invoices Section */}
+      {/* Content Section based on active sub tab */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">Invoices for {initialData.name}</h2>
-          <button className="text-green-500">
+          <h2 className="text-xl font-bold">
+            {activeSubTab.charAt(0).toUpperCase() + activeSubTab.slice(1)} for {initialData.name}
+          </h2>
+          <button className="text-green-500 hover:text-green-600 transition-colors">
             <PlusSquare size={24} />
           </button>
         </div>
 
-        {/* Placeholder for invoice list */}
+        {/* Placeholder content */}
         <div className="animate-pulse">
           <div className="h-16 bg-gray-100 rounded-lg mb-4"></div>
           <div className="h-16 bg-gray-100 rounded-lg mb-4"></div>
