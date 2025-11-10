@@ -2,7 +2,6 @@
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { Search, Plus, ChevronDown } from "lucide-react";
-import Link from "next/link";
 
 // Define types for invoice status and structure
 type InvoiceStatus = "Paid" | "Partial" | "Overdue" | "Pending";
@@ -21,21 +20,18 @@ interface Invoice {
   status: InvoiceStatus;
 }
 
-interface AllInvoiceDataProps {
-  invoiceArray: Invoice[]; // Accept invoiceArray as a prop
+interface AllInvoicePageProps {
+  invoiceArray: Invoice[];
 }
 
-const AllInvoiceData = ({ invoiceArray }: AllInvoiceDataProps) => {
+const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
   const router = useRouter();
+  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
 
   // Redirect to the new invoice page
   const reDirect = () => {
     router.push("/user/invoices/new");
   };
-
-  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(
-    new Set()
-  );
 
   // Toggle invoice selection
   const toggleInvoice = (id: string) => {
@@ -61,33 +57,20 @@ const AllInvoiceData = ({ invoiceArray }: AllInvoiceDataProps) => {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  // Calculate grand total from all invoices
   const calculateGrandTotal = () => {
-    return invoiceArray.reduce(
-      (total, invoice) => total + invoice.grandTotal,
-      0
-    );
+    return invoiceArray.reduce((total, invoice) => total + invoice.grandTotal, 0);
+  };
+
+  const handleRowClick = (invoiceId: string) => {
+    router.push(`/user/invoices/${invoiceId}`);
   };
 
   const grandTotal = calculateGrandTotal();
 
-  const handleRowClick = (invoiceId: string) => {
-    // Navigate to the quotation detail page
-    router.push(`/user/invoices/${invoiceId}`);
-  };
-
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Filter invoices based on search query
-  const filteredInvoices = invoiceArray.filter((invoice) => {
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    return (
-      invoice.invoiceNumber.toLowerCase().includes(lowerCaseQuery) ||
-      invoice.invoiceStatus.toLowerCase().includes(lowerCaseQuery) ||
-      invoice.grandTotal.toString().includes(lowerCaseQuery)
-    );
-  });
   return (
-    <div className="max-w-7xl mx-auto ">
+    <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mx-8">
         <h1 className="text-3xl font-bold text-gray-900">Invoices</h1>
@@ -105,16 +88,34 @@ const AllInvoiceData = ({ invoiceArray }: AllInvoiceDataProps) => {
       {/* Stats Section */}
       <div className="flex justify-between max-w-7xl mx-auto p-8 font-bold">
         <div>
-          <h1 className="text-3xl"> Rs. 0</h1>
-          <span className="text-sm font-thin">overdue</span>
+          <h1 className="text-3xl">
+            Rs.{" "}
+            {invoiceArray
+              .filter((inv) => inv.status === "Overdue")
+              .reduce((sum, inv) => sum + inv.grandTotal, 0)
+              .toLocaleString()}
+          </h1>
+          <span className="text-xs font-thin">overdue</span>
         </div>
         <div>
-          <h1 className="text-3xl"> Rs. 30</h1>
-          <span className="text-sm font-thin">total outstanding</span>
+          <h1 className="text-3xl">
+            Rs.{" "}
+            {invoiceArray
+              .filter((inv) => inv.status === "Pending" || inv.status === "Partial")
+              .reduce((sum, inv) => sum + inv.grandTotal, 0)
+              .toLocaleString()}
+          </h1>
+          <span className="text-xs font-thin">total outstanding</span>
         </div>
         <div>
-          <h1 className="text-3xl"> Rs. 80,000</h1>
-          <span className="text-sm font-thin">indraft</span>
+          <h1 className="text-3xl">
+            Rs.{" "}
+            {invoiceArray
+              .filter((inv) => inv.status === "Pending")
+              .reduce((sum, inv) => sum + inv.grandTotal, 0)
+              .toLocaleString()}
+          </h1>
+          <span className="text-xs font-thin">in draft</span>
         </div>
       </div>
 
@@ -124,7 +125,7 @@ const AllInvoiceData = ({ invoiceArray }: AllInvoiceDataProps) => {
           <div className="mb-6 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-semibold text-gray-900">
-                All Invoices
+                All Invoices ({invoiceArray.length})
               </h1>
               <button
                 onClick={() => router.push("/user/invoices/new")}
@@ -139,16 +140,10 @@ const AllInvoiceData = ({ invoiceArray }: AllInvoiceDataProps) => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
                   type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search(INV001, 7800, Partial...)"
-                  className="pl-10 pr-4 text-sm py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Search invoices..."
+                  className="pl-10 pr-4 text-xs py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              {/* <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-20">
-                <span className="text-gray-700">Advanced Search</span>
-                <ChevronDown className="h-4 w-4 text-gray-500" />
-              </button> */}
             </div>
           </div>
 
@@ -157,98 +152,116 @@ const AllInvoiceData = ({ invoiceArray }: AllInvoiceDataProps) => {
             <div className="border-b">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
-                  <tr className="bg-gray-10">
+                  <tr className="bg-gray-100">
                     <th className="w-12 py-3 px-4">
                       <input
                         type="checkbox"
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedInvoices(new Set(invoiceArray.map((inv) => inv.id)));
+                          } else {
+                            setSelectedInvoices(new Set());
+                          }
+                        }}
+                        checked={selectedInvoices.size === invoiceArray.length && invoiceArray.length > 0}
                       />
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                       Client / Invoice Number
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                       Description
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                       <div className="flex items-center gap-1">
                         Issued Date
                         <ChevronDown className="h-4 w-4 text-gray-500" />
                       </div>
                     </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-900">
                       Amount / Status
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {filteredInvoices.map((invoice) => (
-                    <tr
-                      onClick={() => handleRowClick(invoice.id)}
-                      key={invoice.id}
-                      className="hover:bg-gray-20 cursor-pointer"
-                    >
-                      <td className="py- px-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedInvoices.has(invoice.id)}
-                          onChange={() => toggleInvoice(invoice.id)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-4 py-1">
-                        <div className="regular-12 font-medium text-gray-900">
-                          {invoice.clientName}
-                        </div>
-                        <div className="regular-12 text-gray-500">
-                          {invoice.invoiceNumber}
-                        </div>
-                      </td>
-                      <td className="px-4 py- regular-12 text-gray-500">
-                        {invoice.description}
-                      </td>
-                      <td className="px-4 py-">
-                        <div className="regular-12 text-gray-900">
-                          {invoice.invoiceDate}
-                        </div>
-                        {invoice.invoiceDueDate && (
-                          <div className="regular-12 text-gray-500">
-                            {invoice.invoiceDueDate}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-  text-right">
-                        <div className="text-sm font-medium text-gray-900">
-                          Rs.{" "}
-                          {invoice.grandTotal.toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </div>
-                        <span
-                          className={`inline-flex rounded-full px-2 text-xs font-semibold ${getStatusColor(
-                            invoice.invoiceStatus
-                          )}`}
-                        >
-                          {invoice.invoiceStatus}
-                        </span>
+                  {invoiceArray.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-2 py-2 text-center text-gray-500">
+                        No invoices found
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    invoiceArray.map((invoice) => (
+                      <tr
+                        onClick={() => handleRowClick(invoice.id)}
+                        key={invoice.id}
+                        className="hover:bg-gray-100 cursor-pointer transition-colors"
+                      >
+                        <td className="py-1 px-4" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedInvoices.has(invoice.id)}
+                            onChange={() => toggleInvoice(invoice.id)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className="px-2 py-2">
+                          <div className="text-xs font-medium text-gray-900">
+                            {invoice.clientName}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {invoice.invoiceNumber}
+                          </div>
+                        </td>
+                        <td className="px-2 py-2 text-xs text-gray-500">
+                          {invoice.description || "No description"}
+                        </td>
+                        <td className="px-2 py-2">
+                          <div className="text-xs text-gray-900">
+                            {invoice.invoiceDate}
+                          </div>
+                          {invoice.invoiceDueDate && (
+                            <div className="text-xs text-gray-500">
+                              Due: {invoice.invoiceDueDate}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-2 py-2 text-right">
+                          <div className="text-xs font-medium text-gray-900">
+                            Rs.{" "}
+                            {invoice.grandTotal.toLocaleString("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </div>
+                          <span
+                            className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(
+                              invoice.status
+                            )}`}
+                          >
+                            {invoice.invoiceStatus}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-              <div className="flex justify-end  px-4 py-2 bg-gray-100 border-t rounded-b-md border-gray-200">
-                <div className="text-sm text-gray-700">
-                  Grand Total:{" "}
-                  <span className="font-medium">
-                    Rs.{" "}
-                    {grandTotal.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
+              {invoiceArray.length > 0 && (
+                <div className="flex justify-end px-4 py-3 bg-gray-50 border-t border-gray-200">
+                  <div className="text-xs text-gray-700">
+                    Grand Total:{" "}
+                    <span className="font-medium">
+                      Rs.{" "}
+                      {grandTotal.toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -257,4 +270,4 @@ const AllInvoiceData = ({ invoiceArray }: AllInvoiceDataProps) => {
   );
 };
 
-export default AllInvoiceData;
+export default AllInvoicePage;

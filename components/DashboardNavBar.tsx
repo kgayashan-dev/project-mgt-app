@@ -12,7 +12,7 @@ const DashboardNavBar = () => {
     setShowProfilePopup(false);
   };
   return (
-    <div className="flex  z-40 items-center justify-end gap-4 h-14 w-full padding-container bg-white">
+    <div className="flex  z-30 items-center justify-end gap-4 h-14 w-full padding-container bg-white">
       <FaSearch
         role="button"
         onClick={() => setShowLogin(true)}

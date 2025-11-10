@@ -74,3 +74,59 @@ export const getAllProjects = () =>
 
 export const getAllVendors = () =>
   fetchData("/project_pulse/Vendor/getAllVendors", "vendors data");
+
+
+
+// utils/getdata.ts (add this function)
+export async function getInvoicesByClientId(clientId: string) {
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const response = await fetch(
+      `${API_URL}/project_pulse/Invoice/getInvoicesByClientId/${clientId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch invoices: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching invoices:', error);
+    throw error;
+  }
+}
+
+// utils/getdata.ts (add this function)
+export async function getInvoiceById(invoiceId: string) {
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const response = await fetch(
+      `${API_URL}/project_pulse/Invoice/getInvoice/${invoiceId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch invoice: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching invoice:', error);
+    throw error;
+  }
+}
