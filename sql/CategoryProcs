@@ -1,0 +1,163 @@
+
+-- Create Categories table
+CREATE TABLE Categories (
+    CategoryId NVARCHAR(50) PRIMARY KEY NOT NULL,
+    CatDescription NVARCHAR(200) NOT NULL,
+    CreatedDate DATETIME2 DEFAULT GETUTCDATE(),
+    ModifiedDate DATETIME2 DEFAULT GETUTCDATE(),
+    Active BIT DEFAULT 1
+);
+GO
+
+-- Stored Procedure: Create Category
+CREATE PROCEDURE [dbo].[sp_CreateCategory]
+    @CategoryId NVARCHAR(50) = NULL,
+    @CatDescription NVARCHAR(200),
+    @Active BIT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @NewCategoryId NVARCHAR(50);
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Generate Category ID in CAT000001 format when empty string or NULL is provided
+        IF @CategoryId IS NULL OR @CategoryId = ''
+        BEGIN
+            SELECT @NewCategoryId = 'CAT' + RIGHT('0000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(CategoryId, 4, LEN(CategoryId)) AS INT)), 0) + 1 AS NVARCHAR(7)), 7)
+            FROM Categories;
+        END
+        ELSE
+        BEGIN
+            SET @NewCategoryId = @CategoryId;
+        END
+
+        -- Insert into Categories table
+        INSERT INTO Categories (CategoryId, CatDescription, Active)
+        VALUES (@NewCategoryId, @CatDescription, @Active);
+
+        COMMIT TRANSACTION;
+        
+        SELECT @NewCategoryId AS GeneratedCategoryId;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Stored Procedure: Get All Categories
+CREATE PROCEDURE [dbo].[sp_GetAllCategories]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        CategoryId, CatDescription, CreatedDate, ModifiedDate, Active
+    FROM Categories 
+    ORDER BY CatDescription;
+END
+GO
+
+-- Stored Procedure: Get Active Categories
+CREATE PROCEDURE [dbo].[sp_GetActiveCategories]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        CategoryId, CatDescription, CreatedDate, ModifiedDate, Active
+    FROM Categories 
+    WHERE Active = 1
+    ORDER BY CatDescription;
+END
+GO
+
+-- Stored Procedure: Get Category By ID
+CREATE PROCEDURE [dbo].[sp_GetCategoryById]
+    @CategoryId NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        CategoryId, CatDescription, CreatedDate, ModifiedDate, Active
+    FROM Categories 
+    WHERE CategoryId = @CategoryId;
+END
+GO
+
+-- Stored Procedure: Update Category
+CREATE PROCEDURE [dbo].[sp_UpdateCategory]
+    @CategoryId NVARCHAR(50),
+    @CatDescription NVARCHAR(200),
+    @Active BIT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Update Category
+        UPDATE Categories 
+        SET 
+            CatDescription = @CatDescription,
+            Active = @Active,
+            ModifiedDate = GETUTCDATE()
+        WHERE CategoryId = @CategoryId;
+
+        COMMIT TRANSACTION;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Stored Procedure: Delete Category (Soft Delete)
+CREATE PROCEDURE [dbo].[sp_DeleteCategory]
+    @CategoryId NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Soft delete the category
+        UPDATE Categories 
+        SET Active = 0, ModifiedDate = GETUTCDATE()
+        WHERE CategoryId = @CategoryId;
+
+        COMMIT TRANSACTION;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Stored Procedure: Search Categories
+CREATE PROCEDURE [dbo].[sp_SearchCategories]
+    @SearchTerm NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        CategoryId, CatDescription, CreatedDate, ModifiedDate, Active
+    FROM Categories
+    WHERE (CategoryId LIKE '%' + @SearchTerm + '%'
+        OR CatDescription LIKE '%' + @SearchTerm + '%')
+    ORDER BY CatDescription;
+END
+GO

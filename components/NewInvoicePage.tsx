@@ -6,7 +6,6 @@ import { FaTrashAlt } from "react-icons/fa";
 import Link from "next/link";
 import html2pdf from "html2pdf.js";
 
-
 type Row = {
   description: string;
   rate: number;
@@ -173,7 +172,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({ initialData }) => {
 
   return (
     // data-html2canvas-ignore> this can use for hiding data
-    <div className="flex flex-col m-8">
+    <div className="flex flex-col m-8 ">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-navy-900">New Invoice</h1>
@@ -239,10 +238,10 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({ initialData }) => {
         </div>
 
         {/* Form Grid */}
-        <div className="grid grid-cols-4 gap-4 mb-3  w-full">
-          <div className="flex flex-col justify-start items-start">
+        <div className="grid grid-cols-4 gap-4 mb-3  w-full text-xs">
+          <div className="flex flex-col justify-start items-start ">
             <div>
-              <label className="block text-gray-600 mb-2  regular-14">
+              <label className="block text-gray-600 mb-2">
                 Client Details
               </label>
               {/* Conditionally show the select dropdown if no client is selected */}
@@ -255,7 +254,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({ initialData }) => {
                     );
                     setClient(selectedClient || null); // Set the selected client
                   }}
-                  className={`text-md rounded  text-[13px] p-2 focus:ring-2 focus:ring-blue-500 border-[0.5px]`}
+                  className={`text-sm rounded  text-[13px] p-2 focus:ring-2 focus:ring-blue-500 border-[0.5px]`}
                 >
                   <option value="">Select a Client</option>
                   {initialData.map((clientOption) => (
@@ -384,10 +383,25 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({ initialData }) => {
               )}
             </div>
           </div>
+
           <div className="flex justify-end items-start">
-            <div>
-              <p className="text-sm text-gray-60">Amount Due (LKR)</p>
-              <h1 className="text-3xl text-right">Rs.{grandTotal}</h1>
+            <div className="flex flex-col gap-4 ">
+              <div>
+                <div className=" duration-300">
+                  <label className="block text-gray-600 mb-2">
+                    Search and select quotation
+                  </label>
+                  <select name="" id="">
+                    <option value="">Q1</option>
+                    <option value="">Q2</option>
+                    <option value="">Q2</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-gray-60">Amount Due (LKR)</p>
+                <h1 className="text-3xl text-right">Rs.{grandTotal}</h1>
+              </div>
             </div>
           </div>
         </div>
@@ -396,7 +410,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({ initialData }) => {
         <div className="mb-2">
           <table className="w-full  text-[12px] mb- border border-gray-300 border-collapse">
             <thead>
-              <tr className=" border-gray-300 font-semibold text-sm">
+              <tr className=" border-gray-300 font-semibold text-xs">
                 <th className="text-left border  p-2">Item</th>
                 <th className="text-left border w-96 p-2">Description</th>
                 <th className="text-left border p-2">Unit</th>
@@ -585,17 +599,33 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({ initialData }) => {
             </div>
 
             <div className="border border-spacing-1"></div>
-            <div className="flex justify-between py-2 font-medium">
-              <span>Invoice Total</span>
-              <span>
-                Rs.{" "}
-                {grandTotal.toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
+            <div className="flex flex-col justify-normal gap-4">
+              <div className="flex justify-between py-2 font-medium">
+                <span>Invoice Total</span>
+                <span>
+                  Rs.{" "}
+                  {grandTotal.toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              <div className="border-2 border-separate"></div>
             </div>
-            <div className="border-2 border-separate"></div>
+            <div>
+              <div className="mt-4">
+                <div className=" duration-300">
+                  <label className="block text-gray-600 mb-2">
+                    Search and select Bank acc
+                  </label>
+                  <select name="" id="">
+                    <option value="">Bank of Ceylon - 1234567890</option> 
+                    <option value="">Bank of Ceylon - 1234567890</option> 
+                    <option value="">Bank of Ceylon - 1234567890</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -648,7 +678,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({ initialData }) => {
               </div> */}
 
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <label className="block text-gray-600 mb-2">Terms</label>
+                <label className="block text-gray-600 mb-2">Notes</label>
                 <textarea
                   value={terms}
                   onChange={(e) => setTerms(e.target.value)}

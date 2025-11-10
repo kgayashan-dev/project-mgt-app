@@ -5,7 +5,7 @@ export const NAV_LINKS = [
 ];
 export const PROJECTS = [
   {
-    id: "PRJ_001",sss
+    id: "PRJ_001",
     projectName: "Website Redesign",
     clientId: "CLT_001",
     clientName: "Jane ",

@@ -1,16 +1,13 @@
 import React from "react";
-import MyBankDetails from "@/components/MyBankDetails";
+import BankDetailsManager from "@/components/MyBankDetails";
+import { getBankData } from "@/utils/getdata";
 
-export default async function Page({}) {
-  // Fetch data asynchronously
-  //   const data = await fetchData(params.clientId);
-
-  return <MyBankDetails />;
+export default async function Page() {
+  const bankDataResponse = await getBankData();
+  
+  return (
+    <BankDetailsManager 
+      initialData={bankDataResponse.success ? bankDataResponse.data : []}
+    />
+  );
 }
-
-// You can define your async function to fetch data (example)
-// async function fetchData(clientId: string) {
-//   const response = await fetch(`/api/bank-details?clientId=${clientId}`);
-//   const data = await response.json();
-//   return data;
-// }

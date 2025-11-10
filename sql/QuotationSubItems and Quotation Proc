@@ -56,16 +56,19 @@ GO
 SET QUOTED_IDENTIFIER ON
 
 GO
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 
-CREATE OR ALTER PROCEDURE [dbo].[sp_AddQuotation]
-    @Id NVARCHAR(50) = NULL,  -- Make ID optional
+ALTER   PROCEDURE [dbo].[sp_AddQuotation]
+    @Id NVARCHAR(50) = NULL,
     @QuotationNumber NVARCHAR(50),
-    @QuotationDate DATETIME,
+    @QuotationDate DATETIME ,
     @ClientName NVARCHAR(100),
     @ClientId NVARCHAR(100),
     @DiscountPercentage INT,
     @DiscountAmount DECIMAL(18,2),
-    @EmailAddress NVARCHAR(100),
     @Subtotal DECIMAL(18,2),
     @TotalTax DECIMAL(18,2),
     @GrandTotal DECIMAL(18,2),
@@ -76,30 +79,58 @@ BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRANSACTION
+
+
+          if not EXISTS(select 1 from Clients where id=@ClientId)
+              THROW 50001, 'Client does not exists.',1;
         
+
+
         DECLARE @NewId NVARCHAR(50);
+        DECLARE @MaxNumber INT;
         
         -- Use provided ID or generate new one
-        IF @Id IS NULL OR @Id = ''
+        IF @Id IS NULL OR @Id = '' OR @Id = 'string'
         BEGIN
-            -- Generate new Quotation ID in QID000001 format
-            SELECT @NewId = 'QID' + RIGHT('000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(6)), 6)
+            -- Get the maximum numeric part safely
+            SELECT @MaxNumber = ISNULL(MAX(
+                CASE 
+                    WHEN Id LIKE 'QID%' AND TRY_CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT) IS NOT NULL
+                    THEN CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)
+                    ELSE 0
+                END
+            ), 0)
             FROM Quotations;
+            
+            SET @NewId = 'QID' + RIGHT('000000' + CAST(@MaxNumber + 1 AS NVARCHAR(6)), 6);
         END
         ELSE
         BEGIN
+            -- If ID is provided, validate it's not already used
+            IF EXISTS (SELECT 1 FROM Quotations WHERE Id = @Id)
+            BEGIN
+                RAISERROR('Quotation ID already exists', 16, 1);
+                RETURN;
+            END
             SET @NewId = @Id;
+        END
+        
+        -- Validate that quotation number doesn't already exist
+        IF EXISTS (SELECT 1 FROM Quotations WHERE QuotationNumber = @QuotationNumber)
+        BEGIN
+            RAISERROR('Quotation number already exists', 16, 1);
+            RETURN;
         END
         
         -- Insert main quotation record
         INSERT INTO [dbo].[Quotations] (
             Id, QuotationNumber, QuotationDate, ClientName, ClientId,
-            DiscountPercentage, DiscountAmount, EmailAddress,
+            DiscountPercentage, DiscountAmount,
             Subtotal, TotalTax, GrandTotal, Notes, CreatedDate
         )
         VALUES (
             @NewId, @QuotationNumber, @QuotationDate, @ClientName, @ClientId,
-            @DiscountPercentage, @DiscountAmount, @EmailAddress,
+            @DiscountPercentage, @DiscountAmount,
             @Subtotal, @TotalTax, @GrandTotal, @Notes, GETDATE()
         );
 
@@ -116,11 +147,15 @@ BEGIN
     BEGIN CATCH
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
-        THROW;
+        
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+        
+        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
     END CATCH
 END
 GO
-
 
 
 

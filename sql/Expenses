@@ -1,0 +1,424 @@
+
+-- Drop the type if it exists
+IF EXISTS (SELECT * FROM sys.types WHERE name = 'ExpenseTaxDetailsType' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    DROP TYPE [dbo].[ExpenseTaxDetailsType];
+END
+GO
+
+-- Drop tables if they exist
+IF OBJECT_ID('dbo.ExpenseTaxes', 'U') IS NOT NULL
+    DROP TABLE dbo.ExpenseTaxes;
+GO
+
+IF OBJECT_ID('dbo.Expenses', 'U') IS NOT NULL
+    DROP TABLE dbo.Expenses;
+GO
+
+-- Create Expenses table
+CREATE TABLE Expenses (
+    Id NVARCHAR(50) PRIMARY KEY NOT NULL,
+    CategoryId NVARCHAR(50) NOT NULL, 
+    Date DATETIME2 NOT NULL,
+    SubTotal DECIMAL(18,2) NOT NULL,
+    GrandTotal DECIMAL(18,2) NOT NULL,
+    CreatedDate DATETIME2 DEFAULT GETUTCDATE(),
+    ModifiedDate DATETIME2 DEFAULT GETUTCDATE(),
+    IsActive BIT DEFAULT 1
+);
+
+-- Create ExpenseTaxes table (child table)
+CREATE TABLE ExpenseTaxes (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    ExpenseId NVARCHAR(50) NOT NULL,
+    TaxName NVARCHAR(100) NOT NULL,
+    TaxAmount DECIMAL(18,2) NOT NULL,
+    CreatedDate DATETIME2 DEFAULT GETUTCDATE(),
+    ModifiedDate DATETIME2 DEFAULT GETUTCDATE(),
+    IsActive BIT DEFAULT 1,
+    CONSTRAINT FK_ExpenseTaxes_Expenses FOREIGN KEY (ExpenseId) REFERENCES Expenses(Id) ON DELETE CASCADE
+);
+
+-- Create User-Defined Table Type for Expense Taxes
+CREATE TYPE [dbo].[ExpenseTaxDetailsType] AS TABLE(
+    Id INT NULL,
+    ExpenseId NVARCHAR(50) NULL,
+    TaxName NVARCHAR(100) NOT NULL,
+    TaxAmount DECIMAL(18,2) NOT NULL
+);
+GO
+
+-- Stored Procedure: Create Expense
+CREATE PROCEDURE [dbo].[sp_CreateExpense]
+    @Id NVARCHAR(50) = NULL,
+    @CategoryId NVARCHAR(50), -- Changed from @Category to @CategoryId
+    @Date DATETIME2,
+    @SubTotal DECIMAL(18,2),
+    @GrandTotal DECIMAL(18,2),
+    @Taxes dbo.ExpenseTaxDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @NewId NVARCHAR(50);
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Generate Expense ID in EXP0000001 format when empty string or NULL is provided
+        IF @Id IS NULL OR @Id = ''
+        BEGIN
+            SELECT @NewId = 'EXP' + RIGHT('0000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(7)), 7)
+            FROM Expenses;
+        END
+        ELSE
+        BEGIN
+            SET @NewId = @Id;
+        END
+
+        -- Insert into Expenses table
+        INSERT INTO Expenses (Id, CategoryId, Date, SubTotal, GrandTotal)
+        VALUES (@NewId, @CategoryId, @Date, @SubTotal, @GrandTotal);
+
+        -- Insert Expense Taxes
+        INSERT INTO ExpenseTaxes (ExpenseId, TaxName, TaxAmount)
+        SELECT @NewId, TaxName, TaxAmount
+        FROM @Taxes;
+
+        COMMIT TRANSACTION;
+        
+        SELECT @NewId AS GeneratedExpenseId;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Stored Procedure: Get All Expenses (with taxes)
+CREATE PROCEDURE [dbo].[sp_GetAllExpenses]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        e.Id, e.CategoryId, e.Date, e.SubTotal, e.GrandTotal, 
+        e.CreatedDate, e.ModifiedDate,
+        et.Id AS TaxId, et.TaxName, et.TaxAmount
+    FROM Expenses e
+    LEFT JOIN ExpenseTaxes et ON e.Id = et.ExpenseId AND et.IsActive = 1
+    WHERE e.IsActive = 1
+    ORDER BY e.Date DESC, e.CategoryId;
+END
+GO
+
+-- Stored Procedure: Get Expense By ID (with taxes)
+CREATE PROCEDURE [dbo].[sp_GetExpenseById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        e.Id, e.CategoryId, e.Date, e.SubTotal, e.GrandTotal, 
+        e.CreatedDate, e.ModifiedDate,
+        et.Id AS TaxId, et.TaxName, et.TaxAmount
+    FROM Expenses e
+    LEFT JOIN ExpenseTaxes et ON e.Id = et.ExpenseId AND et.IsActive = 1
+    WHERE e.Id = @Id AND e.IsActive = 1
+    ORDER BY et.Id;
+END
+GO
+
+-- Stored Procedure: Get Expenses By Category
+CREATE PROCEDURE [dbo].[sp_GetExpensesByCategory]
+    @CategoryId NVARCHAR(50) -- Changed from @Category to @CategoryId
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        e.Id, e.CategoryId, e.Date, e.SubTotal, e.GrandTotal, 
+        e.CreatedDate, e.ModifiedDate,
+        et.Id AS TaxId, et.TaxName, et.TaxAmount
+    FROM Expenses e
+    LEFT JOIN ExpenseTaxes et ON e.Id = et.ExpenseId AND et.IsActive = 1
+    WHERE e.CategoryId = @CategoryId AND e.IsActive = 1
+    ORDER BY e.Date DESC;
+END
+GO
+
+-- Stored Procedure: Get Expenses By Date Range
+CREATE PROCEDURE [dbo].[sp_GetExpensesByDateRange]
+    @StartDate DATETIME2,
+    @EndDate DATETIME2
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        e.Id, e.CategoryId, e.Date, e.SubTotal, e.GrandTotal, 
+        e.CreatedDate, e.ModifiedDate,
+        et.Id AS TaxId, et.TaxName, et.TaxAmount
+    FROM Expenses e
+    LEFT JOIN ExpenseTaxes et ON e.Id = et.ExpenseId AND et.IsActive = 1
+    WHERE e.Date BETWEEN @StartDate AND @EndDate AND e.IsActive = 1
+    ORDER BY e.Date DESC, e.CategoryId;
+END
+GO
+
+-- Stored Procedure: Update Expense (with taxes)
+CREATE PROCEDURE [dbo].[sp_UpdateExpense]
+    @Id NVARCHAR(50), -- Changed from INT to NVARCHAR
+    @CategoryId NVARCHAR(50), -- Changed from @Category to @CategoryId
+    @Date DATETIME2,
+    @SubTotal DECIMAL(18,2),
+    @GrandTotal DECIMAL(18,2),
+    @Taxes dbo.ExpenseTaxDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Update Expense
+        UPDATE Expenses 
+        SET 
+            CategoryId = @CategoryId,
+            Date = @Date,
+            SubTotal = @SubTotal,
+            GrandTotal = @GrandTotal,
+            ModifiedDate = GETUTCDATE()
+        WHERE Id = @Id AND IsActive = 1;
+
+        -- Soft delete existing taxes
+        UPDATE ExpenseTaxes 
+        SET IsActive = 0, ModifiedDate = GETUTCDATE()
+        WHERE ExpenseId = @Id AND IsActive = 1;
+
+        -- Insert new/updated taxes
+        INSERT INTO ExpenseTaxes (ExpenseId, TaxName, TaxAmount)
+        SELECT @Id, TaxName, TaxAmount
+        FROM @Taxes;
+
+        COMMIT TRANSACTION;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Stored Procedure: Delete Expense (Soft Delete)
+CREATE PROCEDURE [dbo].[sp_DeleteExpense]
+    @Id NVARCHAR(50) -- Changed from INT to NVARCHAR
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Soft delete the expense
+        UPDATE Expenses 
+        SET IsActive = 0, ModifiedDate = GETUTCDATE()
+        WHERE Id = @Id AND IsActive = 1;
+
+        -- Soft delete all related expense taxes
+        UPDATE ExpenseTaxes 
+        SET IsActive = 0, ModifiedDate = GETUTCDATE()
+        WHERE ExpenseId = @Id AND IsActive = 1;
+
+        COMMIT TRANSACTION;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Stored Procedure: Search Expenses
+CREATE PROCEDURE [dbo].[sp_SearchExpenses]
+    @SearchTerm NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        e.Id, e.CategoryId, e.Date, e.SubTotal, e.GrandTotal, 
+        e.CreatedDate, e.ModifiedDate
+    FROM Expenses e
+    WHERE e.IsActive = 1
+        AND (e.CategoryId LIKE '%' + @SearchTerm + '%')
+    ORDER BY e.Date DESC, e.CategoryId;
+END
+GO
+
+-- Stored Procedure: Get Expense Summary
+CREATE PROCEDURE [dbo].[sp_GetExpenseSummary]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        COUNT(*) AS TotalExpenses,
+        AVG(GrandTotal) AS AverageExpense,
+        COUNT(DISTINCT CategoryId) AS CategoryCount
+    FROM Expenses 
+    WHERE IsActive = 1;
+END
+GO
+
+
+delete from Expenses
+
+-- Add foreign key constraint to Expenses table
+ALTER TABLE Expenses
+ADD CONSTRAINT FK_Expenses_Categories 
+FOREIGN KEY (CategoryId) REFERENCES Categories(CategoryId);
+
+
+
+
+
+
+--  add merchant and updated the table 
+
+
+-- Add MerchantId column to Expenses table
+ALTER TABLE Expenses
+ADD MerchantId NVARCHAR(50);
+
+-- Add foreign key constraint for MerchantId
+ALTER TABLE Expenses
+ADD CONSTRAINT FK_Expenses_Merchants 
+FOREIGN KEY (MerchantId) REFERENCES Merchants(MerchantId);
+
+-- Update existing stored procedures to include MerchantId
+
+go
+
+-- Update sp_CreateExpense
+CREATE OR ALTER PROCEDURE [dbo].[sp_CreateExpense]
+    @Id NVARCHAR(50) = NULL,
+    @CategoryId NVARCHAR(50),
+    @MerchantId NVARCHAR(50), -- Added MerchantId
+    @Date DATETIME2,
+    @SubTotal DECIMAL(18,2),
+    @GrandTotal DECIMAL(18,2),
+    @Taxes dbo.ExpenseTaxDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @NewId NVARCHAR(50);
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Generate Expense ID in EXP0000001 format when empty string or NULL is provided
+        IF @Id IS NULL OR @Id = ''
+        BEGIN
+            SELECT @NewId = 'EXP' + RIGHT('0000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(7)), 7)
+            FROM Expenses;
+        END
+        ELSE
+        BEGIN
+            SET @NewId = @Id;
+        END
+
+        -- Insert into Expenses table
+        INSERT INTO Expenses (Id, CategoryId, MerchantId, Date, SubTotal, GrandTotal)
+        VALUES (@NewId, @CategoryId, @MerchantId, @Date, @SubTotal, @GrandTotal);
+
+        -- Insert Expense Taxes
+        INSERT INTO ExpenseTaxes (ExpenseId, TaxName, TaxAmount)
+        SELECT @NewId, TaxName, TaxAmount
+        FROM @Taxes;
+
+        COMMIT TRANSACTION;
+        
+        SELECT @NewId AS GeneratedExpenseId;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Update sp_UpdateExpense
+CREATE OR ALTER PROCEDURE [dbo].[sp_UpdateExpense]
+    @Id NVARCHAR(50),
+    @CategoryId NVARCHAR(50),
+    @MerchantId NVARCHAR(50), -- Added MerchantId
+    @Date DATETIME2,
+    @SubTotal DECIMAL(18,2),
+    @GrandTotal DECIMAL(18,2),
+    @Taxes dbo.ExpenseTaxDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Update Expense
+        UPDATE Expenses 
+        SET 
+            CategoryId = @CategoryId,
+            MerchantId = @MerchantId,
+            Date = @Date,
+            SubTotal = @SubTotal,
+            GrandTotal = @GrandTotal,
+            ModifiedDate = GETUTCDATE()
+        WHERE Id = @Id AND IsActive = 1;
+
+        -- Soft delete existing taxes
+        UPDATE ExpenseTaxes 
+        SET IsActive = 0, ModifiedDate = GETUTCDATE()
+        WHERE ExpenseId = @Id AND IsActive = 1;
+
+        -- Insert new/updated taxes
+        INSERT INTO ExpenseTaxes (ExpenseId, TaxName, TaxAmount)
+        SELECT @Id, TaxName, TaxAmount
+        FROM @Taxes;
+
+        COMMIT TRANSACTION;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Update Get procedures to include Merchant data
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllExpenses]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        e.Id, e.CategoryId, e.MerchantId, e.Date, e.SubTotal, e.GrandTotal, 
+        e.CreatedDate, e.ModifiedDate,
+        et.Id AS TaxId, et.TaxName, et.TaxAmount,
+        m.MerchantName,
+        c.CatDescription
+    FROM Expenses e
+    LEFT JOIN ExpenseTaxes et ON e.Id = et.ExpenseId AND et.IsActive = 1
+    LEFT JOIN Merchants m ON e.MerchantId = m.MerchantId
+    LEFT JOIN Categories c ON e.CategoryId = c.CategoryId
+    WHERE e.IsActive = 1
+    ORDER BY e.Date DESC, e.CategoryId;
+END
+GO

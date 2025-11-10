@@ -1,0 +1,309 @@
+CREATE TABLE Income
+(
+    Id NVARCHAR(50) PRIMARY KEY,
+    InvoiceId NVARCHAR(50) NOT NULL UNIQUE,
+    -- 1:1 relationship
+    IncomeDate DATETIME NOT NULL,
+    Amount DECIMAL(18,2) NOT NULL,
+    PaymentMethod NVARCHAR(50) NOT NULL,
+    TransactionReference NVARCHAR(100) NULL,
+    Status NVARCHAR(20) NOT NULL DEFAULT 'received',
+    Notes NVARCHAR(500) NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETUTCDATE(),
+    UpdatedAt DATETIME NULL,
+
+    -- Foreign key constraint
+    CONSTRAINT FK_Income_Invoice FOREIGN KEY (InvoiceId) REFERENCES Invoices(Id)
+);
+
+-- Indexes for better performance
+CREATE INDEX IX_Income_InvoiceId ON Income(InvoiceId);
+CREATE INDEX IX_Income_IncomeDate ON Income(IncomeDate);
+CREATE INDEX IX_Income_Status ON Income(Status);
+CREATE INDEX IX_Income_PaymentMethod ON Income(PaymentMethod);
+
+Go
+
+
+
+CREATE PROCEDURE [dbo].[sp_CreateIncome]
+    @InvoiceId NVARCHAR(50),
+    @IncomeDate DATETIME,
+    @Amount DECIMAL(18,2),
+    @PaymentMethod NVARCHAR(50),
+    @TransactionReference NVARCHAR(100) = NULL,
+    @Status NVARCHAR(20) = 'received',
+    @Notes NVARCHAR(500) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+
+              if not EXISTS(select 1 from Invoices where id=@InvoiceId)
+              THROW 50001, 'Invoice does not exists.',1;
+
+
+        DECLARE @NewId NVARCHAR(50);
+        -- Generate Income ID in INC0000001 format
+        DECLARE @NewIncomeNumber INT;
+        DECLARE @GeneratedIncomeId NVARCHAR(50);
+        
+        SELECT @NewIncomeNumber = ISNULL(MAX(CAST(REPLACE(Id, 'INC', '') AS INT)), 0) + 1
+    FROM Income
+    WHERE Id LIKE 'INC%' AND ISNUMERIC(REPLACE(Id, 'INC', '')) = 1;
+        
+        SET @GeneratedIncomeId = 'INC' + RIGHT('0000000' + CAST(@NewIncomeNumber AS NVARCHAR(10)), 7);
+        
+        -- Insert the income
+        INSERT INTO Income
+        (
+        Id, InvoiceId, IncomeDate, Amount, PaymentMethod,
+        TransactionReference, Status, Notes, CreatedAt
+        )
+    VALUES
+        (
+            @GeneratedIncomeId, @InvoiceId, @IncomeDate, @Amount, @PaymentMethod,
+            @TransactionReference, @Status, @Notes, GETUTCDATE()
+        );
+        
+        -- Return the generated income ID
+        SELECT @GeneratedIncomeId AS GeneratedIncomeId;
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        THROW;
+    END CATCH
+END
+
+
+GO
+
+CREATE PROCEDURE [dbo].[sp_GetIncomeByStatus]
+    @Status NVARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id,
+        i.InvoiceId,
+        i.IncomeDate,
+        i.Amount,
+        i.PaymentMethod,
+        i.TransactionReference,
+        i.Status,
+        i.Notes,
+        i.CreatedAt,
+        i.UpdatedAt,
+        inv.ClientId,
+        inv.InvoiceTotal as InvoiceTotal
+    FROM Income i
+        LEFT JOIN Invoices inv ON i.InvoiceId = inv.Id
+    WHERE i.Status = @Status
+    ORDER BY i.IncomeDate DESC;
+END
+
+go
+
+
+CREATE PROCEDURE [dbo].[sp_GetIncomeById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id,
+        i.InvoiceId,
+        i.IncomeDate,
+        i.Amount,
+        i.PaymentMethod,
+        i.TransactionReference,
+        i.Status,
+        i.Notes,
+        i.CreatedAt,
+        i.UpdatedAt,
+        inv.ClientId,
+        inv.[InvoiceTotal] as InvoiceTotal
+    FROM Income i
+        LEFT JOIN Invoices inv ON i.InvoiceId = inv.Id
+    WHERE i.Id = @Id;
+END
+
+GO
+
+CREATE PROCEDURE [dbo].[sp_GetIncomeByInvoiceId]
+    @InvoiceId NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id,
+        i.InvoiceId,
+        i.IncomeDate,
+        i.Amount,
+        i.PaymentMethod,
+        i.TransactionReference,
+        i.Status,
+        i.Notes,
+        i.CreatedAt,
+        i.UpdatedAt,
+        inv.ClientId,
+        inv.[InvoiceTotal] as InvoiceTotal
+    FROM Income i
+        LEFT JOIN Invoices inv ON i.InvoiceId = inv.Id
+    WHERE i.InvoiceId = @InvoiceId;
+END
+
+GO
+
+CREATE PROCEDURE [dbo].[sp_GetIncomeByDateRange]
+    @StartDate DATETIME,
+    @EndDate DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id,
+        i.InvoiceId,
+        i.IncomeDate,
+        i.Amount,
+        i.PaymentMethod,
+        i.TransactionReference,
+        i.Status,
+        i.Notes,
+        i.CreatedAt,
+        i.UpdatedAt,
+        inv.ClientId,
+        inv.[InvoiceTotal] as InvoiceTotal
+    FROM Income i
+        LEFT JOIN Invoices inv ON i.InvoiceId = inv.Id
+    WHERE i.IncomeDate BETWEEN @StartDate AND @EndDate
+    ORDER BY i.IncomeDate DESC;
+END
+
+GO
+
+CREATE or alter PROCEDURE [dbo].[sp_GetIncomeByStatus]
+    @Status NVARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id,
+        i.InvoiceId,
+        i.IncomeDate,
+        i.Amount,
+        i.PaymentMethod,
+        i.TransactionReference,
+        i.Status,
+        i.Notes,
+        i.CreatedAt,
+        i.UpdatedAt,
+        inv.ClientId,
+        inv.[InvoiceTotal] as InvoiceTotal
+    FROM Income i
+        LEFT JOIN Invoices inv ON i.InvoiceId = inv.Id
+    WHERE i.Status = @Status
+    ORDER BY i.IncomeDate DESC;
+END
+
+GO
+
+
+CREATE PROCEDURE [dbo].[sp_SearchIncome]
+    @SearchTerm NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id,
+        i.InvoiceId,
+        i.IncomeDate,
+        i.Amount,
+        i.PaymentMethod,
+        i.TransactionReference,
+        i.Status,
+        i.Notes,
+        i.CreatedAt,
+        i.UpdatedAt,
+        inv.ClientId,
+        inv.[InvoiceTotal] as InvoiceTotal
+    FROM Income i
+        LEFT JOIN Invoices inv ON i.InvoiceId = inv.Id
+    WHERE i.Id LIKE '%' + @SearchTerm + '%'
+        OR i.InvoiceId LIKE '%' + @SearchTerm + '%'
+        OR i.PaymentMethod LIKE '%' + @SearchTerm + '%'
+        OR i.TransactionReference LIKE '%' + @SearchTerm + '%'
+        OR i.Notes LIKE '%' + @SearchTerm + '%'
+        OR inv.ClientId LIKE '%' + @SearchTerm + '%'
+    ORDER BY i.IncomeDate DESC;
+END
+
+
+GO
+
+
+
+CREATE PROCEDURE [dbo].[sp_GetRecentIncome]
+    @Count INT = 10
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP (@Count)
+        i.Id,
+        i.InvoiceId,
+        i.IncomeDate,
+        i.Amount,
+        i.PaymentMethod,
+        i.TransactionReference,
+        i.Status,
+        i.Notes,
+        i.CreatedAt,
+        i.UpdatedAt,
+        inv.ClientId,
+        inv.[InvoiceTotal] as InvoiceTotal
+    FROM Income i
+        LEFT JOIN Invoices inv ON i.InvoiceId = inv.Id
+    ORDER BY i.IncomeDate DESC, i.CreatedAt DESC;
+END
+
+
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllIncome]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        i.Id,
+        i.InvoiceId,
+        i.IncomeDate,
+        i.Amount,
+        i.PaymentMethod,
+        i.TransactionReference,
+        i.Status,
+        i.Notes,
+        i.CreatedAt,
+        i.UpdatedAt,
+        inv.ClientId,
+        inv.InvoiceTotal as InvoiceTotal
+    FROM Income i
+    LEFT JOIN Invoices inv ON i.InvoiceId = inv.Id
+    ORDER BY i.IncomeDate DESC, i.CreatedAt DESC;
+END
+GO

@@ -1,0 +1,326 @@
+-- Drop existing table if it exists
+IF OBJECT_ID('dbo.Payments', 'U') IS NOT NULL
+    DROP TABLE Payments;
+
+CREATE TABLE Payments (
+    Id NVARCHAR(50) PRIMARY KEY,
+    PaymentType NVARCHAR(20) NOT NULL CHECK (PaymentType IN ('invoice_payment', 'bill_payment')),
+    ReferenceId NVARCHAR(50) NOT NULL,
+    PaymentDate DATETIME NOT NULL,
+    PaymentMethod NVARCHAR(50) NULL,
+    Notes NVARCHAR(500) NULL,
+    Amount DECIMAL(18,2) NOT NULL,
+    Status NVARCHAR(20) NOT NULL DEFAULT 'pending',
+    TransactionReference NVARCHAR(100) NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETUTCDATE()
+);
+
+-- Create indexes for better performance
+CREATE INDEX IX_Payments_PaymentType ON Payments(PaymentType);
+CREATE INDEX IX_Payments_ReferenceId ON Payments(ReferenceId);
+CREATE INDEX IX_Payments_PaymentDate ON Payments(PaymentDate);
+CREATE INDEX IX_Payments_Status ON Payments(Status);
+
+GO
+
+CREATE or ALTER PROCEDURE [dbo].[sp_CreatePayment]
+    @PaymentType NVARCHAR(20),
+    @ReferenceId NVARCHAR(50),
+    @PaymentDate DATETIME,
+    @PaymentMethod NVARCHAR(50) = NULL,
+    @Notes NVARCHAR(500) = NULL,
+    @Amount DECIMAL(18,2),
+    @Status NVARCHAR(20),
+    @TransactionReference NVARCHAR(100) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        IF NOT EXISTS (
+            SELECT 1 FROM Bills WHERE Id = @ReferenceId
+            UNION ALL
+            SELECT 1 FROM Invoices WHERE Id = @ReferenceId
+        ) THROW 50001, 'Bill or Invoice with the specified ID does not exist.', 1;
+        -- Generate the next payment ID in PMT0000001 format
+        DECLARE @NewPaymentNumber INT;
+        DECLARE @GeneratedPaymentId NVARCHAR(50);
+        
+        -- Get the maximum existing payment number and increment
+        SELECT @NewPaymentNumber = ISNULL(MAX(CAST(REPLACE(Id, 'PMT', '') AS INT)), 0) + 1
+        FROM Payments
+        WHERE Id LIKE 'PMT%' AND ISNUMERIC(REPLACE(Id, 'PMT', '')) = 1;
+        
+        SET @GeneratedPaymentId = 'PMT' + RIGHT('0000000' + CAST(@NewPaymentNumber AS NVARCHAR(10)), 7);
+        
+        -- Insert the payment
+        INSERT INTO Payments (
+            Id, PaymentType, ReferenceId, PaymentDate, 
+            PaymentMethod, Notes, Amount, Status, TransactionReference, CreatedAt
+        )
+        VALUES (
+            @GeneratedPaymentId, @PaymentType, @ReferenceId, @PaymentDate,
+            @PaymentMethod, @Notes, @Amount, @Status, @TransactionReference, GETUTCDATE()
+        );
+        
+        -- Return the generated payment ID
+        SELECT @GeneratedPaymentId AS GeneratedPaymentId;
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
+        THROW;
+    END CATCH
+END
+
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllPayments]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        Id,
+        PaymentType,
+        ReferenceId,
+        PaymentDate,
+        PaymentMethod,
+        Notes,
+        Amount,
+        Status,
+        TransactionReference,
+        CreatedAt
+    FROM Payments
+    ORDER BY CreatedAt DESC;
+END
+
+GO 
+
+CREATE or ALTER PROCEDURE [dbo].[sp_GetPaymentById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        Id,
+        PaymentType,
+        ReferenceId,
+        PaymentDate,
+        PaymentMethod,
+        Notes,
+        Amount,
+        Status,
+        TransactionReference,
+        CreatedAt
+    FROM Payments
+    WHERE Id = @Id;
+END
+
+
+GO 
+
+CREATE or ALTER PROCEDURE [dbo].[sp_GetPaymentsByType]
+    @PaymentType NVARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        Id,
+        PaymentType,
+        ReferenceId,
+        PaymentDate,
+        PaymentMethod,
+        Notes,
+        Amount,
+        Status,
+        TransactionReference,
+        CreatedAt
+    FROM Payments
+    WHERE PaymentType = @PaymentType
+    ORDER BY CreatedAt DESC;
+END
+
+GO
+
+
+CREATE or ALTER PROCEDURE [dbo].[sp_GetPaymentsByReference]
+    @ReferenceId NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        Id,
+        PaymentType,
+        ReferenceId,
+        PaymentDate,
+        PaymentMethod,
+        Notes,
+        Amount,
+        Status,
+        TransactionReference,
+        CreatedAt
+    FROM Payments
+    WHERE ReferenceId = @ReferenceId
+    ORDER BY PaymentDate DESC;
+END
+
+
+Go
+
+
+CREATE or alter PROCEDURE [dbo].[sp_GetPaymentsByDateRange]
+    @StartDate DATETIME,
+    @EndDate DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        Id,
+        PaymentType,
+        ReferenceId,
+        PaymentDate,
+        PaymentMethod,
+        Notes,
+        Amount,
+        Status,
+        TransactionReference,
+        CreatedAt
+    FROM Payments
+    WHERE PaymentDate BETWEEN @StartDate AND @EndDate
+    ORDER BY PaymentDate DESC;
+END
+
+
+GO
+
+
+CREATE or alter PROCEDURE [dbo].[sp_UpdatePayment]
+    @Id NVARCHAR(50),
+    @PaymentType NVARCHAR(20),
+    @ReferenceId NVARCHAR(50),
+    @PaymentDate DATETIME,
+    @PaymentMethod NVARCHAR(50) = NULL,
+    @Notes NVARCHAR(500) = NULL,
+    @Amount DECIMAL(18,2),
+    @Status NVARCHAR(20),
+    @TransactionReference NVARCHAR(100) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        UPDATE Payments 
+        SET 
+            PaymentType = @PaymentType,
+            ReferenceId = @ReferenceId,
+            PaymentDate = @PaymentDate,
+            PaymentMethod = @PaymentMethod,
+            Notes = @Notes,
+            Amount = @Amount,
+            Status = @Status,
+            TransactionReference = @TransactionReference
+        WHERE Id = @Id;
+        
+        IF @@ROWCOUNT = 0
+            RAISERROR('Payment with ID %s not found', 16, 1, @Id);
+            
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+
+
+GO
+
+
+CREATE PROCEDURE [dbo].[sp_UpdatePaymentStatus]
+    @Id NVARCHAR(50),
+    @Status NVARCHAR(20),
+    @TransactionReference NVARCHAR(100) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        UPDATE Payments 
+        SET 
+            Status = @Status,
+            TransactionReference = ISNULL(@TransactionReference, TransactionReference)
+        WHERE Id = @Id;
+        
+        IF @@ROWCOUNT = 0
+            RAISERROR('Payment with ID %s not found', 16, 1, @Id);
+            
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+
+CREATE or alter PROCEDURE [dbo].[sp_DeletePayment]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        DELETE FROM Payments 
+        WHERE Id = @Id;
+        
+        IF @@ROWCOUNT = 0
+            RAISERROR('Payment with ID %s not found', 16, 1, @Id);
+            
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+
+CREATE or alter PROCEDURE [dbo].[sp_GetPaymentSummary]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        COUNT(*) AS TotalPayments,
+        ISNULL(SUM(Amount), 0) AS TotalAmount,
+        SUM(CASE WHEN PaymentType = 'invoice_payment' THEN 1 ELSE 0 END) AS InvoicePaymentsCount,
+        SUM(CASE WHEN PaymentType = 'bill_payment' THEN 1 ELSE 0 END) AS BillPaymentsCount,
+        SUM(CASE WHEN Status = 'pending' THEN 1 ELSE 0 END) AS PendingPayments,
+        SUM(CASE WHEN Status = 'completed' THEN 1 ELSE 0 END) AS CompletedPayments,
+        SUM(CASE WHEN Status = 'failed' THEN 1 ELSE 0 END) AS FailedPayments
+    FROM Payments;
+END
+
+GO
+
+CREATE or alter PROCEDURE [dbo].[sp_GetCashFlow]
+    @StartDate DATETIME,
+    @EndDate DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        ISNULL(SUM(CASE WHEN PaymentType = 'invoice_payment' AND Status = 'completed' THEN Amount ELSE 0 END), 0) AS TotalIncome,
+        ISNULL(SUM(CASE WHEN PaymentType = 'bill_payment' AND Status = 'completed' THEN Amount ELSE 0 END), 0) AS TotalExpenses,
+        ISNULL(SUM(CASE WHEN PaymentType = 'invoice_payment' AND Status = 'completed' THEN Amount 
+                        WHEN PaymentType = 'bill_payment' AND Status = 'completed' THEN -Amount 
+                        ELSE 0 END), 0) AS NetCashFlow
+    FROM Payments
+    WHERE PaymentDate BETWEEN @StartDate AND @EndDate;
+END
+
+
