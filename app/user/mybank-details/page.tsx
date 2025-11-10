@@ -1,13 +1,15 @@
-import React from "react";
-import BankDetailsManager from "@/components/MyBankDetails";
+import React, { Suspense } from "react";
+import BankDetailsManager from "@/components/BankDetailsManager";
 import { getBankData } from "@/utils/getdata";
 
 export default async function Page() {
   const bankDataResponse = await getBankData();
   
   return (
-    <BankDetailsManager 
-      initialData={bankDataResponse.success ? bankDataResponse.data : []}
-    />
+    <Suspense fallback={<div>Loading bank data...</div>}>
+      <BankDetailsManager 
+        initialData={bankDataResponse.success ? bankDataResponse.data : []}
+      />
+    </Suspense>
   );
 }

@@ -1,5 +1,5 @@
 import VendorsDashboard from "@/components/AllVendorData";
-import { VENDORDATA, COMPANY } from "@/constraints/index";
+import { VENDORDATA } from "@/constraints/index";
 
 // Function to get all invoice data
 async function getAllVendorData() {
