@@ -26,24 +26,20 @@ interface BankDetailsManagerProps {
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
-  initialData = [],
-}) => {
+const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [] }) => {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [formData, setFormData] = useState<FormData>({
     bankName: "",
     accountName: "",
     accountNumber: "",
     branch: "",
-    notes: "",
+    notes: ""
   });
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  // const [apiStatus, setApiStatus] = useState<string>('Checking...');
 
   // Initialize with server data
   useEffect(() => {
@@ -52,72 +48,41 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
     }
   }, [initialData]);
 
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const createBankAccount = async (
-    bankAccountData: Omit<BankAccount, "id">
-  ): Promise<string> => {
-    const response = await fetch(
-      `${API_URL}/project_pulse/BankAccount/createBankAccount`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bankAccountData),
-      }
-    );
+  const createBankAccount = async (bankAccountData: Omit<BankAccount, 'id'>): Promise<string> => {
+    const response = await fetch(`${API_URL}/project_pulse/BankAccount/createBankAccount`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bankAccountData),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to create bank account");
+      throw new Error(errorData.message || 'Failed to create bank account');
     }
 
     const result = await response.json();
     return result.id;
   };
 
-  const updateBankAccount = async (
-    id: string,
-    bankAccountData: Omit<BankAccount, "id">
-  ): Promise<void> => {
-    const response = await fetch(
-      `${API_URL}/project_pulse/BankAccount/updateBankAccount/${id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bankAccountData),
-      }
-    );
-
-    console.log(response,"update")
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to update bank account");
-    }
-  };
-
-  const deleteBankAccount = async (id: string): Promise<void> => {
-    const response = await fetch(
-      `${API_URL}/project_pulse/BankAccount/deleteBankAccount/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+  const updateBankAccount = async (id: string, bankAccountData: Omit<BankAccount, 'id'>): Promise<void> => {
+    const response = await fetch(`${API_URL}/project_pulse/BankAccount/updateBankAccount/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bankAccountData),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to delete bank account");
+      throw new Error(errorData.message || 'Failed to update bank account');
     }
   };
 
@@ -132,58 +97,35 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
         accountName: formData.accountName,
         accountNumber: formData.accountNumber,
         branch: formData.branch || undefined,
-        notes: formData.notes || undefined,
+        notes: formData.notes || undefined
       };
 
       if (editId !== null) {
         // Update existing account
         await updateBankAccount(editId, bankAccountData);
-
+        
         // Update local state
-        const updatedAccounts = bankAccounts.map((account) =>
+        const updatedAccounts = bankAccounts.map(account =>
           account.id === editId ? { ...bankAccountData, id: editId } : account
         );
         setBankAccounts(updatedAccounts);
       } else {
         // Create new account
         const newId = await createBankAccount(bankAccountData);
-
+        
         // Add to local state with the actual ID from API
         const newAccount: BankAccount = {
           ...bankAccountData,
-          id: newId,
+          id: newId
         };
         setBankAccounts((prev) => [...prev, newAccount]);
       }
-
+      
       resetForm();
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An error occurred";
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    setIsDeleting(true);
-    setError(null);
-
-    try {
-      // Call the API to delete
-
-      await deleteBankAccount(id);
-      setIsDeleting(false);
-      // Update local state only if API call succeeds
-      setBankAccounts((prev) => prev.filter((account) => account.id !== id));
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to delete bank account";
-      setError(errorMessage);
-      setIsDeleting(false);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -193,7 +135,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
       accountName: "",
       accountNumber: "",
       branch: "",
-      notes: "",
+      notes: ""
     });
     setIsModalOpen(false);
     setEditId(null);
@@ -206,16 +148,21 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
       accountName: account.accountName || "",
       accountNumber: account.accountNumber || "",
       branch: account.branch || "",
-      notes: account.notes || "",
+      notes: account.notes || ""
     });
     setEditId(account.id);
     setIsModalOpen(true);
   };
 
+  const handleDelete = (id: string) => {
+    // For now, just update local state
+    // You can add API call for delete if you have the endpoint
+    setBankAccounts((prev) => prev.filter(account => account.id !== id));
+    setDeleteId(null);
+  };
+
   // Find account for delete confirmation
-  const accountToDelete = bankAccounts.find(
-    (account) => account.id === deleteId
-  );
+  const accountToDelete = bankAccounts.find(account => account.id === deleteId);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -233,7 +180,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
       {/* Error Message */}
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          <strong>Error:</strong> {error}
+          {error}
         </div>
       )}
 
@@ -339,31 +286,14 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
                 >
                   {isLoading ? (
                     <>
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       {editId !== null ? "Updating..." : "Creating..."}
                     </>
-                  ) : editId !== null ? (
-                    "Update Account"
                   ) : (
-                    "Add Account"
+                    editId !== null ? "Update Account" : "Add Account"
                   )}
                 </button>
               </div>
@@ -423,15 +353,13 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => handleEdit(account)}
-                        disabled={isLoading}
-                        className="text-blue-600 hover:text-blue-800 transition-colors font-medium text-sm disabled:opacity-50"
+                        className="text-blue-600 hover:text-blue-800 transition-colors font-medium text-sm"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => setDeleteId(account.id)}
-                        disabled={isLoading}
-                        className="text-red-600 hover:text-red-800 transition-colors font-medium text-sm disabled:opacity-50"
+                        className="text-red-600 hover:text-red-800 transition-colors font-medium text-sm"
                       >
                         Delete
                       </button>
@@ -445,18 +373,8 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
       ) : (
         <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
           <div className="text-gray-400 mb-3">
-            <svg
-              className="w-16 h-16 mx-auto"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-6 0H5m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8v-4m0 4h4"
-              />
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-6 0H5m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8v-4m0 4h4" />
             </svg>
           </div>
           <p className="text-gray-500 text-lg mb-4">No bank accounts found</p>
@@ -486,48 +404,20 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({
               <strong>Number:</strong> {accountToDelete.accountNumber}
             </p>
             <p className="mb-4 text-red-600 font-medium">
-              Are you sure you want to delete this bank account? This action
-              cannot be undone.
+              Are you sure you want to delete this bank account? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setDeleteId(null)}
-                disabled={isDeleting}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium disabled:opacity-50"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDelete(deleteId)}
-                disabled={isDeleting}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium disabled:opacity-50 flex items-center"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium"
               >
-                {isDeleting ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Deleting...
-                  </>
-                ) : (
-                  "Delete Account"
-                )}
+                Delete Account
               </button>
             </div>
           </div>

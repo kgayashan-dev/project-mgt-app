@@ -1,0 +1,217 @@
+-- Drop existing procedures and tables
+IF OBJECT_ID('dbo.sp_CreateMerchant', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_CreateMerchant;
+GO
+
+IF OBJECT_ID('dbo.sp_GetAllMerchants', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_GetAllMerchants;
+GO
+
+IF OBJECT_ID('dbo.sp_GetActiveMerchants', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_GetActiveMerchants;
+GO
+
+IF OBJECT_ID('dbo.sp_GetMerchantById', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_GetMerchantById;
+GO
+
+IF OBJECT_ID('dbo.sp_UpdateMerchant', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_UpdateMerchant;
+GO
+
+IF OBJECT_ID('dbo.sp_DeleteMerchant', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_DeleteMerchant;
+GO
+
+IF OBJECT_ID('dbo.sp_SearchMerchants', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.sp_SearchMerchants;
+GO
+
+IF OBJECT_ID('dbo.Merchants', 'U') IS NOT NULL
+    DROP TABLE dbo.Merchants;
+GO
+
+-- Create Merchants table
+CREATE TABLE Merchants (
+    MerchantId NVARCHAR(50) PRIMARY KEY NOT NULL,
+    MerchantName NVARCHAR(100) NOT NULL,
+    ContactPerson NVARCHAR(100),
+    Email NVARCHAR(100),
+    Phone NVARCHAR(20),
+    Address NVARCHAR(200),
+    CreatedDate DATETIME2 DEFAULT GETUTCDATE(),
+    ModifiedDate DATETIME2 DEFAULT GETUTCDATE(),
+    Active BIT DEFAULT 1
+);
+GO
+
+-- Stored Procedure: Create Merchant
+CREATE PROCEDURE [dbo].[sp_CreateMerchant]
+    @MerchantId NVARCHAR(50) = NULL,
+    @MerchantName NVARCHAR(100),
+    @ContactPerson NVARCHAR(100) = NULL,
+    @Email NVARCHAR(100) = NULL,
+    @Phone NVARCHAR(20) = NULL,
+    @Address NVARCHAR(200) = NULL,
+    @Active BIT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @NewMerchantId NVARCHAR(50);
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Generate Merchant ID in MER000001 format when empty string or NULL is provided
+        IF @MerchantId IS NULL OR @MerchantId = ''
+        BEGIN
+            SELECT @NewMerchantId = 'MER' + RIGHT('0000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(MerchantId, 4, LEN(MerchantId)) AS INT)), 0) + 1 AS NVARCHAR(7)), 7)
+            FROM Merchants;
+        END
+        ELSE
+        BEGIN
+            SET @NewMerchantId = @MerchantId;
+        END
+
+        -- Insert into Merchants table
+        INSERT INTO Merchants (MerchantId, MerchantName, ContactPerson, Email, Phone, Address, Active)
+        VALUES (@NewMerchantId, @MerchantName, @ContactPerson, @Email, @Phone, @Address, @Active);
+
+        COMMIT TRANSACTION;
+        
+        SELECT @NewMerchantId AS GeneratedMerchantId;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Stored Procedure: Get All Merchants
+CREATE PROCEDURE [dbo].[sp_GetAllMerchants]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        MerchantId, MerchantName, ContactPerson, Email, Phone, Address, 
+        CreatedDate, ModifiedDate, Active
+    FROM Merchants 
+    ORDER BY MerchantName;
+END
+GO
+
+-- Stored Procedure: Get Active Merchants
+CREATE PROCEDURE [dbo].[sp_GetActiveMerchants]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        MerchantId, MerchantName, ContactPerson, Email, Phone, Address, 
+        CreatedDate, ModifiedDate, Active
+    FROM Merchants 
+    WHERE Active = 1
+    ORDER BY MerchantName;
+END
+GO
+
+-- Stored Procedure: Get Merchant By ID
+CREATE PROCEDURE [dbo].[sp_GetMerchantById]
+    @MerchantId NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        MerchantId, MerchantName, ContactPerson, Email, Phone, Address, 
+        CreatedDate, ModifiedDate, Active
+    FROM Merchants 
+    WHERE MerchantId = @MerchantId;
+END
+GO
+
+-- Stored Procedure: Update Merchant
+CREATE PROCEDURE [dbo].[sp_UpdateMerchant]
+    @MerchantId NVARCHAR(50),
+    @MerchantName NVARCHAR(100),
+    @ContactPerson NVARCHAR(100) = NULL,
+    @Email NVARCHAR(100) = NULL,
+    @Phone NVARCHAR(20) = NULL,
+    @Address NVARCHAR(200) = NULL,
+    @Active BIT = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Update Merchant
+        UPDATE Merchants 
+        SET 
+            MerchantName = @MerchantName,
+            ContactPerson = @ContactPerson,
+            Email = @Email,
+            Phone = @Phone,
+            Address = @Address,
+            Active = @Active,
+            ModifiedDate = GETUTCDATE()
+        WHERE MerchantId = @MerchantId;
+
+        COMMIT TRANSACTION;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Stored Procedure: Delete Merchant (Soft Delete)
+CREATE PROCEDURE [dbo].[sp_DeleteMerchant]
+    @MerchantId NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Soft delete the merchant
+        UPDATE Merchants 
+        SET Active = 0, ModifiedDate = GETUTCDATE()
+        WHERE MerchantId = @MerchantId;
+
+        COMMIT TRANSACTION;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- Stored Procedure: Search Merchants
+CREATE PROCEDURE [dbo].[sp_SearchMerchants]
+    @SearchTerm NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        MerchantId, MerchantName, ContactPerson, Email, Phone, Address, 
+        CreatedDate, ModifiedDate, Active
+    FROM Merchants
+    WHERE (MerchantId LIKE '%' + @SearchTerm + '%'
+        OR MerchantName LIKE '%' + @SearchTerm + '%'
+        OR ContactPerson LIKE '%' + @SearchTerm + '%'
+        OR Email LIKE '%' + @SearchTerm + '%')
+    ORDER BY MerchantName;
+END
+GO

@@ -1,7 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
+import html2pdf from "html2pdf.js";
 import Link from "next/link";
+
 
 type Row = {
   description: string;
@@ -37,18 +39,6 @@ interface InvoiceArray {
   phoneNumber: number;
 }
 
-interface BankAccount {
-  id: string;
-  accountName: string;
-  bankName: string;
-  branch: string;
-  accountNumber: string;
-  accountType: string;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string | null;
-}
-
 interface InvoiceDetailPageProps {
   invoiceArray: InvoiceArray;
 }
@@ -59,79 +49,25 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
     invoiceNumber,
     clientAddress,
     invoiceDate,
+
     phoneNumber,
+
     table = [],
     subtotal,
     totalTax,
     grandTotal,
     notes,
     emailAddress,
+    // terms,
+    // additionalInfo,
+    // discountPercentage,
     invoiceReference,
+    // taxPercentage,
   } = invoiceArray;
 
   // File upload state
   const [file, setFile] = useState<File | null>(null);
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [selectedBankAccount, setSelectedBankAccount] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [html2pdf, setHtml2pdf] = useState<any>(null);
-
-  // Dynamically import html2pdf on client side only
-  useEffect(() => {
-    import("html2pdf.js").then((module) => {
-      setHtml2pdf(module.default);
-    });
-  }, []);
-
-  // Fetch bank accounts on component mount
-  useEffect(() => {
-    const fetchBankAccounts = async () => {
-      try {
-        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-        const response = await fetch(
-          `${API_URL}/project_pulse/BankAccount/getAllBankAccounts`
-        );
-        
-        console.log("Bank accounts response:", response);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Bank accounts data:", data);
-          
-          // Handle different response structures
-          let accounts: BankAccount[] = [];
-          
-          if (data.success && Array.isArray(data.data)) {
-            accounts = data.data;
-          } else if (Array.isArray(data)) {
-            accounts = data;
-          } else if (data.data && Array.isArray(data.data)) {
-            accounts = data.data;
-          }
-          
-          setBankAccounts(accounts);
-          
-          // Auto-select first bank account if available
-          if (accounts.length > 0) {
-            setSelectedBankAccount(accounts[0].id);
-          }
-        } else {
-          console.error("Failed to fetch bank accounts:", response.status);
-        }
-      } catch (error) {
-        console.error("Error fetching bank accounts:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBankAccounts();
-  }, []);
-
-  // Get selected bank account details
-  const selectedBank = bankAccounts.find(bank => bank.id === selectedBankAccount);
 
   // File upload handling
   const onDrop = (acceptedFiles: File[]) => {
@@ -169,11 +105,6 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
 
   // Generate PDF
   const clickPdf = (invoiceNum: string, invoiceDt: string) => {
-    if (!html2pdf) {
-      alert("PDF generator is still loading. Please try again in a moment.");
-      return;
-    }
-
     const element = document.getElementById("invoice-content");
     const opt = {
       margin: 0.1,
@@ -215,16 +146,16 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
           </Link>
           <button
             onClick={handleAttachmentsChange}
+            // onClick={}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
             Save
           </button>
           <button
             onClick={() => clickPdf(invoiceNumber, invoiceDate)}
-            disabled={!html2pdf}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
-            {html2pdf ? "Save as PDF" : "Loading PDF..."}
+            Save as PDF
           </button>
         </div>
       </div>
@@ -425,70 +356,27 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
 
             {/* Bank Details Section */}
             <div className="pl-24">
-              {/* Bank Account Selection Dropdown */}
-              <div className="mb-4">
-                <label className="block regular-12 font-semibold mb-2">
-                  Select Bank Account
-                </label>
-                <select
-                  value={selectedBankAccount}
-                  onChange={(e) => setSelectedBankAccount(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg regular-12 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={loading || bankAccounts.length === 0}
-                >
-                  {loading ? (
-                    <option value="">Loading bank accounts...</option>
-                  ) : bankAccounts.length === 0 ? (
-                    <option value="">No bank accounts available</option>
-                  ) : (
-                    bankAccounts.map((bank) => (
-                      <option key={bank.id} value={bank.id}>
-                        {bank.accountName} - {bank.bankName} ({bank.branch})
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
-
-              {/* Bank Account Details */}
-              {selectedBank && (
-                <div className="mb-4">
-                  <h2 className="regular-12 font-semibold mb-2">
-                    Bank Account Details
-                  </h2>
-                  <div className="regular-10 space-y-1">
-                    <div className="flex gap-2">
-                      <span className="min-w-20">Name</span>
-                      <span className="font-medium">{selectedBank.accountName}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="min-w-20">Bank</span>
-                      <span className="font-medium">{selectedBank.bankName}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="min-w-20">Branch</span>
-                      <span className="font-medium">{selectedBank.branch}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="min-w-20 regular-10">Acc. Number</span>
-                      <span className="font-medium">{selectedBank.accountNumber}</span>
-                    </div>
-                    {selectedBank.accountType && (
-                      <div className="flex gap-2">
-                        <span className="min-w-20 regular-10">Type</span>
-                        <span className="font-medium">{selectedBank.accountType}</span>
-                      </div>
-                    )}
-                    {selectedBank.notes && (
-                      <div className="flex gap-2">
-                        <span className="min-w-20 regular-10">Notes</span>
-                        <span className="font-medium">{selectedBank.notes}</span>
-                      </div>
-                    )}
-                  </div>
+              <h2 className="regular-12 font-semibold mb-4">
+                Bank Account Details
+              </h2>
+              <div className="regular-10">
+                <div className="flex gap-2">
+                  <span className="min-w-20">Name</span>
+                  <span className="font-medium">SESO Engineering</span>
                 </div>
-              )}
-
+                <div className="flex gap-2">
+                  <span className="min-w-20">Bank</span>
+                  <span className="font-medium">ABC Bank</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="min-w-20">Branch</span>
+                  <span className="font-medium">Colombo</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="min-w-20 regular-10">Acc. Number</span>
+                  <span className="font-medium">1234567890</span>
+                </div>
+              </div>
               {/* Note Section */}
               <div className="mt-3 regular-9 text-gray-600 max-w-md">
                 Note: An interest of 2% per month will be levied for outstanding

@@ -1,70 +1,74 @@
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// app/user/invoices/[invoiceId]/page.tsx
+import React from "react";
 import ViewInvoice from "@/components/ViewInvoice";
-import { COMPANY, INVOICEDATA } from "@/constraints/index";
-import AdditionalInvoicePayment from "@/components/AdditionalInvoicePayments";
-import AttachementInvoice from "@/components/FileAttachementInvoice";
-// Define invoiceId type if not already defined
+import { getInvoiceById } from "@/utils/getdata";
+
 async function getInvoiceData(id: string) {
-  const invoice = INVOICEDATA.find((q) => q.id === id);
-
-  if (!invoice) {
-    return null; // Return null if no matching invoice is found
+  try {
+    const response = await getInvoiceById(id);
+    return response;
+  } catch (error) {
+    console.error("Error fetching invoice data:", error);
+    return null;
   }
-
-  return {
-    id: invoice.id,
-    invoiceNumber: invoice.invoiceNumber,
-    invoiceDate: invoice.invoiceDate,
-    invoiceDueDate: invoice.dueDate,
-    client: invoice.client || "not em", // Default client name if missing
-    location: "Not mentioned", // Default location if missing
-    outstandingRevenue: 0, // Default if missing
-    clientAddress: invoice.clientAddress,
-    phoneNumber: invoice.phoneNumber,
-    emailAddress:invoice.emailAddress,
-    subtotal: invoice.subtotal,
-    rows: invoice.table.length, // Table length as rows
-    table: invoice.table,
-    totalTax: invoice.totalTax,
-    grandTotal: invoice.grandTotal,
-    notes: invoice.notes || "No notes available.", // Default if missing
-    terms: invoice.terms || "No terms available.", // Default if missing
-    discountPercentage: invoice.discountPercentage || 0,
-    discountAmount: invoice.discountAmount || 0,
-    invoiceReference: "N/A", // Assuming there's no reference in your data; adjust as necessary
-    taxPercentage: 0, // Default tax percentage if missing
-    additionalInfo: invoice.additionalInfo || "No additional information.", // Default if missing
-  };
 }
 
 export default async function Page({
   params,
 }: {
-  params: { invoiceId: string };
+  params: Promise<{ invoiceId: string }>;
 }) {
-  // Correct way to extract params
-  const { invoiceId } = params;
+  const { invoiceId } = await params;
+  
+  const invoiceData = await getInvoiceData(invoiceId);
 
-  // Get invoice data using the invoiceId
-  const data = await getInvoiceData(invoiceId);
 
-  if (!data) {
-    return <div>Invoice not found</div>;
+  // console.log(invoiceData)
+  if (!invoiceData) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Invoice not found</h1>
+          <p className="text-gray-600">The invoice youre looking for doesnt exist.</p>
+        </div>
+      </div>
+    );
   }
 
-  return (
-    <div>
-      <p className="text-[10px] mt-4 font-bold">Invoice ID: {invoiceId}</p>
-      {/* Pass the correct prop to ViewInvoice */}
-      <ViewInvoice invoiceArray={data} myCompany={COMPANY} />
+  // Transform the API response to match the ViewInvoice component's expected format
+  const transformedInvoice = {
+    id: invoiceData.id,
+    invoiceNumber: invoiceData.invoiceNo,
+    invoiceDate: new Date(invoiceData.invoiceDate).toLocaleDateString('en-US'),
+    invoiceDueDate: new Date(invoiceData.invoiceDate).toLocaleDateString('en-US'), // You might want to calculate due date
+    client: invoiceData.clientID, // You might need to fetch client name separately
+    location: "", // You might need to fetch client location
+    outstandingRevenue: 0, // Calculate based on status
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    table: invoiceData.items.map((item: any, index: number) => ({
+      description: item.description,
+      rate: item.rate,
+      tax: 0, // You might need to calculate tax per item
+      qty: item.qty,
+      total: item.total,
+      unit: item.unit,
+      taxAmount: 0, // You might need to calculate tax amount
+    })),
+    subtotal: invoiceData.subtotal,
+    totalTax: invoiceData.tax,
+    grandTotal: invoiceData.invoiceTotal,
+    notes: invoiceData.remarks || "",
+    emailAddress: "", // You might need to fetch client email
+    terms: "Net 30", // Default terms
+    clientAddress: "", // You might need to fetch client address
+    invoiceReference: invoiceData.quotationID || invoiceData.poNo || "",
+    discountPercentage: 0,
+    discountAmount: 0,
+    taxPercentage: 0,
+    additionalInfo: "",
+    phoneNumber: 0, // You might need to fetch client phone
+  };
 
-      <AdditionalInvoicePayment invoiceId={invoiceId} />
-      <div className="m-8">
-        <AttachementInvoice
-          invoiceId={invoiceId}
-          invoiceDate={data.invoiceDate}
-        />
-      </div>
-    </div>
-  );
+  return <ViewInvoice invoiceArray={transformedInvoice} />;
 }

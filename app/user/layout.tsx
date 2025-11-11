@@ -1,5 +1,7 @@
+"use client";
 import DashboardNavBar from "@/components/DashboardNavBar";
 import Sidebar from "@/components/Sidebar";
+import { NotificationProvider } from "@/Contexts/NotificationContext";
 
 export default function DashboardLayout({
   children,
@@ -8,15 +10,17 @@ export default function DashboardLayout({
 }) {
   return (
     <div>
-      <div className="z-40 flex h-screen">
+      <div className="flex h-screen">
         <Sidebar />
-        <div className="z-30 fixed w-full">
+        <div className="fixed w-full">
           <DashboardNavBar />
         </div>
         {/* Main Content */}
-        <main className="flex-1 bg-gray-100 p-6 pt-12 overflow-y-auto">
-          {children}
-        </main>
+        <NotificationProvider>
+          {" "}
+          {/* Move this to the very top */}
+          <main className="flex-1 pt-12 overflow-y-auto">{children}</main>
+        </NotificationProvider>
       </div>
     </div>
   );
