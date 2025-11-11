@@ -77,7 +77,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
   const [selectedBankAccount, setSelectedBankAccount] = useState<string>("");
   const [selectedQuotation, setSelectedQuotation] = useState<string>("");
 
-  // Table state
+  // Table statess
   const [rows, setRows] = useState<Row[]>([
     {
       description: "",
