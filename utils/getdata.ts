@@ -17,6 +17,7 @@ const fetchData = async (url: string, label: string, options?: { timeout?: numbe
       signal: controller.signal
     });
     
+
     clearTimeout(timeoutId);
     
     if (!response.ok) {
@@ -40,6 +41,10 @@ const fetchData = async (url: string, label: string, options?: { timeout?: numbe
 // Client related functions
 export const getBankData = () =>
   fetchData("/project_pulse/BankAccount/getAllBankAccounts", "Bank data");
+
+
+export const getCompanyData = () =>
+  fetchData("/project_pulse/Company/getAllCompanies", "Company data");
 
 export const getClientById = (id: string) =>
   fetchData(`/project_pulse/Client/getClient/${id}`, "Client by ID");

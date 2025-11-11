@@ -23,4 +23,6 @@ BEGIN
 END
 GO
 
--- EXEC sp_GetInvoicesByClientId 'CID0000001'
+EXEC sp_GetInvoicesByClientId 'CID0000001'
+
+

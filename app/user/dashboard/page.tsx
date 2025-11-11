@@ -29,7 +29,7 @@ const Dashboard = () => {
         </div>
 
         {/* Card Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6 mb-10">
           <SummaryCard
             icon={<FaUsers />}
             title="Quotations"
@@ -55,6 +55,16 @@ const Dashboard = () => {
             title="Bank"
             url="mybank-details"
             value="Connect Your Bank"
+            img="/Bank.png"
+            htag=" Your Bank details"
+            ptag="Easily put, bank account and get real-time insights into your cash flow and spending."
+            router={router} // Pass the router to SummaryCard
+          />
+          <SummaryCard
+            icon={<FaClipboardList />}
+            title="My Company"
+            url="mycompany-details"
+            value="Your company"
             img="/Bank.png"
             htag=" Your Bank details"
             ptag="Easily put, bank account and get real-time insights into your cash flow and spending."

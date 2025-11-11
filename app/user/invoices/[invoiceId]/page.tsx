@@ -43,6 +43,7 @@ export default async function Page({
     invoiceDate: new Date(invoiceData.invoiceDate).toLocaleDateString('en-US'),
     invoiceDueDate: new Date(invoiceData.invoiceDate).toLocaleDateString('en-US'), // You might want to calculate due date
     client: invoiceData.clientID, // You might need to fetch client name separately
+    // clientName: invoiceData., // You might need to fetch client name separately
     location: "", // You might need to fetch client location
     outstandingRevenue: 0, // Calculate based on status
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

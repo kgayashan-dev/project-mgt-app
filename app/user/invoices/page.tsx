@@ -18,7 +18,7 @@ async function getInvoicesData() {
 export default async function Page() {
   const response = await getInvoicesData(); // Fetching all invoices
 
-  console.log("Full response:", response);
+
 
   // Check if the response is successful and has data
   if (!response || !response.success || !Array.isArray(response.data)) {
@@ -39,7 +39,7 @@ export default async function Page() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const transformedInvoices = data.map((invoice: any) => ({
     id: invoice.id,
-    clientName: invoice.clientID, // You might want to fetch client name separately
+    clientID: invoice.clientID, // You might want to fetch client name separately
     invoiceNumber: invoice.invoiceNo,
     description: invoice.remarks || "No description",
     invoiceDate: new Date(invoice.invoiceDate).toLocaleDateString('en-US'),

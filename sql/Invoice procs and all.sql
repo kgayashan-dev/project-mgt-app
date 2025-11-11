@@ -1,0 +1,614 @@
+-- ============================================
+-- Clear Tables and constraints
+
+
+
+-- Create Invoices table
+CREATE TABLE [dbo].[Invoices]
+(
+    [Id] [nvarchar](50) NOT NULL,
+    [InvoiceNo] [nvarchar](50) NOT NULL,
+    [PoNo] [nvarchar](50) NULL,
+    [InvoiceDate] [datetime] NOT NULL,
+    [QuotationID] [nvarchar](50) NULL,
+    [Remarks] [nvarchar](500) NULL,
+    
+    [ClientID] [nvarchar](50) NOT NULL,
+    [Subtotal] [decimal](18, 2) NOT NULL,
+    [Tax] [decimal](18, 2) NOT NULL,
+    [InvoiceTotal] [decimal](18, 2) NOT NULL,
+    [CreatedDate] [datetime] NOT NULL DEFAULT GETDATE(),
+    [Status] [nvarchar](20) NOT NULL DEFAULT 'Draft',
+    PRIMARY KEY CLUSTERED 
+(
+    [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY],
+    CONSTRAINT [UK_Invoices_InvoiceNo] UNIQUE NONCLUSTERED 
+(
+    [InvoiceNo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+-- =========
+-- Client  id as foreign key
+
+-- Check if Clients table exists and has the correct primary key
+SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Clients' AND COLUMN_NAME IN ('Id', 'ClientId');
+
+-- Add foreign key constraint (assuming Clients table has 'Id' as primary key)
+ALTER TABLE [dbo].[Invoices] 
+ADD CONSTRAINT [FK_Invoices_Clients] 
+FOREIGN KEY ([ClientID]) REFERENCES [dbo].[Clients]([Id]);
+-- ==========
+GO
+-- Create InvoiceItems table
+CREATE TABLE [dbo].[InvoiceItems]
+(
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [InvoiceId] [nvarchar](50) NOT NULL,
+    [Description] [nvarchar](200) NOT NULL,
+    [Unit] [nvarchar](20) NULL,
+    [Qty] [int] NOT NULL,
+    [Rate] [decimal](18, 2) NOT NULL,
+    [Total] AS ([Qty] * [Rate]) PERSISTED,
+    PRIMARY KEY CLUSTERED 
+(
+    [Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+-- Add foreign key constraint
+ALTER TABLE [dbo].[InvoiceItems] WITH CHECK ADD FOREIGN KEY([InvoiceId])
+REFERENCES [dbo].[Invoices] ([Id])
+ON DELETE CASCADE
+GO
+
+-- Create TVP Type for Invoice Items
+CREATE TYPE [dbo].[InvoiceItemDetailsType] AS TABLE(
+    [Description] [nvarchar](200) NULL,
+    [Unit] [nvarchar](20) NULL,
+    [Qty] [int] NULL,
+    [Rate] [decimal](18, 2) NULL
+)
+GO
+
+-- Create indexes
+CREATE INDEX [IX_Invoices_InvoiceNo] ON [dbo].[Invoices] ([InvoiceNo])
+CREATE INDEX [IX_Invoices_ClientID] ON [dbo].[Invoices] ([ClientID])
+CREATE INDEX [IX_Invoices_InvoiceDate] ON [dbo].[Invoices] ([InvoiceDate] DESC)
+CREATE INDEX [IX_InvoiceItems_InvoiceId] ON [dbo].[InvoiceItems] ([InvoiceId])
+GO
+
+-- =============================================
+-- Add Invoice
+-- =============================================
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+create or ALTER   PROCEDURE [dbo].[sp_AddInvoice]
+    @Id NVARCHAR(50) = NULL,
+    @InvoiceNo NVARCHAR(50),
+    @PoNo NVARCHAR(50) = NULL,
+    @InvoiceDate DATETIME,
+    @QuotationID NVARCHAR(50) = NULL,
+    @Remarks NVARCHAR(500) = NULL,
+    @ClientID NVARCHAR(50),
+    @Subtotal DECIMAL(18,2),
+    @Tax DECIMAL(18,2),
+    @InvoiceTotal DECIMAL(18,2),
+    @Items InvoiceItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION
+        -- PRINT 'hello'
+
+        if not EXISTS(select 1 from Clients where id=@ClientID) THROW 50001, 'Client ID does not exists.',1;
+        if not EXISTS(select 1 from Quotations where id=@QuotationID) THROW 50002, 'Quotation does not exists.',1;
+
+
+
+
+
+        DECLARE @NewId NVARCHAR(50);
+        
+        -- Use provided ID or generate new one
+        IF @Id IS NULL OR @Id = ''
+        BEGIN
+
+
+        -- Generate new Invoice ID in INV000001 format
+        SELECT @NewId = 'INV' + RIGHT('0000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(6)), 7)
+        FROM Invoices;
+    END
+        ELSE
+        BEGIN
+        SET @NewId = @Id;
+    END
+        PRINT 'hello'
+        -- Validate that invoice number doesn't already exist
+        IF EXISTS (SELECT 1
+    FROM Invoices
+    WHERE InvoiceNo = @InvoiceNo)
+        BEGIN
+        RAISERROR('Invoice number already exists', 16, 1);
+        RETURN;
+    END
+        
+        -- Insert main invoice record
+        INSERT INTO [dbo].[Invoices]
+        (
+        Id, InvoiceNo, PoNo, InvoiceDate, QuotationID, Remarks,
+        ClientID, Subtotal, Tax, InvoiceTotal
+        )
+    VALUES
+        (
+            @NewId, @InvoiceNo, @PoNo, @InvoiceDate, @QuotationID, @Remarks,
+            @ClientID, @Subtotal, @Tax, @InvoiceTotal
+        );
+
+        -- Insert invoice items
+        INSERT INTO InvoiceItems
+        (InvoiceId, Description, Unit, Qty, Rate)
+    SELECT @NewId, Description, Unit, Qty, Rate
+    FROM @Items;
+
+        -- Return the generated ID
+        SELECT @NewId AS GeneratedInvoiceId;
+        
+        COMMIT TRANSACTION
+            
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+
+
+GO
+
+-- =============================================
+-- Get All Invoices
+-- =============================================
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllInvoices]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id,
+        i.InvoiceNo,
+        i.PoNo,
+        i.InvoiceDate,
+        i.QuotationID,
+        i.Remarks,
+        i.ClientID,
+        i.Subtotal,
+        i.Tax,
+        i.InvoiceTotal,
+        i.CreatedDate,
+        i.Status,
+        ii.Id AS ItemId,
+        ii.Description,
+        ii.Unit,
+        ii.Qty,
+        ii.Rate,
+        ii.Total
+    FROM Invoices i
+        LEFT JOIN InvoiceItems ii ON i.Id = ii.InvoiceId
+    ORDER BY i.InvoiceDate DESC, i.Id;
+END
+GO
+
+-- =============================================
+-- Get Invoice by ID
+-- =============================================
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetInvoiceById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id,
+        i.InvoiceNo,
+        i.PoNo,
+        i.InvoiceDate,
+        i.QuotationID,
+        i.Remarks,
+        i.ClientID,
+        i.Subtotal,
+        i.Tax,
+        i.InvoiceTotal,
+        i.CreatedDate,
+        i.Status,
+        ii.Id AS ItemId,
+        ii.Description,
+        ii.Unit,
+        ii.Qty,
+        ii.Rate,
+        ii.Total
+    FROM Invoices i
+        LEFT JOIN InvoiceItems ii ON i.Id = ii.InvoiceId
+    WHERE i.Id = @Id
+    ORDER BY ii.Id;
+END
+GO
+
+-- =============================================
+-- Get Invoice by Invoice Number
+-- =============================================
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetInvoiceByNumber]
+    @InvoiceNo NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id,
+        i.InvoiceNo,
+        i.PoNo,
+        i.InvoiceDate,
+        i.QuotationID,
+        i.Remarks,
+        i.ClientID,
+        i.Subtotal,
+        i.Tax,
+        i.InvoiceTotal,
+        i.CreatedDate,
+        i.Status,
+        ii.Id AS ItemId,
+        ii.Description,
+        ii.Unit,
+        ii.Qty,
+        ii.Rate,
+        ii.Total
+    FROM Invoices i
+        LEFT JOIN InvoiceItems ii ON i.Id = ii.InvoiceId
+    WHERE i.InvoiceNo = @InvoiceNo
+    ORDER BY ii.Id;
+END
+GO
+
+-- =============================================
+-- Update Invoice
+-- =============================================
+CREATE OR ALTER PROCEDURE [dbo].[sp_UpdateInvoice]
+    @Id NVARCHAR(50),
+    @InvoiceNo NVARCHAR(50),
+    @PoNo NVARCHAR(50) = NULL,
+    @InvoiceDate DATETIME,
+    @QuotationID NVARCHAR(50) = NULL,
+    @Remarks NVARCHAR(500) = NULL,
+    @ClientID NVARCHAR(50),
+    @Subtotal DECIMAL(18,2),
+    @Tax DECIMAL(18,2),
+    @InvoiceTotal DECIMAL(18,2),
+    @Items InvoiceItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Update main invoice record
+        UPDATE Invoices SET
+            InvoiceNo = @InvoiceNo,
+            PoNo = @PoNo,
+            InvoiceDate = @InvoiceDate,
+            QuotationID = @QuotationID,
+            Remarks = @Remarks,
+            ClientID = @ClientID,
+            Subtotal = @Subtotal,
+            Tax = @Tax,
+            InvoiceTotal = @InvoiceTotal
+        WHERE Id = @Id;
+
+        -- Delete existing items and insert new ones
+        DELETE FROM InvoiceItems WHERE InvoiceId = @Id;
+        
+        INSERT INTO InvoiceItems
+        (InvoiceId, Description, Unit, Qty, Rate)
+    SELECT @Id, Description, Unit, Qty, Rate
+    FROM @Items;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- =============================================
+-- Delete Invoice
+-- =============================================
+CREATE OR ALTER PROCEDURE [dbo].[sp_DeleteInvoice]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Items will be automatically deleted due to CASCADE delete
+        DELETE FROM Invoices WHERE Id = @Id;
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+-- =============================================
+-- Get Next Invoice ID
+-- =============================================
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetNextInvoiceId]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @NextId NVARCHAR(50);
+
+    SELECT @NextId = 'INV' + RIGHT('000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(6)), 6)
+    FROM Invoices;
+
+    SELECT @NextId AS NextInvoiceId;
+END
+GO
+
+
+-- Delete invoices that have invalid ClientIDs
+
+
+EXEC sp_GetNextInvoiceId
+
+
+
+-- Added these things
+
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+-- Add BankAccId column to Invoices table
+ALTER TABLE Invoices 
+ADD BankAccId NVARCHAR(50) NULL;
+
+-- Add foreign key constraint (optional, if you want to enforce relationship)
+ALTER TABLE Invoices 
+ADD CONSTRAINT FK_Invoices_BankAccounts 
+FOREIGN KEY (BankAccId) REFERENCES BankAccounts(Id);
+
+
+GO 
+
+ALTER     PROCEDURE [dbo].[sp_AddInvoice]
+    @Id NVARCHAR(50) = NULL,
+    @InvoiceNo NVARCHAR(50),
+    @BankAccId NVARCHAR(50),
+    @PoNo NVARCHAR(50) = NULL,
+    @InvoiceDate DATETIME,
+    @QuotationID NVARCHAR(50) = NULL,
+    @Remarks NVARCHAR(500) = NULL,
+    @ClientID NVARCHAR(50),
+    @Subtotal DECIMAL(18,2),
+    @Tax DECIMAL(18,2),
+    @InvoiceTotal DECIMAL(18,2),
+    @Items InvoiceItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION
+        -- PRINT 'hello'
+
+        if not EXISTS(select 1 from Clients where id=@ClientID) THROW 50001, 'Client ID does not exists.',1;
+        if not EXISTS(select 1 from Quotations where id=@QuotationID) THROW 50002, 'Quotation does not exists.',1;
+        if not EXISTS(select 1 from BankAccounts where id=@BankAccId) THROW 50002, 'Bank acc does not exists.',1;
+
+
+
+
+
+        DECLARE @NewId NVARCHAR(50);
+        
+        -- Use provided ID or generate new one
+        IF @Id IS NULL OR @Id = ''
+        BEGIN
+
+
+        -- Generate new Invoice ID in INV000001 format
+        SELECT @NewId = 'INV' + RIGHT('0000000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(6)), 7)
+        FROM Invoices;
+    END
+        ELSE
+        BEGIN
+        SET @NewId = @Id;
+    END
+        PRINT 'hello'
+        -- Validate that invoice number doesn't already exist
+        IF EXISTS (SELECT 1
+    FROM Invoices
+    WHERE InvoiceNo = @InvoiceNo)
+        BEGIN
+        RAISERROR('Invoice number already exists', 16, 1);
+        RETURN;
+    END
+        
+        -- Insert main invoice record
+        INSERT INTO [dbo].[Invoices]
+        (
+        Id, InvoiceNo,BankAccId, PoNo, InvoiceDate, QuotationID, Remarks,
+        ClientID, Subtotal, Tax, InvoiceTotal
+        )
+    VALUES
+        (
+            @NewId, @InvoiceNo,@BankAccId, @PoNo, @InvoiceDate, @QuotationID, @Remarks,
+            @ClientID, @Subtotal, @Tax, @InvoiceTotal
+        );
+
+        -- Insert invoice items
+        INSERT INTO InvoiceItems
+        (InvoiceId, Description, Unit, Qty, Rate)
+    SELECT @NewId, Description, Unit, Qty, Rate
+    FROM @Items;
+
+        -- Return the generated ID
+        SELECT @NewId AS GeneratedInvoiceId;
+        
+        COMMIT TRANSACTION
+            
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_UpdateInvoice]
+    @Id NVARCHAR(50),
+    @InvoiceNo NVARCHAR(50),
+    @BankAccId NVARCHAR(50) = NULL,
+    @PoNo NVARCHAR(50) = NULL,
+    @InvoiceDate DATETIME,
+    @QuotationID NVARCHAR(50) = NULL,
+    @Remarks NVARCHAR(500) = NULL,
+    @ClientID NVARCHAR(50),
+    @Subtotal DECIMAL(18,2),
+    @Tax DECIMAL(18,2),
+    @InvoiceTotal DECIMAL(18,2),
+    @Items InvoiceItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION
+
+        -- Validate Client exists
+        IF NOT EXISTS (SELECT 1 FROM Clients WHERE Id = @ClientID) 
+            THROW 50001, 'Client ID does not exist.', 1;
+        
+        -- Validate Quotation exists if provided
+        IF @QuotationID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM Quotations WHERE Id = @QuotationID) 
+            THROW 50002, 'Quotation does not exist.', 1;
+            
+        -- Validate Bank Account exists if provided
+        IF @BankAccId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM BankAccounts WHERE Id = @BankAccId) 
+            THROW 50003, 'Bank account does not exist.', 1;
+
+        -- Validate that invoice number doesn't already exist (excluding current invoice)
+        IF EXISTS (SELECT 1 FROM Invoices WHERE InvoiceNo = @InvoiceNo AND Id != @Id)
+        BEGIN
+            THROW 50004, 'Invoice number already exists', 1;
+        END
+        
+        -- Update main invoice record
+        UPDATE [dbo].[Invoices] 
+        SET 
+            InvoiceNo = @InvoiceNo,
+            BankAccId = @BankAccId,
+            PoNo = @PoNo,
+            InvoiceDate = @InvoiceDate,
+            QuotationID = @QuotationID,
+            Remarks = @Remarks,
+            ClientID = @ClientID,
+            Subtotal = @Subtotal,
+            Tax = @Tax,
+            InvoiceTotal = @InvoiceTotal
+        WHERE Id = @Id;
+
+        -- Delete existing items
+        DELETE FROM InvoiceItems WHERE InvoiceId = @Id;
+
+        -- Insert new items
+        INSERT INTO InvoiceItems (InvoiceId, Description, Unit, Qty, Rate)
+        SELECT @Id, Description, Unit, Qty, Rate 
+        FROM @Items;
+
+        COMMIT TRANSACTION
+            
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllInvoices]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id, i.InvoiceNo, i.BankAccId, i.PoNo, i.InvoiceDate, i.QuotationID, 
+        i.Remarks, i.ClientID, i.Subtotal, i.Tax, i.InvoiceTotal,
+        ii.Id AS ItemId, ii.Description, ii.Unit, ii.Qty, ii.Rate,
+        (ii.Qty * ii.Rate) AS Total,
+        c.Name AS ClientName,
+        ba.BankName, ba.AccountNumber
+    FROM Invoices i
+    LEFT JOIN InvoiceItems ii ON i.Id = ii.InvoiceId
+    LEFT JOIN Clients c ON i.ClientID = c.Id
+    LEFT JOIN BankAccounts ba ON i.BankAccId = ba.Id
+    ORDER BY i.InvoiceDate DESC;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetInvoiceById]
+    @Id NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        i.Id, i.InvoiceNo, i.BankAccId, i.PoNo, i.InvoiceDate, i.QuotationID, 
+        i.Remarks, i.ClientID, i.Subtotal, i.Tax, i.InvoiceTotal,
+        ii.Id AS ItemId, ii.Description, ii.Unit, ii.Qty, ii.Rate,
+        (ii.Qty * ii.Rate) AS Total,
+        c.Name AS ClientName,
+        ba.BankName, ba.AccountNumber
+    FROM Invoices i
+    LEFT JOIN InvoiceItems ii ON i.Id = ii.InvoiceId
+    LEFT JOIN Clients c ON i.ClientID = c.Id
+    LEFT JOIN BankAccounts ba ON i.BankAccId = ba.Id
+    WHERE i.Id = @Id
+    ORDER BY ii.Id;
+END
+GO
+
+
+
+
+
+SELECT * from Invoices
+
+

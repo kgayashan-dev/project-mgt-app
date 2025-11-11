@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Search, Plus, ChevronDown } from "lucide-react";
 
 // Define types for invoice status and structure
@@ -8,7 +8,7 @@ type InvoiceStatus = "Paid" | "Partial" | "Overdue" | "Pending";
 
 interface Invoice {
   id: string;
-  clientName: string;
+  clientID: string;
   invoiceNumber: string;
   description?: string;
   invoiceDate: string;
@@ -26,7 +26,27 @@ interface AllInvoicePageProps {
 
 const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
   const router = useRouter();
-  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
+  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(
+    new Set()
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // Filter invoices based on search term and status filter
+  const filteredInvoices = useMemo(() => {
+    return invoiceArray.filter((invoice) => {
+      const matchesSearch = 
+        invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.clientID.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (invoice.description && invoice.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        invoice.id.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [invoiceArray, searchTerm, statusFilter]);
 
   // Redirect to the new invoice page
   const reDirect = () => {
@@ -58,9 +78,12 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
     }
   };
 
-  // Calculate grand total from all invoices
+  // Calculate grand total from filtered invoices
   const calculateGrandTotal = () => {
-    return invoiceArray.reduce((total, invoice) => total + invoice.grandTotal, 0);
+    return filteredInvoices.reduce(
+      (total, invoice) => total + invoice.grandTotal,
+      0
+    );
   };
 
   const handleRowClick = (invoiceId: string) => {
@@ -68,6 +91,12 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
   };
 
   const grandTotal = calculateGrandTotal();
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -101,7 +130,9 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
           <h1 className="text-3xl">
             Rs.{" "}
             {invoiceArray
-              .filter((inv) => inv.status === "Pending" || inv.status === "Partial")
+              .filter(
+                (inv) => inv.status === "Pending" || inv.status === "Partial"
+              )
               .reduce((sum, inv) => sum + inv.grandTotal, 0)
               .toLocaleString()}
           </h1>
@@ -120,12 +151,13 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
       </div>
 
       {/* Invoice List Section */}
-      <div className="space-y-4">
-        <div className="max-w-7xl mx-auto p-6">
+      <div className="space-y-2">
+        <div className=" mx-auto p-2">
           <div className="mb-6 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-semibold text-gray-900">
-                All Invoices ({invoiceArray.length})
+                All Invoices ({filteredInvoices.length})
+                {searchTerm || statusFilter !== "all" ? ` of ${invoiceArray.length}` : ''}
               </h1>
               <button
                 onClick={() => router.push("/user/invoices/new")}
@@ -136,14 +168,51 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
             </div>
 
             <div className="flex gap-4">
+              {/* Status Filter */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="pl-3 pr-8 text-xs py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+                >
+                  <option value="all">All Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Partial">Partial</option>
+                  <option value="Overdue">Overdue</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+              </div>
+
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <input
                   type="text"
                   placeholder="Search invoices..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 text-xs py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
+
+              {/* Clear Filters Button */}
+              {(searchTerm || statusFilter !== "all") && (
+                <button
+                  onClick={clearFilters}
+                  className="text-xs text-gray-600 hover:text-gray-800 underline"
+                >
+                  Clear filters
+                </button>
+              )}
             </div>
           </div>
 
@@ -159,12 +228,17 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedInvoices(new Set(invoiceArray.map((inv) => inv.id)));
+                            setSelectedInvoices(
+                              new Set(filteredInvoices.map((inv) => inv.id))
+                            );
                           } else {
                             setSelectedInvoices(new Set());
                           }
                         }}
-                        checked={selectedInvoices.size === invoiceArray.length && invoiceArray.length > 0}
+                        checked={
+                          selectedInvoices.size === filteredInvoices.length &&
+                          filteredInvoices.length > 0
+                        }
                       />
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
@@ -185,20 +259,41 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {invoiceArray.length === 0 ? (
+                  {filteredInvoices.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-2 py-2 text-center text-gray-500">
-                        No invoices found
+                      <td
+                        colSpan={5}
+                        className="px-2 py-8 text-center text-gray-500"
+                      >
+                        <div className="flex flex-col items-center justify-center">
+                          <Search className="h-8 w-8 text-gray-400 mb-2" />
+                          <p className="text-sm">
+                            {searchTerm || statusFilter !== "all" 
+                              ? "No invoices match your search criteria" 
+                              : "No invoices found"}
+                          </p>
+                          {(searchTerm || statusFilter !== "all") && (
+                            <button
+                              onClick={clearFilters}
+                              className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                            >
+                              Clear filters to see all invoices
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ) : (
-                    invoiceArray.map((invoice) => (
+                    filteredInvoices.map((invoice) => (
                       <tr
                         onClick={() => handleRowClick(invoice.id)}
                         key={invoice.id}
                         className="hover:bg-gray-100 cursor-pointer transition-colors"
                       >
-                        <td className="py-1 px-4" onClick={(e) => e.stopPropagation()}>
+                        <td
+                          className="py-1 px-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <input
                             type="checkbox"
                             checked={selectedInvoices.has(invoice.id)}
@@ -208,10 +303,10 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
                         </td>
                         <td className="px-2 py-2">
                           <div className="text-xs font-medium text-gray-900">
-                            {invoice.clientName}
+                            {invoice.id}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {invoice.invoiceNumber}
+                            {invoice.clientID}/ {invoice.invoiceNumber}
                           </div>
                         </td>
                         <td className="px-2 py-2 text-xs text-gray-500">
@@ -248,8 +343,15 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
                   )}
                 </tbody>
               </table>
-              {invoiceArray.length > 0 && (
-                <div className="flex justify-end px-4 py-3 bg-gray-50 border-t border-gray-200">
+              {filteredInvoices.length > 0 && (
+                <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-t border-gray-200">
+                  <div className="text-xs text-gray-700">
+                    {selectedInvoices.size > 0 && (
+                      <span>
+                        {selectedInvoices.size} invoice(s) selected
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-gray-700">
                     Grand Total:{" "}
                     <span className="font-medium">
