@@ -46,7 +46,7 @@ export default async function InvoicePage() {
         initialData={clientData}
         bankData={bankData}
         quotationData={quotationData}
-        companyData={myCompanyData}
+        companyData={myCompanyData.data}
       />
     </>
   );

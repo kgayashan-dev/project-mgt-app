@@ -135,3 +135,28 @@ export async function getInvoiceById(invoiceId: string) {
     throw error;
   }
 }
+interface Company {
+  id: string;
+  companyName: string;
+  address: string;
+  phoneNumber: string;
+  email: string;
+
+  // Add other company fields as needed
+}
+
+
+// utils/getCompanyData.ts
+export const getCompanyAData = async (invoiceId: string): Promise<Company | null> => {
+  try {
+    const response = await fetch(`${API_URL}/project_pulse/Invoice/getInvoice/${invoiceId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch company data');
+    }
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Error fetching company data:', error);
+    return null;
+  }
+};

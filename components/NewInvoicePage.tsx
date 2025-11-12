@@ -5,7 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { FaTrashAlt } from "react-icons/fa";
 import Link from "next/link";
 import SearchableSelect from "./SearchableSelect";
-
+import { getCompanyData } from "@/utils/getdata";
 type Row = {
   description: string;
   rate: number;
@@ -34,10 +34,17 @@ interface BankAccount {
   accountType?: string;
   notes?: string;
 }
+
 interface CompanyData {
   id: string;
   companyName: string;
-
+  email: string;
+  phoneNumber: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
 }
 
 interface QuotationData {
@@ -49,7 +56,7 @@ interface NewInvoiceProps {
   initialData: Client[];
   bankData: BankAccount[];
   quotationData: QuotationData[];
-  companyData:CompanyData[];
+  companyData: CompanyData[];
 }
 
 const InvoiceForm: React.FC<NewInvoiceProps> = ({
@@ -58,7 +65,8 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
   quotationData,
   companyData,
 }) => {
-  console.log(companyData)
+
+
   // File upload state
   const [file, setFile] = useState<File | null>(null);
   const [html2pdf, setHtml2pdf] = useState<any>(null);
@@ -66,6 +74,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
 
   // Client form state
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(
+    null
+  );
   const [invoiceDate, setInvoiceDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -77,7 +88,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
   const [selectedBankAccount, setSelectedBankAccount] = useState<string>("");
   const [selectedQuotation, setSelectedQuotation] = useState<string>("");
 
-  // Table statess
+  // Table state
   const [rows, setRows] = useState<Row[]>([
     {
       description: "",
@@ -121,6 +132,18 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
     (q) => q.id === selectedQuotation
   );
 
+
+
+
+
+  
+  // Auto-select first company if available
+  useEffect(() => {
+    if (companyData.length > 0 && !selectedCompany) {
+      setSelectedCompany(companyData[0]);
+    }
+  }, [companyData, selectedCompany]);
+
   // Dynamically import html2pdf on client side only
   useEffect(() => {
     import("html2pdf.js").then((module) => {
@@ -145,16 +168,19 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
     });
 
     // Calculate discount amount
-    const calculatedDiscountAmount = (calculatedSubtotal * discountPercentage) / 100;
+    const calculatedDiscountAmount =
+      (calculatedSubtotal * discountPercentage) / 100;
     setDiscountAmount(calculatedDiscountAmount);
 
     // Calculate tax on discounted amount
     const taxableAmount = calculatedSubtotal - calculatedDiscountAmount;
     calculatedTax = taxableAmount * (taxPercentage / 100);
-    
+
     setSubtotal(calculatedSubtotal);
     setTotalTax(calculatedTax);
-    setGrandTotal(calculatedSubtotal - calculatedDiscountAmount + calculatedTax);
+    setGrandTotal(
+      calculatedSubtotal - calculatedDiscountAmount + calculatedTax
+    );
   }, [rows, discountPercentage, taxPercentage]);
 
   // File upload handling
@@ -215,6 +241,11 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
       return;
     }
 
+    if (!selectedCompany) {
+      alert("Please select a company");
+      return;
+    }
+
     if (!selectedBankAccount) {
       alert("Please select a bank account");
       return;
@@ -241,6 +272,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
         quotationID: selectedQuotation,
         remarks: additionalInfo,
         clientID: selectedClient.id,
+        companyID: selectedCompany.id, // Add company ID to invoice data
         subtotal: subtotal,
         tax: totalTax,
         invoiceTotal: grandTotal,
@@ -327,8 +359,6 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
     }, 100);
   };
 
-
-
   return (
     <div className="flex flex-col m-4">
       {/* Header */}
@@ -390,9 +420,39 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
           </div>
 
           <div className="text-right">
-            <h2 className="font-bold text-xs text-gray-800">Gayashan&apos;s Company</h2>
-            <p className="text-gray-600 text-xs">0705889612</p>
-            <p className="text-gray-600 text-xs">United States</p>
+            <div className="text-right">
+              <select
+                value={selectedCompany?.id || ""}
+                onChange={(e) => {
+                  const selected = companyData.find(
+                    (company) => company.id === e.target.value
+                  );
+                  setSelectedCompany(selected || null);
+                }}
+                className="w-48 p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select Company</option>
+                {companyData.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.companyName}
+                  </option>
+                ))}
+              </select>
+              {selectedCompany && (
+                <div className="mt-2 text-xs text-gray-600">
+                  <div className="font-semibold">
+                    {selectedCompany.companyName}
+                  </div>
+                  <div>{selectedCompany.email}</div>
+                  <div>{selectedCompany.phoneNumber}</div>
+                  {selectedCompany.address && (
+                    <div>
+                      {selectedCompany.address}, {selectedCompany.city}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -424,7 +484,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
             ) : (
               <div className="p-2 border border-gray-300 rounded bg-gray-100">
                 <div className="flex flex-col text-blue-700">
-                  <span className="font-semibold text-xs">{selectedClient.name}</span>
+                  <span className="font-semibold text-xs">
+                    {selectedClient.name}
+                  </span>
                   <div className="flex flex-col text-xs text-gray-600 mt-0.5">
                     <span>{selectedClient.initials}</span>
                     <span>{selectedClient.businessType}</span>
@@ -439,7 +501,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                 </button>
               </div>
             )}
-            
+
             <div className="mt-2">
               {isAdditionalInfoEditing ? (
                 <input
@@ -466,7 +528,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
           {/* Invoice Dates */}
           <div>
             <div className="mb-2">
-              <label className="block text-gray-700 text-xs mb-1">Invoice Date</label>
+              <label className="block text-gray-700 text-xs mb-1">
+                Invoice Date
+              </label>
               <input
                 type="date"
                 value={invoiceDate}
@@ -476,7 +540,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
             </div>
 
             <div>
-              <label className="block text-gray-700 text-xs mb-1">Due Date</label>
+              <label className="block text-gray-700 text-xs mb-1">
+                Due Date
+              </label>
               <input
                 type="date"
                 value={invoiceDueDate}
@@ -489,7 +555,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
           {/* Invoice Number & Reference */}
           <div>
             <div className="mb-2">
-              <label className="block text-gray-700 text-xs mb-1">Invoice Number</label>
+              <label className="block text-gray-700 text-xs mb-1">
+                Invoice Number
+              </label>
               {isInvoiceNumberEditing ? (
                 <input
                   type="text"
@@ -510,7 +578,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
             </div>
 
             <div className="mb-2">
-              <label className="block text-gray-700 text-xs mb-1">Reference</label>
+              <label className="block text-gray-700 text-xs mb-1">
+                Reference
+              </label>
               {isReferenceEditing ? (
                 <input
                   type="text"
@@ -561,7 +631,8 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
               <p className="text-xs text-gray-600 mb-0.5">Amount Due (LKR)</p>
               <h1 className="text-xl font-bold text-blue-800">
-                Rs. {grandTotal.toLocaleString("en-IN", {
+                Rs.{" "}
+                {grandTotal.toLocaleString("en-IN", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
@@ -575,12 +646,24 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
           <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
             <thead className="bg-gray-100">
               <tr className="border-b border-gray-300">
-                <th className="text-left p-2 font-semibold text-gray-700 text-xs">Item</th>
-                <th className="text-left p-2 font-semibold text-gray-700 text-xs">Description</th>
-                <th className="text-left p-2 font-semibold text-gray-700 text-xs">Unit</th>
-                <th className="text-left p-2 font-semibold text-gray-700 text-xs">Qty</th>
-                <th className="text-left p-2 font-semibold text-gray-700 text-xs">Rate</th>
-                <th className="text-right p-2 font-semibold text-gray-700 text-xs">Total</th>
+                <th className="text-left p-2 font-semibold text-gray-700 text-xs">
+                  Item
+                </th>
+                <th className="text-left p-2 font-semibold text-gray-700 text-xs">
+                  Description
+                </th>
+                <th className="text-left p-2 font-semibold text-gray-700 text-xs">
+                  Unit
+                </th>
+                <th className="text-left p-2 font-semibold text-gray-700 text-xs">
+                  Qty
+                </th>
+                <th className="text-left p-2 font-semibold text-gray-700 text-xs">
+                  Rate
+                </th>
+                <th className="text-right p-2 font-semibold text-gray-700 text-xs">
+                  Total
+                </th>
                 <th className="w-8"></th>
               </tr>
             </thead>
@@ -590,7 +673,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                   key={index}
                   className="border-b border-gray-200 hover:bg-gray-100 transition-colors"
                 >
-                  <td className="p-2 text-center text-gray-600 text-xs">{index + 1}</td>
+                  <td className="p-2 text-center text-gray-600 text-xs">
+                    {index + 1}
+                  </td>
                   <td className="p-2">
                     {isDescriptionEditing ? (
                       <input
@@ -598,7 +683,11 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                         value={row.description}
                         placeholder="Description..."
                         onChange={(e) =>
-                          handleInputChange(index, "description", e.target.value)
+                          handleInputChange(
+                            index,
+                            "description",
+                            e.target.value
+                          )
                         }
                         onBlur={() => setIsDescriptionEditing(false)}
                         className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -641,7 +730,11 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                         value={row.qty}
                         min="0"
                         onChange={(e) =>
-                          handleInputChange(index, "qty", Number(e.target.value))
+                          handleInputChange(
+                            index,
+                            "qty",
+                            Number(e.target.value)
+                          )
                         }
                         onBlur={() => setIsQtyEditing(false)}
                         className="w-16 p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -663,7 +756,11 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                         min="0"
                         value={row.rate}
                         onChange={(e) =>
-                          handleInputChange(index, "rate", Number(e.target.value))
+                          handleInputChange(
+                            index,
+                            "rate",
+                            Number(e.target.value)
+                          )
                         }
                         onBlur={() => setIsRateEditing(false)}
                         className="w-20 p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -688,9 +785,8 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                       className="text-red-400   group-hover:opacity-100 hover:text-red-600 transition-all duration-200  rounded text-xs"
                       title="Delete row"
                     >
-                      <FaTrashAlt/>
+                      <FaTrashAlt />
                     </button>
-
                   </td>
                 </tr>
               ))}
@@ -738,7 +834,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                       <input
                         type="number"
                         value={discountPercentage}
-                        onChange={(e) => setDiscountPercentage(Number(e.target.value))}
+                        onChange={(e) =>
+                          setDiscountPercentage(Number(e.target.value))
+                        }
                         onBlur={() => setIsDiscountEditing(false)}
                         className="w-12 p-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs"
                         min="0"
@@ -767,7 +865,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                       <input
                         type="number"
                         value={taxPercentage}
-                        onChange={(e) => setTaxPercentage(Number(e.target.value))}
+                        onChange={(e) =>
+                          setTaxPercentage(Number(e.target.value))
+                        }
                         onBlur={() => setIsTaxEditing(false)}
                         className="w-12 p-1 border border-gray-300 rounded text-center focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs"
                         min="0"
@@ -783,14 +883,19 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                       </span>
                     )}
                   </div>
-                  <span className="text-red-600 text-xs">+Rs. {totalTax.toFixed(2)}</span>
+                  <span className="text-red-600 text-xs">
+                    +Rs. {totalTax.toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="border-t border-gray-300 pt-2">
                   <div className="flex justify-between items-center py-1">
-                    <span className="font-bold text-xs text-gray-800">Invoice Total</span>
+                    <span className="font-bold text-xs text-gray-800">
+                      Invoice Total
+                    </span>
                     <span className="font-bold text-xs text-blue-800">
-                      Rs. {grandTotal.toLocaleString("en-IN", {
+                      Rs.{" "}
+                      {grandTotal.toLocaleString("en-IN", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
@@ -804,7 +909,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                   Bank Account
                 </label>
                 {showBankSelection && (
-                  <select 
+                  <select
                     value={selectedBankAccount}
                     onChange={(e) => setSelectedBankAccount(e.target.value)}
                     className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -812,7 +917,8 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                     <option value="">Select Bank Account</option>
                     {bankData.map((bank) => (
                       <option key={bank.id} value={bank.id}>
-                        {bank.accountName} - {bank.bankName} ({bank.accountNumber})
+                        {bank.accountName} - {bank.bankName} (
+                        {bank.accountNumber})
                       </option>
                     ))}
                   </select>
@@ -826,7 +932,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                     <div className="text-xs space-y-0.5">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Account Name:</span>
-                        <span className="text-xs">{selectedBank.accountName}</span>
+                        <span className="text-xs">
+                          {selectedBank.accountName}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Bank:</span>
@@ -838,7 +946,9 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Account Number:</span>
-                        <span className="text-xs">{selectedBank.accountNumber}</span>
+                        <span className="text-xs">
+                          {selectedBank.accountNumber}
+                        </span>
                       </div>
                     </div>
                   </div>

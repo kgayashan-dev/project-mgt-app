@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import Link from "next/link";
-import { getBankData } from "@/utils/getdata";
+import { getBankData, getCompanyAData } from "@/utils/getdata";
 
 type Row = {
   description: string;
@@ -38,6 +38,16 @@ interface InvoiceArray {
   additionalInfo: string;
   phoneNumber: number;
 }
+interface Company {
+  id: string;
+  companyName: string;
+  address: string;
+  phoneNumber: string;
+  email: string;
+
+  // Add other company fields as needed
+}
+
 
 interface BankAccount {
   id: string;
@@ -83,7 +93,9 @@ id,
 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showBankSelection, setShowBankSelection] = useState(true);
-
+  // Add company state
+  const [company, setCompany] = useState<Company | null>(null);
+  const [companyLoading, setCompanyLoading] = useState(true);
 
   console.log()
   // Dynamically import html2pdf on client side only
@@ -91,7 +103,33 @@ id,
     import("html2pdf.js").then((module) => {
       setHtml2pdf(module.default);
     });
+
   }, []);
+
+ // Fetch company data when component mounts
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      if (companyId) {
+        try {
+          setCompanyLoading(true);
+          const companyData = await getCompanyAData(companyId);
+          setCompany(companyData);
+        } catch (error) {
+          console.error('Error fetching company:', error);
+        } finally {
+          setCompanyLoading(false);
+        }
+      } else {
+        setCompanyLoading(false);
+      }
+    };
+
+    fetchCompanyData();
+  }, [companyId]);
+
+
+
+
 
   // Fetch bank accounts on component mount
   useEffect(() => {

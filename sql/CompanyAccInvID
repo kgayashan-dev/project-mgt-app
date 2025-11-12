@@ -1,0 +1,47 @@
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetInvoiceWithCompany]
+    @InvoiceId NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        SELECT 
+            -- Invoice Details
+            i.Id,
+            i.InvoiceNo,
+           
+            -- Company Details from CompanyData table
+            c.Id AS Company_Id,
+            c.CompanyName,
+            c.PhoneNumber AS CompanyPhone,
+            c.Email AS CompanyEmail,
+            c.RegistrationNumber,
+            
+            -- Client Details
+            cl.Name AS ClientName,
+            cl.PhoneNumber AS ClientPhone,
+           
+            -- Invoice Items
+            ii.Id AS ItemId,
+            ii.Description
+           
+            
+        FROM Invoices i
+        LEFT JOIN CompanyData c ON i.CompanyId = c.Id  -- Join with CompanyData table
+        LEFT JOIN Clients cl ON i.ClientID = cl.Id
+        LEFT JOIN InvoiceItems ii ON i.Id = ii.InvoiceId
+        WHERE i.Id = @InvoiceId
+        ORDER BY ii.Id;
+
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+        
+        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH
+END
+GO
+
+EXEC sp_GetInvoiceWithCompany "INV0000007"
