@@ -12,12 +12,13 @@ BEGIN
            
             -- Company Details from CompanyData table
             c.Id AS Company_Id,
-            c.CompanyName,
-            c.PhoneNumber AS CompanyPhone,
+            c.CompanyName as CompanyName,
+            c.PhoneNumber AS CompanyContactNumber,
             c.Email AS CompanyEmail,
-            c.RegistrationNumber,
+            c.RegistrationNumber as RegistrationNumber,
             
             -- Client Details
+            cl.Id AS ClientId,
             cl.Name AS ClientName,
             cl.PhoneNumber AS ClientPhone,
            

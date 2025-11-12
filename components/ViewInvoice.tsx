@@ -38,16 +38,19 @@ interface InvoiceArray {
   additionalInfo: string;
   phoneNumber: number;
 }
-interface Company {
+interface CompanyClientDetails {
   id: string;
   companyName: string;
   address: string;
   phoneNumber: string;
   email: string;
+  registrationNumber: string;
+  clientID: string;
+  clientPhone: string;
+  clientName: string;
 
   // Add other company fields as needed
 }
-
 
 interface BankAccount {
   id: string;
@@ -68,7 +71,7 @@ interface InvoiceDetailPageProps {
 const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
   const {
     client,
-id,
+    id,
     invoiceNumber,
     clientAddress,
     invoiceDate,
@@ -82,6 +85,8 @@ id,
     invoiceReference,
   } = invoiceArray;
 
+  console.log(invoiceArray,'invoice array')
+
   // File upload state
   const [file, setFile] = useState<File | null>(null);
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
@@ -94,28 +99,28 @@ id,
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showBankSelection, setShowBankSelection] = useState(true);
   // Add company state
-  const [company, setCompany] = useState<Company | null>(null);
+  const [company, setCompany] = useState<CompanyClientDetails | null>(null);
   const [companyLoading, setCompanyLoading] = useState(true);
 
-  console.log()
+  console.log();
   // Dynamically import html2pdf on client side only
   useEffect(() => {
     import("html2pdf.js").then((module) => {
       setHtml2pdf(module.default);
     });
-
   }, []);
 
- // Fetch company data when component mounts
+  // Fetch company data when component mounts
   useEffect(() => {
     const fetchCompanyData = async () => {
-      if (companyId) {
+      if (id) {
         try {
           setCompanyLoading(true);
-          const companyData = await getCompanyAData(companyId);
+          const companyData = await getCompanyAData(id);
+          console.log(companyData);
           setCompany(companyData);
         } catch (error) {
-          console.error('Error fetching company:', error);
+          console.error("Error fetching company:", error);
         } finally {
           setCompanyLoading(false);
         }
@@ -125,11 +130,9 @@ id,
     };
 
     fetchCompanyData();
-  }, [companyId]);
+  }, [id]);
 
-
-
-
+  console.log(company, "company data");
 
   // Fetch bank accounts on component mount
   useEffect(() => {
@@ -268,9 +271,7 @@ id,
     <div className="flex flex-col m-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-navy-900">
-          Invoice {id}
-        </h1>
+        <h1 className="text-3xl font-bold text-navy-900">Invoice {id}</h1>
         <div className="flex gap-3">
           <Link
             href={"/user/invoices"}
@@ -329,23 +330,29 @@ id,
               </div>
               <div className="text-left regular-12 flex flex-col gap-1 my-2 leading-none">
                 <div className="">
-                  <h2 className="font-medium">SESO Company</h2>
-                  <div className="leading-none">
+                  {company ? (
                     <div className="flex flex-col justify-center gap-0 regular-12 font-semibold">
                       <span className="font-semibold leading-tight">
-                        {client}
+                        {company.companyName}
                       </span>
-                      {addressParts.map((part, index) => (
-                        <div key={index} className="regular-12 leading-tight">
-                          {part}
+                      <span className="regular-12 leading-tight">
+                        {company.registrationNumber}
+                      </span>
+                      {company.address && (
+                        <div className="regular-12 leading-tight">
+                          {company.address}
                         </div>
-                      ))}
+                      )}
                       <div className="flex flex-col justify-end">
-                        <span>{phoneNumber}</span>
-                        <p>{emailAddress}</p>
+                        <span>{company.phoneNumber}</span>
+                        <p>{company.email}</p>
                       </div>
                     </div>
-                  </div>
+                  ) : companyLoading ? (
+                    "Loading company data..."
+                  ) : (
+                    "No company data available"
+                  )}
                 </div>
               </div>
               <div className="pl-11">
@@ -353,16 +360,26 @@ id,
                 <div className="">
                   <div className="flex flex-col justify-center gap-0 regular-12 font-semibold">
                     <span className="underline">Client Details</span>
-                    <span className="font-semibold leading-tight text-blue-700">
-                      {client}
-                    </span>
-                    <span className="text-blue-700">
-                      {addressParts.map((part, index) => (
-                        <div key={index} className="regular-12 leading-tight">
-                          {part}
+
+                    <div className="">
+                      {company ? (
+                        <div className="flex flex-col justify-center gap-0 regular-12 font-semibold">
+                          <span className="font-semibold leading-tight">
+                            ID: {company.clientID}
+                          </span>
+                          <span className="regular-12 leading-tight">
+                            Name: {company.clientName}
+                          </span>
+                          <span className="regular-12 leading-tight">
+                            Tel: {company.clientPhone}
+                          </span>
                         </div>
-                      ))}
-                    </span>
+                      ) : companyLoading ? (
+                        "Loading company data..."
+                      ) : (
+                        "No company data available"
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -374,9 +391,7 @@ id,
               <p>Invoice</p>
             </div>
             <div className="flex flex-col justify-center">
-              <span className="regular-12 leading-tight">
-                InvoiceId: {id}
-              </span>
+              <span className="regular-12 leading-tight">InvoiceId: {id}</span>
               <span className="regular-12 leading-tight">
                 InvoiceNo: {invoiceNumber}
               </span>
@@ -571,10 +586,7 @@ id,
 
               {/* Note Section */}
               <div className="mt-3 regular-9 text-gray-600 max-w-md">
-                Note: An interest of 2% per month will be levied for outstanding
-                amounts, unless payment is made by duplicate Cheques to the
-                credit in favor of &apos;SESO Engineering and crossed Account
-                Payee Only&apos;
+                {notes}
               </div>
             </div>
           </div>
