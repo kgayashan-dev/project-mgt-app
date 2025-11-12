@@ -320,7 +320,7 @@ const saveInvoice = async () => {
       throw new Error(result.message || "Failed to save invoice");
     }
   } catch (error) {
-    console.error("Error saving invoice:", error);
+    // console.log("Error saving invoice:", error);
     alert(`Error saving invoice: ${error instanceof Error ? error.message : 'Unknown error'}`);
   } finally {
     setLoading(false);
