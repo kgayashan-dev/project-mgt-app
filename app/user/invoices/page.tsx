@@ -6,7 +6,7 @@ import { getAllInvoices } from "@/utils/getdata";
 async function getInvoicesData() {
   try {
     const response = await getAllInvoices();
-    console.log("API Response:", response);
+    // console.log("API Response:", response);
     return response;
   } catch (error) {
     console.error("Error fetching invoices:", error);

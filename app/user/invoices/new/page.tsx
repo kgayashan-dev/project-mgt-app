@@ -37,7 +37,7 @@ export default async function InvoicePage() {
       myCompanyData = companyData.data;
     }
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.warn("Error fetching data:", error);
   }
 
   return (
