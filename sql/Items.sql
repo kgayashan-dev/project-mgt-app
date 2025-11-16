@@ -1,6 +1,7 @@
 -- Item table 
 USE project_pulse
-drop TABLE items
+DROP TABLE IF EXISTS items;
+
 -- Create Items Table
 CREATE TABLE Items
 (
@@ -11,7 +12,7 @@ CREATE TABLE Items
     Price DECIMAL(18,2) NOT NULL DEFAULT 0,
     Qty INT NOT NULL DEFAULT 0,
     Rate DECIMAL(18,2) NOT NULL DEFAULT 0,
-    [Total] AS ([Qty] * [Rate]) PERSISTED,
+    [Total] AS ([Qty] * [Price]) PERSISTED, -- Fixed: Qty * Price (not Rate)
     CreatedAt DATETIME2 DEFAULT GETDATE(),
     UpdatedAt DATETIME2 DEFAULT GETDATE()
 );
@@ -22,7 +23,7 @@ CREATE INDEX IX_Items_Category ON Items (Category);
 GO
 
 -- Fixed CreateItem procedure
-CREATE  PROCEDURE [dbo].[sp_CreateItem]
+CREATE OR ALTER PROCEDURE [dbo].[sp_CreateItem]
     @Name NVARCHAR(255),
     @Description NVARCHAR(MAX) = NULL,
     @Category NVARCHAR(100) = NULL,
@@ -44,12 +45,12 @@ BEGIN
         
         SET @NextId = 'ITM' + RIGHT('000000' + CAST(@LastId + 1 AS NVARCHAR(6)), 6);
         
-        -- Insert with auto-generated ID (remove Total from INSERT since it's computed)
+        -- Insert without Total (it's computed automatically)
         INSERT INTO Items (Id, Name, Description, Category, Price, Qty, Rate)
         VALUES (@NextId, @Name, @Description, @Category, @Price, @Qty, @Rate);
         
-           -- Return the generated ID
-        SELECT @NewId AS GeneratedItemId;
+        -- Return the generated ID
+        SELECT @NextId AS GeneratedItemId; -- Fixed variable name
     END TRY
     BEGIN CATCH
         THROW;
@@ -162,3 +163,9 @@ BEGIN
     ORDER BY Name;
 END
 GO
+
+
+select * from Items
+
+
+delete * from Items

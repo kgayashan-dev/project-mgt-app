@@ -75,6 +75,8 @@ export const getAllIncome = () =>
 
 export const getAllInvoices = () =>
   fetchData("/project_pulse/Invoice/getAllInvoices", "Invoices data");
+export const getItems = () =>
+  fetchData("/project_pulse/Item/getAllItems", "Item data");
 
 export const getAllPayments = () =>
   fetchData("/project_pulse/Payment/getAllPayments", "payments data");

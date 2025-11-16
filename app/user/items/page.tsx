@@ -1,32 +1,32 @@
+// app/items/page.tsx
 import Items from "@/components/Items";
+import { getItems } from "@/utils/getdata";
+
+
+
+
+async function getItemData() {
+  try {
+    const response = await getItems();
+    console.log(response);
+    // Ensure we always return the expected structure
+    if (response && response.success && Array.isArray(response.data)) {
+      return { success: true, data: response.data };
+    } else {
+      return { success: false, data: [] };
+    }
+  } catch (error) {
+    console.error("Error fetching item data:", error);
+    return { success: false, data: [] };
+  }
+}
 
 export default async function ItemsPage() {
-  const items = [
-    {
-      id: "1",
-      name: "Laptop",
-      description: "15-inch gaming laptop with high performance.",
-      category: "pcs",
-      qty: 10,
-      price: 100,
-      rate: 1200,
-      total: 12000,
-    },
-    {
-      id: "2",
-      name: "Smartphone",
-      description: "Latest model smartphone with advanced features.",
-      category: "Mobile devices",
-      qty: 25,
-      price: 100,
+  const itemData = await getItemData();
 
-      rate: 800,
-      total: 20000,
-    },
-  ];
   return (
     <div>
-      <Items />
+      <Items itemData={itemData} />
     </div>
   );
 }
