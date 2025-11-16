@@ -165,7 +165,6 @@ END
 GO
 
 
+use project_pulse
+
 select * from Items
-
-
-delete * from Items
