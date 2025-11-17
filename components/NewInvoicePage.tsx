@@ -5,7 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { FaTrashAlt } from "react-icons/fa";
 import Link from "next/link";
 import SearchableSelect from "./SearchableSelect";
-// import { getCompanyData } from "@/utils/getdata";
+
 type Row = {
   description: string;
   rate: number;
@@ -52,39 +52,39 @@ interface QuotationData {
   quotationNumber: string;
 }
 
-interface NewInvoiceProps {
+interface NewQuotationProps {
   initialData: Client[];
   bankData: BankAccount[];
   quotationData: QuotationData[];
   companyData: CompanyData[];
 }
 
-const InvoiceForm: React.FC<NewInvoiceProps> = ({
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const QuotationForm: React.FC<NewQuotationProps> = ({
   initialData,
   bankData,
   quotationData,
   companyData,
 }) => {
+  // State for client-side initialization
+  const [isClient, setIsClient] = useState(false);
+  
   // File upload state
   const [file, setFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [html2pdf, setHtml2pdf] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   // Client form state
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(
-    null
-  );
-  const [invoiceDate, setInvoiceDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [invoiceDueDate, setInvoiceDueDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [invoiceNumber, setInvoiceNumber] = useState("0000001");
+  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
+  
+  // Initialize with empty strings to avoid hydration mismatch
+  const [quotationDate, setQuotationDate] = useState("");
+  const [quotationDueDate, setQuotationDueDate] = useState("");
+  const [quotationNumber, setQuotationNumber] = useState("");
   const [reference, setReference] = useState("No");
-  const [selectedBankAccount, setSelectedBankAccount] = useState<string>("");
-  const [selectedQuotation, setSelectedQuotation] = useState<string>("");
 
   // Table state
   const [rows, setRows] = useState<Row[]>([
@@ -105,10 +105,10 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
   const [terms, setTerms] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [taxPercentage, setTaxPercentage] = useState(0);
+  const [taxPercentage, setTaxPercentage] = useState(0); // Tax percentage (not amount)
 
   // Edit states
-  const [isInvoiceNumberEditing, setIsInvoiceNumberEditing] = useState(false);
+  const [isQuotationNumberEditing, setIsQuotationNumberEditing] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [isAdditionalInfoEditing, setIsAdditionalInfoEditing] = useState(true);
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(true);
@@ -119,16 +119,35 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
   const [isTaxEditing, setIsTaxEditing] = useState(true);
   const [isReferenceEditing, setIsReferenceEditing] = useState(true);
 
-  // Bank selection state
-  const [showBankSelection, setShowBankSelection] = useState(true);
+  // Initialize client-side only values
+  useEffect(() => {
+    setIsClient(true);
+    
+    // Initialize dates and quotation number
+    const today = new Date().toISOString().split("T")[0];
+    setQuotationDate(today);
+    setQuotationDueDate(today);
+    setQuotationNumber("QTN000001"); // You might want to generate this dynamically
 
-  // Get selected bank account details
-  const selectedBank = bankData.find((bank) => bank.id === selectedBankAccount);
+    // Initialize html2pdf
+    import("html2pdf.js").then((module) => {
+      setHtml2pdf(() => module.default);
+    });
+  }, []);
 
-  // Get selected quotation details
-  const selectedQuotationData = quotationData.find(
-    (q) => q.id === selectedQuotation
-  );
+  // Handle file URL creation and cleanup
+  useEffect(() => {
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setFileUrl(url);
+      
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setFileUrl(null);
+    }
+  }, [file]);
 
   // Auto-select first company if available
   useEffect(() => {
@@ -137,43 +156,28 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
     }
   }, [companyData, selectedCompany]);
 
-  // Dynamically import html2pdf on client side only
+  // Calculate totals including discount - UPDATED TO MATCH BACKEND LOGIC
   useEffect(() => {
-    import("html2pdf.js").then((module) => {
-      setHtml2pdf(() => module.default);
-    });
-  }, []);
-
-  // Auto-select first bank account if available
-  useEffect(() => {
-    if (bankData.length > 0 && !selectedBankAccount) {
-      setSelectedBankAccount(bankData[0].id);
-    }
-  }, [bankData, selectedBankAccount]);
-
-  // Calculate totals including discount
-  useEffect(() => {
+    // Calculate subtotal from items (sum of quantity * rate)
     let calculatedSubtotal = 0;
-    let calculatedTax = 0;
-
     rows.forEach((row) => {
-      calculatedSubtotal += row.total;
+      calculatedSubtotal += row.rate * row.qty;
     });
 
-    // Calculate discount amount
-    const calculatedDiscountAmount =
-      (calculatedSubtotal * discountPercentage) / 100;
-    setDiscountAmount(calculatedDiscountAmount);
+    // Calculate discount amount based on percentage
+    const calculatedDiscountAmount = (calculatedSubtotal * discountPercentage) / 100;
 
-    // Calculate tax on discounted amount
+    // Calculate tax (using tax percentage on taxable amount)
     const taxableAmount = calculatedSubtotal - calculatedDiscountAmount;
-    calculatedTax = taxableAmount * (taxPercentage / 100);
+    const calculatedTax = (taxableAmount * taxPercentage) / 100;
+
+    // Calculate final quotation total
+    const calculatedGrandTotal = calculatedSubtotal - calculatedDiscountAmount + calculatedTax;
 
     setSubtotal(calculatedSubtotal);
+    setDiscountAmount(calculatedDiscountAmount);
     setTotalTax(calculatedTax);
-    setGrandTotal(
-      calculatedSubtotal - calculatedDiscountAmount + calculatedTax
-    );
+    setGrandTotal(calculatedGrandTotal);
   }, [rows, discountPercentage, taxPercentage]);
 
   // File upload handling
@@ -227,9 +231,36 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
     setRows(rows.filter((_, rowIndex) => rowIndex !== index));
   };
 
-  // Save invoice function
-  // Save invoice function
-  const saveInvoice = async () => {
+  // Prepare quotation data for API - CORRECTED TO MATCH EXPECTED FORMAT
+  const prepareQuotationData = () => {
+    // Convert dates to DateTime format
+    const quotationDateObj = new Date(quotationDate);
+
+    return {
+      id: "", // Will be generated by backend
+      quotationNumber: quotationNumber,
+      quotationDate: quotationDateObj.toISOString(),
+      clientId: selectedClient?.id || "",
+      companyID: selectedCompany?.id || "",
+      discountPercentage: discountPercentage,
+      discountAmount: discountAmount,
+      subtotal: subtotal,
+      totalTax: taxPercentage, // Send tax percentage only
+      terms: terms || "",
+      grandTotal: grandTotal,
+      qItems: rows.map((row, index) => ({
+        id: index,
+        description: row.description,
+        quotationId: "", // Will be set by backend
+        unit: row.unit,
+        qty: row.qty,
+        rate: row.rate,
+      })),
+    };
+  };
+
+  // Save Quotation function
+  const saveQuotation = async () => {
     if (!selectedClient) {
       alert("Please select a client");
       return;
@@ -240,84 +271,48 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
       return;
     }
 
-    if (!selectedBankAccount) {
-      alert("Please select a bank account");
-      return;
-    }
-
     if (rows.length === 0 || rows.every((row) => !row.description.trim())) {
-      alert("Please add at least one item to the invoice");
+      alert("Please add at least one item to the quotation");
       return;
     }
 
     setLoading(true);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const quotationData = prepareQuotationData();
 
-      const invoiceData = {
-        id: "", // Will be generated by backend
-        invoiceNo: invoiceNumber,
-        poNo: reference,
-        bankAccId: selectedBankAccount,
-        invoiceDate: new Date(invoiceDate).toISOString(),
-        discountPercentage: discountPercentage, // Fixed: added this field
-        discountAmount: discountAmount, // Fixed: added this field
-        quotationID: selectedQuotation || null,
-        remarks: additionalInfo,
-        clientID: selectedClient.id,
-        companyID: selectedCompany.id, // Make sure this field exists
-        subtotal: subtotal,
-        tax: totalTax,
-        invoiceTotal: grandTotal,
-        items: rows.map((row, index) => ({
-          id: index,
-          description: row.description,
-          unit: row.unit,
-          qty: row.qty,
-          rate: row.rate,
-          invoiceId: "", // Will be set by backend
-          total: row.total,
-        })),
-        createdDate: new Date().toISOString(),
-        status: "Draft",
-      };
-
-      console.log("Sending invoice data:", invoiceData);
+      console.log("Sending quotation data:", quotationData);
 
       const response = await fetch(
-        `${API_URL}/project_pulse/Invoice/postInvoice`,
+        `${API_URL}/project_pulse/Quotation/postQuotation`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(invoiceData),
+          body: JSON.stringify(quotationData),
         }
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
+        const errorText = await response.json();
+        console.log(errorText.error);
         throw new Error(
-          `Failed to save invoice: ${response.status} - ${errorText}`
+          ` ${errorText.error}`
         );
       }
 
       const result = await response.json();
 
-      if (result.message === "Invoice saved successfully.") {
-        alert("Invoice saved successfully!");
-        console.log("Generated Invoice ID:", result.invoiceId);
-
-        // Optional: Redirect to invoices list or clear form
-        // window.location.href = "/user/invoices";
+      if (result.message === "Quotation saved successfully.") {
+        alert("Quotation saved successfully!");
+        console.log("Generated Quotation ID:", result.quotationId);
       } else {
-        throw new Error(result.message || "Failed to save invoice");
+        throw new Error(result.message || "Failed to save quotation");
       }
     } catch (error) {
-      // console.log("Error saving invoice:", error);
       alert(
-        `Error saving invoice: ${
+        `${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
@@ -327,63 +322,53 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
   };
 
   // Generate PDF
-  const clickPdf = (invoiceNum: string, invoiceDt: string) => {
+  const clickPdf = (quotationNum: string, quotationDt: string) => {
     if (!html2pdf) {
       alert("PDF generator is still loading. Please try again in a moment.");
       return;
     }
 
-    // Hide bank selection before generating PDF
-    setShowBankSelection(false);
+    const element = document.getElementById("quotation-content");
+    const opt = {
+      margin: 0.25,
+      filename: `${quotationNum}_${quotationDt}_quotation.pdf`,
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+    };
 
-    // Small delay to ensure DOM updates
-    setTimeout(() => {
-      const element = document.getElementById("invoice-content");
-      const opt = {
-        margin: 0.25,
-        filename: `${invoiceNum}_${invoiceDt}_invoice.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-      };
-
-      html2pdf()
-        .from(element)
-        .set(opt)
-        .save()
-        .then(() => {
-          console.log("PDF generated successfully!");
-        })
-        .catch((error: any) => {
-          console.error("Error generating PDF:", error);
-        })
-        .finally(() => {
-          // Show bank selection again after PDF generation
-          setShowBankSelection(true);
-        });
-    }, 100);
+    html2pdf()
+      .from(element)
+      .set(opt)
+      .save()
+      .then(() => {
+        console.log("PDF generated successfully!");
+      })
+      .catch((error: any) => {
+        console.error("Error generating PDF:", error);
+      });
   };
 
   return (
     <div className="flex flex-col m-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold text-navy-900">New Invoice</h1>
+        <h1 className="text-xl font-bold text-navy-900">New Quotation</h1>
         <div className="flex gap-2">
           <Link
-            href={"/user/invoices"}
+            href={"/user/quotations"}
             className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded border border-gray-300"
           >
             Cancel
           </Link>
           <button
-            onClick={saveInvoice}
+            onClick={saveQuotation}
             disabled={loading}
             className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Saving..." : "Save"}
           </button>
           <button
-            onClick={() => clickPdf(invoiceNumber, invoiceDate)}
+            onClick={() => clickPdf(quotationNumber, quotationDate)}
             disabled={!html2pdf}
             className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
@@ -393,7 +378,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
       </div>
 
       <div
-        id="invoice-content"
+        id="quotation-content"
         className="max-w-6xl w-full p-4 bg-white rounded-lg shadow border border-gray-200"
       >
         {/* File Upload and Company Info */}
@@ -405,21 +390,22 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
             } rounded-lg flex items-center justify-center cursor-pointer bg-gray-100 hover:bg-gray-100 transition-colors`}
           >
             <input {...getInputProps()} />
-            {!file && (
+            {!file ? (
               <p className="text-center text-gray-500 text-xs px-2">
                 {isDragActive
                   ? "Drop the file here..."
                   : "Drag & drop company logo here, or click to select"}
               </p>
-            )}
-            {file && (
+            ) : fileUrl ? (
               <div className="text-center">
                 <img
-                  src={URL.createObjectURL(file)}
+                  src={fileUrl}
                   alt={file.name}
                   className="w-48 h-24 object-contain rounded"
                 />
               </div>
+            ) : (
+              <p className="text-center text-gray-500 text-xs px-2">Loading...</p>
             )}
           </div>
 
@@ -529,54 +515,54 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
             </div>
           </div>
 
-          {/* Invoice Dates */}
+          {/* Quotation Dates */}
           <div>
             <div className="mb-2">
               <label className="block text-gray-700 text-xs mb-1">
-                Invoice Date
+                Quotation Date
               </label>
               <input
                 type="date"
-                value={invoiceDate}
-                onChange={(e) => setInvoiceDate(e.target.value)}
+                value={quotationDate}
+                onChange={(e) => setQuotationDate(e.target.value)}
                 className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
             <div>
               <label className="block text-gray-700 text-xs mb-1">
-                Due Date
+                Valid Until
               </label>
               <input
                 type="date"
-                value={invoiceDueDate}
-                onChange={(e) => setInvoiceDueDate(e.target.value)}
+                value={quotationDueDate}
+                onChange={(e) => setQuotationDueDate(e.target.value)}
                 className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
-          {/* Invoice Number & Reference */}
+          {/* Quotation Number & Reference */}
           <div>
             <div className="mb-2">
               <label className="block text-gray-700 text-xs mb-1">
-                Invoice Number
+                Quotation Number
               </label>
-              {isInvoiceNumberEditing ? (
+              {isQuotationNumberEditing ? (
                 <input
                   type="text"
-                  value={invoiceNumber}
-                  placeholder="Invoice Number..."
-                  onChange={(e) => setInvoiceNumber(e.target.value)}
-                  onBlur={() => setIsInvoiceNumberEditing(false)}
+                  value={quotationNumber}
+                  placeholder="Quotation Number..."
+                  onChange={(e) => setQuotationNumber(e.target.value)}
+                  onBlur={() => setIsQuotationNumberEditing(false)}
                   className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
               ) : (
                 <p
-                  onClick={() => setIsInvoiceNumberEditing(true)}
+                  onClick={() => setIsQuotationNumberEditing(true)}
                   className="cursor-pointer p-1.5 text-xs rounded hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-300"
                 >
-                  {invoiceNumber || "Invoice Number"}
+                  {quotationNumber || "Quotation Number"}
                 </p>
               )}
             </div>
@@ -605,43 +591,19 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
           </div>
         </div>
 
-        {/* Quotation and Amount Due Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          {/* Quotation Selection */}
-          <div>
-            <label className="block text-gray-700 text-xs mb-1">
-              Select Quotation
-            </label>
-            <SearchableSelect
-              options={quotationData.map((q) => ({
-                value: q.id,
-                label: q.quotationNumber,
-              }))}
-              value={selectedQuotation}
-              onChange={setSelectedQuotation}
-              placeholder="Search and select quotation..."
-              label=""
-              className="w-full text-xs"
-            />
-            {selectedQuotationData && (
-              <div className="mt-1 text-xs text-green-600">
-                Selected: {selectedQuotationData.id}
-              </div>
-            )}
-          </div>
-
-          {/* Amount Due */}
-          <div className="flex justify-end">
-            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-              <p className="text-xs text-gray-600 mb-0.5">Amount Due (LKR)</p>
-              <h1 className="text-xl font-bold text-blue-800">
-                Rs.{" "}
-                {grandTotal.toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </h1>
-            </div>
+        {/* Amount Due Section */}
+        <div className="flex justify-end mb-4">
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <p className="text-xs text-gray-600 mb-0.5">
+              Quotation Total (LKR)
+            </p>
+            <h1 className="text-xl font-bold text-blue-800">
+              Rs.{" "}
+              {grandTotal.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </h1>
           </div>
         </div>
 
@@ -786,7 +748,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                   <td className="p-2 text-center">
                     <button
                       onClick={() => deleteRow(index)}
-                      className="text-red-400   group-hover:opacity-100 hover:text-red-600 transition-all duration-200  rounded text-xs"
+                      className="text-red-400 hover:text-red-600 transition-all duration-200 rounded text-xs"
                       title="Delete row"
                     >
                       <FaTrashAlt />
@@ -805,7 +767,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
           </button>
         </div>
 
-        {/* Totals and Bank Account */}
+        {/* Totals Section */}
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
           {/* Notes & Terms */}
           <div className="flex-1 space-y-3">
@@ -895,9 +857,10 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                 <div className="border-t border-gray-300 pt-2">
                   <div className="flex justify-between items-center py-1">
                     <span className="font-bold text-xs text-gray-800">
-                      Invoice Total
+                      Quotation Total
                     </span>
                     <span className="font-bold text-xs text-blue-800">
+                      
                       Rs.{" "}
                       {grandTotal.toLocaleString("en-IN", {
                         minimumFractionDigits: 2,
@@ -907,57 +870,6 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
                   </div>
                 </div>
               </div>
-
-              <div className="mt-4">
-                <label className="block text-gray-700 text-xs mb-1">
-                  Bank Account
-                </label>
-                {showBankSelection && (
-                  <select
-                    value={selectedBankAccount}
-                    onChange={(e) => setSelectedBankAccount(e.target.value)}
-                    className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Select Bank Account</option>
-                    {bankData.map((bank) => (
-                      <option key={bank.id} value={bank.id}>
-                        {bank.accountName} - {bank.bankName} (
-                        {bank.accountNumber})
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                {selectedBank && (
-                  <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
-                    <h3 className="font-semibold text-xs text-gray-800 mb-1">
-                      Bank Account Details
-                    </h3>
-                    <div className="text-xs space-y-0.5">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Account Name:</span>
-                        <span className="text-xs">
-                          {selectedBank.accountName}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Bank:</span>
-                        <span className="text-xs">{selectedBank.bankName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Branch:</span>
-                        <span className="text-xs">{selectedBank.branch}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Account Number:</span>
-                        <span className="text-xs">
-                          {selectedBank.accountNumber}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -966,4 +878,4 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
   );
 };
 
-export default InvoiceForm;
+export default QuotationForm;

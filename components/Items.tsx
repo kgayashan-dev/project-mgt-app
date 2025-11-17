@@ -1,6 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { formatCurrencyOrNA } from "@/utils/converts";
+import React, {
+  useState,
+  useEffect,
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+} from "react";
+import SearchableSelect from "./SearchableSelect";
 
 interface Item {
   id: string;
@@ -13,16 +22,23 @@ interface Item {
   total: number;
 }
 
+interface Category {
+  categoryId: string;
+  catDescription: string;
+}
+
 interface ItemsPageProps {
   itemData?: { success: boolean; data: Item[] } | null;
+  categoryData?: { success: boolean; data: Category[] } | null;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
+const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [items, setItems] = useState<Item[]>(itemData?.data || []);
+  const [items, setItems] = useState<Item[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [newItem, setNewItem] = useState<Item>({
@@ -36,31 +52,26 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
     total: 0,
   });
 
-  useEffect(() => {
-    if (itemData?.data) {
-      setItems(itemData.data);
-    }
-  }, [itemData]);
-
-  // Fetch all items - ADDED THIS MISSING FUNCTION
-  const fetchItems = async (): Promise<void> => {
+  // Fetch items function
+  const fetchItems = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/project_pulse/Item/getAllItems`);
 
       if (!response.ok) {
-        const errorText = await response.json();
-        throw new Error(
-          `Failed to fetch items: ${response.status} - ${errorText.message}`
-        );
+        throw new Error(`Failed to fetch items: ${response.status}`);
       }
 
       const result = await response.json();
-
-      if (result.success) {
-        setItems(result.data || []);
+      
+      // Your API returns the array directly, not wrapped in success/data
+      if (Array.isArray(result)) {
+        setItems(result);
+      } else if (result.success && Array.isArray(result.data)) {
+        setItems(result.data);
       } else {
-        throw new Error(result.message || "Failed to fetch items");
+        console.error("Unexpected API response format:", result);
+        setItems([]);
       }
     } catch (error) {
       console.error("Error fetching items:", error);
@@ -69,64 +80,162 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
+      setItems([]);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Fetch categories function
+  const fetchCategories = useCallback(async (): Promise<void> => {
+    try {
+      const response = await fetch(
+        `${API_URL}/project_pulse/Category/getAllCategories`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch categories: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // Handle both response formats
+      if (Array.isArray(result)) {
+        setCategories(result);
+      } else if (result.success && Array.isArray(result.data)) {
+        setCategories(result.data);
+      } else {
+        console.error("Unexpected categories API response format:", result);
+        setCategories([]);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategories([]);
+    }
+  }, []);
+
+  // Sync with props and fetch data if needed
+  useEffect(() => {
+    // Use initial props if available, otherwise fetch from API
+    if (itemData?.data && Array.isArray(itemData.data)) {
+      setItems(itemData.data);
+    } else {
+      fetchItems();
+    }
+
+    if (categoryData?.data && Array.isArray(categoryData.data)) {
+      setCategories(categoryData.data);
+    } else {
+      fetchCategories();
+    }
+  }, [itemData, categoryData, fetchItems, fetchCategories]);
+
+  // Prepare category options for SearchableSelect
+  const categoryOptions = categories.map((cat) => ({
+    value: cat.categoryId,
+    label: cat.catDescription,
+  }));
+
+  // Handle category selection
+  const handleCategoryChange = (selectedValue: string) => {
+    setNewItem((prev) => ({
+      ...prev,
+      category: selectedValue,
+    }));
   };
 
-  // Create new item - FIXED: pass correct data
-  // Alternative more explicit version
-  const createItem = async (): Promise<void> => {
+  // Create or update item
+  const handleItemSubmit = async (): Promise<void> => {
+    setLoading(true);
     try {
-      const itemData = {
-        id: "",
-        name: newItem.name,
-        description: newItem.description,
-        category: newItem.category,
+      // Validate required fields
+      if (!newItem.name.trim() || newItem.price <= 0 || newItem.qty <= 0) {
+        alert(
+          "Please fill in all required fields (Name, Price, Quantity) with valid values."
+        );
+        setLoading(false);
+        return;
+      }
+
+      const itemPayload = {
+        name: newItem.name.trim(),
+        description: newItem.description.trim() || null,
+        category: newItem.category || null,
         price: newItem.price,
         qty: newItem.qty,
         rate: newItem.rate,
       };
 
-      const response = await fetch(`${API_URL}/project_pulse/Item/createItem`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(itemData),
+      const url = isEditing
+        ? `${API_URL}/project_pulse/Item/updateItem/${newItem.id}`
+        : `${API_URL}/project_pulse/Item/createItem`;
+
+      const method = isEditing ? "PUT" : "POST";
+
+      console.log("Sending request to:", url);
+      console.log("Payload:", itemPayload);
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(itemPayload),
       });
 
-     
+      const result = await response.json();
+
       if (!response.ok) {
-        
-        const errorText = await response.json();
-        console.log("HTTP Error:", errorText.message);
         throw new Error(
-          `Failed to create item: ${response.status} - ${errorText}`
+          `Failed to ${isEditing ? "update" : "create"} item: ${
+            response.status
+          } - ${result.message || result.error || "Unknown error"}`
         );
       }
 
-      // If we get here, response is OK (status 200)
-      const result = await response.json();
       console.log("API Response:", result);
 
-      // Check the actual response structure from your API
+      // Handle different success response formats
       if (result.message) {
-        alert("Item created successfully!");
+        const successMessage = result.message + (result.itemNo ? ` ${result.itemNo}` : result.Id ? ` ${result.Id}` : "");
+        alert(successMessage);
+        setIsModalOpen(false);
+        resetNewItem();
+        // Refresh items list
+        await fetchItems();
       } else {
-        // This is an application-level error (success: false or error message)
         throw new Error(
-          result.message || result.error || "Failed to create item"
+          `Failed to ${isEditing ? "update" : "create"} item: No success message received`
         );
       }
     } catch (error) {
-      console.error("Error creating item:", error);
-      throw error;
+      console.error(
+        `Error ${isEditing ? "updating" : "creating"} item:`,
+        error
+      );
+      alert(
+        `Error ${isEditing ? "updating" : "creating"} item: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Create new item
+  // Handle form submission
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    await handleItemSubmit();
+  };
 
   // Delete item
   const deleteItem = async (id: string): Promise<void> => {
+    if (!confirm("Are you sure you want to delete this item?")) {
+      return;
+    }
+
+    setLoading(true);
     try {
       const response = await fetch(
         `${API_URL}/project_pulse/Item/deleteItem/${id}`,
@@ -135,32 +244,39 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
         }
       );
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
         throw new Error(
-          `Failed to delete item: ${response.status} - ${errorText}`
+          `Failed to delete item: ${response.status} - ${
+            result.message || result.error || "Unknown error"
+          }`
         );
       }
 
-      const result = await response.json();
+      alert(result.message || "Item deleted successfully");
 
-      if (result.success) {
-        alert("Item deleted successfully!");
-      } else {
-        throw new Error(result.message || "Failed to delete item");
-      }
+      // Refresh items list
+      await fetchItems();
     } catch (error) {
       console.error("Error deleting item:", error);
-      throw error;
+      alert(
+        `Error deleting item: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   // Handle search
   const handleSearch = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    // Search is handled by the filteredItems logic
   };
 
-  // Handle new item input changes - KEPT CALCULATION for user display
+  // Handle new item input changes
   const handleNewItemChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ): void => {
@@ -175,10 +291,9 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
       };
 
       // Auto-calculate total when price, quantity, or rate changes
-      // KEPT for user to see the calculation
       if (name === "price" || name === "qty" || name === "rate") {
         updatedItem.total =
-          updatedItem.price * updatedItem.qty * (updatedItem.rate || 1) || 0;
+          updatedItem.price * updatedItem.qty * (updatedItem.rate || 1);
       }
 
       return updatedItem;
@@ -224,17 +339,26 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
     <div className="p-6 min-h-screen my-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-semibold text-gray-800">Items</h1>
+        <h1 className="text-xl font-semibold text-gray-800">
+          Items ({items.length})
+        </h1>
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
               resetNewItem();
               setIsModalOpen(true);
             }}
-            className="px-4 py-2 text-white bg-green-500 rounded-md hover:bg-green-600"
+            className="px-4 py-2 text-white bg-green-500 rounded-md hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
             disabled={loading}
           >
             New Item
+          </button>
+          <button
+            onClick={fetchItems}
+            className="px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={loading}
+          >
+            {loading ? "Refreshing..." : "Refresh"}
           </button>
         </div>
       </div>
@@ -252,10 +376,12 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
             setSearchTerm(e.target.value)
           }
           className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={loading}
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={loading}
         >
           Search
         </button>
@@ -263,9 +389,9 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
           type="button"
           onClick={() => {
             setSearchTerm("");
-            fetchItems();
           }}
-          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={loading}
         >
           Clear
         </button>
@@ -293,7 +419,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
         </div>
 
         {/* Item Rows */}
-        {!loading &&
+        {!loading && displayItems.length > 0 ? (
           displayItems.map((item) => (
             <div
               key={item.id}
@@ -301,35 +427,40 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
             >
               <div className="font-mono text-sm">{item.id}</div>
               <div className="font-medium">{item.name}</div>
-              <div>{item.category || "-"}</div>
-              <div>${item.price?.toFixed(2)}</div>
+              <div>
+                {categories.find((cat) => cat.categoryId === item.category)
+                  ?.catDescription ||
+                  item.category ||
+                  "-"}
+              </div>
+              <div>{formatCurrencyOrNA(item.price)}</div>
               <div>{item.qty}</div>
-              <div>${item.total?.toFixed(2)}</div>
+              <div>{formatCurrencyOrNA(item.total)}</div>
               <div className="text-right space-x-2">
                 <button
                   onClick={() => editItem(item)}
-                  className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded"
+                  className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded disabled:text-gray-400 disabled:cursor-not-allowed"
                   disabled={loading}
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => deleteItem(item.id)}
-                  className="px-3 py-1 text-red-600 hover:bg-red-50 rounded"
+                  className="px-3 py-1 text-red-600 hover:bg-red-50 rounded disabled:text-gray-400 disabled:cursor-not-allowed"
                   disabled={loading}
                 >
                   Delete
                 </button>
               </div>
             </div>
-          ))}
-
-        {/* No results message */}
-        {!loading && displayItems.length === 0 && (
+          ))
+        ) : (
+          /* No results message */
           <div className="text-center p-4 text-gray-500">
-            {items.length === 0
-              ? "No items found."
-              : "No items match your search."}
+            {!loading &&
+              (items.length === 0
+                ? "No items found. Click 'New Item' to add one."
+                : "No items match your search.")}
           </div>
         )}
       </div>
@@ -341,7 +472,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
             <h2 className="text-lg font-semibold mb-4">
               {isEditing ? "Edit Item" : "Add New Item"}
             </h2>
-            <form onSubmit={createItem}>
+            <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label
                   className="block text-sm font-medium text-gray-700"
@@ -356,7 +487,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
                   value={newItem.name}
                   onChange={handleNewItemChange}
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500 disabled:bg-gray-100"
                   disabled={loading}
                 />
               </div>
@@ -374,25 +505,22 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
                   value={newItem.description}
                   onChange={handleNewItemChange}
                   rows={3}
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500 disabled:bg-gray-100"
                   disabled={loading}
                 />
               </div>
 
               <div className="mb-4">
-                <label
-                  className="block text-sm font-medium text-gray-700"
-                  htmlFor="category"
-                >
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category
                 </label>
-                <input
-                  type="text"
-                  id="category"
-                  name="category"
+                <SearchableSelect
+                  options={categoryOptions}
                   value={newItem.category}
-                  onChange={handleNewItemChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
+                  onChange={handleCategoryChange}
+                  placeholder="Search and select category..."
+                  label=""
+                  className="w-full text-sm"
                   disabled={loading}
                 />
               </div>
@@ -409,12 +537,12 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
                     type="number"
                     id="price"
                     name="price"
-                    value={newItem.price}
+                    value={newItem.price || ""}
                     onChange={handleNewItemChange}
                     required
                     min="0"
                     step="0.01"
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500 disabled:bg-gray-100"
                     disabled={loading}
                   />
                 </div>
@@ -429,11 +557,11 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
                     type="number"
                     id="qty"
                     name="qty"
-                    value={newItem.qty}
+                    value={newItem.qty || ""}
                     onChange={handleNewItemChange}
                     required
                     min="0"
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500 disabled:bg-gray-100"
                     disabled={loading}
                   />
                 </div>
@@ -451,11 +579,11 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
                     type="number"
                     id="rate"
                     name="rate"
-                    value={newItem.rate}
+                    value={newItem.rate || ""}
                     onChange={handleNewItemChange}
                     min="0"
                     step="0.01"
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500 disabled:bg-gray-100"
                     disabled={loading}
                   />
                 </div>
@@ -463,8 +591,8 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
                   <label className="block text-sm font-medium text-gray-700">
                     Total
                   </label>
-                  <div className="mt-1 block w-full border border-gray-300 bg-gray-50 rounded-md p-2">
-                    ${(newItem.total || 0).toFixed(2)}
+                  <div className="mt-1 block w-full border border-gray-300 bg-gray-100 rounded-md p-2">
+                    {formatCurrencyOrNA(newItem.total)}
                   </div>
                 </div>
               </div>
@@ -477,14 +605,14 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData }) => {
                     setIsModalOpen(false);
                     resetNewItem();
                   }}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={loading}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                  className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={loading}
                 >
                   {loading

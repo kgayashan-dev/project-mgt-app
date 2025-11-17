@@ -14,6 +14,7 @@ interface QuotationItem {
 
 interface Quotation {
   id: string;
+  clientId:string,
   quotationNumber: string;
   quotationDate: string;
   clientName: string;
@@ -43,12 +44,14 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
   }, [quotationData]);
 
   // Filter quotations based on the search query
-  const filteredQuotations = quotations.filter((quotation) => {
-    return (
-      quotation.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quotation.quotationNumber.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
+  // const filteredQuotations = quotations.filter((quotation) => {
+  //   return (
+  //     quotation.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //     quotation.quotationNumber.toLowerCase().includes(searchQuery.toLowerCase())
+  //   );
+  // });
+
+  // console.log(quotationData)
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -168,32 +171,32 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
 
       {/* Quotations Count */}
       <div className="mb-4 text-sm text-gray-600">
-        Showing {filteredQuotations.length} of {quotations.length} quotations
+        Showing {quotations.length} of {quotations.length} quotations
       </div>
 
       {/* Display All Quotations */}
       <div className="overflow-x-auto regular-12 bg-white rounded-lg shadow">
         <table className="min-w-full border border-gray-200">
           <thead>
-            <tr className="bg-gray-50 border-b">
+            <tr className="bg-gray-100 border-b">
               <th className="text-left p-4 font-semibold text-gray-700">Client</th>
               <th className="text-left p-4 font-semibold text-gray-700">Quotation Number</th>
               <th className="text-left p-4 font-semibold text-gray-700">Date</th>
               <th className="text-left p-4 font-semibold text-gray-700">Grand Total</th>
-              <th className="text-left p-4 font-semibold text-gray-700">Items</th>
+              <th className="text-left p-4 font-semibold text-gray-700">Q_Items</th>
             </tr>
           </thead>
           <tbody>
-            {filteredQuotations.length > 0 ? (
-              filteredQuotations.map((quotation) => (
+            {quotations.length > 0 ? (
+              quotations.map((quotation) => (
                 <tr
                   key={quotation.id}
                   onClick={() => handleRowClick(quotation.id)}
                   className="border-b hover:bg-blue-50 transition-colors cursor-pointer"
                 >
                   <td className="p-4">
-                    <div className="font-medium text-gray-900">{quotation.clientName}</div>
-                    <div className="text-sm text-gray-500">{quotation.emailAddress}</div>
+                    <div className="font-medium text-gray-900">{quotation.clientId}</div>
+                    
                   </td>
                   <td className="p-4 font-mono text-sm">{quotation.quotationNumber}</td>
                   <td className="p-4 text-sm">{formatDate(quotation.quotationDate)}</td>
