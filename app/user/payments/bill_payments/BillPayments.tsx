@@ -1,34 +1,33 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useEffect, useState } from "react";
 
 interface Payment {
   id: string;
-  client: string;
-  invoiceNumber: string;
+  vendor: string;
+  billNumber: string;
   paymentDate: string;
   type: string;
   internalNotes: string;
   amount: number;
-  status: string ;
-  invoiceId: string;
+  status: string;
+  billId: string;
 }
 
-type InvoiceStatus = "Paid" | "Partial" | "Overdue" | "Pending";
-
-
-
-interface Invoice {
+interface Bill {
   id: string;
-  clientID: string;
-  invoiceNumber: string;
+  vendorID: string;
+  billNumber: string;
   description?: string;
-  invoiceDate: string;
-  invoiceDueDate?: string;
-  client: string;
+  billDate: string;
+  billDueDate?: string;
+  vendor: string;
   amount: number;
-  invoiceStatus: string;
+  billStatus: string;
   grandTotal: number;
-  status: InvoiceStatus;
+  status: string;
+  totalOutstanding: number;
+  amountDue: number;
 }
 
 interface ApiPayment {
@@ -44,15 +43,15 @@ interface ApiPayment {
   createdAt: string;
 }
 
-interface ClientsProps {
-  invoiceArray: Invoice[];
+interface BillsProps {
+  BillArray: Bill[];
   paymentsData: ApiPayment[];
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
-  invoiceArray,
+const BillPaymentsInterface: React.FC<BillsProps> = ({
+  BillArray,
   paymentsData,
 }) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -62,35 +61,35 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
 
   // Form state for new payment
   const [newPayment, setNewPayment] = useState({
-    invoiceNumber: "",
+    billNumber: "",
     paymentDate: new Date().toISOString().split("T")[0],
     type: "",
     amount: 0,
     internalNotes: "",
     status: "Pending",
-    client: "",
-    invoiceId: "",
+    vendor: "",
+    billId: "",
   });
 
-  console.log(paymentsData,"payment data")
+  console.log(BillArray, "payment data 74");
 
   // Convert API payments to component payments
   const convertApiPaymentsToComponentPayments = (apiPayments: ApiPayment[]): Payment[] => {
     return apiPayments.map(apiPayment => {
-      // Find the related invoice to get client and invoice number
-      const relatedInvoice = invoiceArray.find(inv => inv.id === apiPayment.referenceId);
+      // Find the related bill to get vendor and bill number
+      const relatedBill = BillArray.find(bill => bill.id === apiPayment.referenceId);
       
       return {
         id: apiPayment.id,
-        client: relatedInvoice?.clientID || "Unknown Client",
-        invoiceNumber: relatedInvoice?.invoiceNumber || apiPayment.referenceId,
-        paymentDate: apiPayment.paymentDate,
+        vendor: relatedBill?.vendor || "Unknown Vendor",
+        billNumber: relatedBill?.billNumber || apiPayment.referenceId,
+        paymentDate: apiPayment.paymentDate.split('T')[0], // Extract date part only
         type: apiPayment.paymentMethod,
         internalNotes: apiPayment.notes,
         amount: apiPayment.amount,
         status: apiPayment.status === "Completed" ? "Paid" : 
                 apiPayment.status === "Pending" ? "Pending" : "Failed",
-        invoiceId: apiPayment.referenceId
+        billId: apiPayment.referenceId
       };
     });
   };
@@ -118,22 +117,24 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
     }));
   };
 
-  // Handle invoice selection
-  const handleInvoiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedInvoiceId = e.target.value;
-    const selectedInvoice = invoiceArray.find(
-      (inv) => inv.id === selectedInvoiceId
+  console.log(paymentsData)
+
+  // Handle bill selection
+  const handleBillChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedBillId = e.target.value;
+    const selectedBill = BillArray.find(
+      (bill) => bill.id === selectedBillId
     );
 
-    console.log(selectedInvoice, "selected");
+    console.log(selectedBill, "selected");
 
-    if (selectedInvoice) {
+    if (selectedBill) {
       setNewPayment((prev) => ({
         ...prev,
-        invoiceId: selectedInvoice.id,
-        invoiceNumber: selectedInvoice.invoiceNumber,
-        client: selectedInvoice.clientID,
-        amount: selectedInvoice.grandTotal,
+        billId: selectedBill.id,
+        billNumber: selectedBill.billNumber,
+        vendor: selectedBill.vendor,
+        amount: selectedBill.amountDue || selectedBill.grandTotal,
       }));
     }
   };
@@ -142,8 +143,8 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
   const createPayment = async (paymentData: any) => {
     try {
       console.log("Creating payment with data:", {
-        paymentType: "invoice_payment",
-        referenceId: paymentData.invoiceId,
+        paymentType: "bill_payment",
+        referenceId: paymentData.billId,
         paymentDate: new Date(paymentData.paymentDate).toISOString(),
         paymentMethod: paymentData.type,
         notes: paymentData.internalNotes,
@@ -162,8 +163,8 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
           },
           body: JSON.stringify({
             id: "", // Let backend generate the ID
-            paymentType: "invoice_payment",
-            referenceId: paymentData.invoiceId,
+            paymentType: "bill_payment",
+            referenceId: paymentData.billId,
             paymentDate: new Date(paymentData.paymentDate).toISOString(),
             paymentMethod: paymentData.type,
             notes: paymentData.internalNotes,
@@ -194,8 +195,8 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
     try {
       console.log("Updating payment with data:", {
         id: paymentId,
-        paymentType: "invoice_payment",
-        referenceId: paymentData.invoiceId,
+        paymentType: "bill_payment",
+        referenceId: paymentData.billId,
         paymentDate: new Date(paymentData.paymentDate).toISOString(),
         paymentMethod: paymentData.type,
         notes: paymentData.internalNotes,
@@ -214,8 +215,8 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
           },
           body: JSON.stringify({
             id: paymentId,
-            paymentType: "invoice_payment",
-            referenceId: paymentData.invoiceId,
+            paymentType: "bill_payment",
+            referenceId: paymentData.billId,
             paymentDate: new Date(paymentData.paymentDate).toISOString(),
             paymentMethod: paymentData.type,
             notes: paymentData.internalNotes,
@@ -246,8 +247,8 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
     e.preventDefault();
 
     // Validation
-    if (!newPayment.invoiceId) {
-      alert("Please select an invoice");
+    if (!newPayment.billId) {
+      alert("Please select a bill");
       return;
     }
 
@@ -261,6 +262,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
     try {
       if (selectedPayment) {
         // Update existing payment
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const result = await updatePayment(selectedPayment.id, newPayment);
         
         // Update local state
@@ -268,8 +270,8 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
           payment.id === selectedPayment.id
             ? {
                 ...payment,
-                client: newPayment.client || payment.client,
-                invoiceNumber: newPayment.invoiceNumber || payment.invoiceNumber,
+                vendor: newPayment.vendor || payment.vendor,
+                billNumber: newPayment.billNumber || payment.billNumber,
                 paymentDate: newPayment.paymentDate || payment.paymentDate,
                 type: newPayment.type || payment.type,
                 internalNotes: newPayment.internalNotes || payment.internalNotes,
@@ -283,19 +285,19 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
         // Create new payment
         const result = await createPayment(newPayment);
         
-        // Find the related invoice for the new payment
-        const relatedInvoice = invoiceArray.find(inv => inv.id === newPayment.invoiceId);
+        // Find the related bill for the new payment
+        const relatedBill = BillArray.find(bill => bill.id === newPayment.billId);
         
         const payment: Payment = {
-          id: result.id || `PAY${Date.now()}`, // Use ID from response or generate one
-          client: newPayment.client || relatedInvoice?.clientID || "New Client",
-          invoiceNumber: newPayment.invoiceNumber || relatedInvoice?.invoiceNumber || "",
+          id: result.id || `PAY${Date.now()}`,
+          vendor: newPayment.vendor || relatedBill?.vendor || "New Vendor",
+          billNumber: newPayment.billNumber || relatedBill?.billNumber || "",
           paymentDate: newPayment.paymentDate || new Date().toISOString().split("T")[0],
           type: newPayment.type || "",
           internalNotes: newPayment.internalNotes || "",
           amount: Number(newPayment.amount) || 0,
           status: "Paid",
-          invoiceId: newPayment.invoiceId,
+          billId: newPayment.billId,
         };
 
         setPayments((prev) => [...prev, payment]);
@@ -303,14 +305,14 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
 
       // Reset form
       setNewPayment({
-        invoiceNumber: "",
+        billNumber: "",
         paymentDate: new Date().toISOString().split("T")[0],
         type: "",
         amount: 0,
         internalNotes: "",
         status: "Pending",
-        client: "",
-        invoiceId: "",
+        vendor: "",
+        billId: "",
       });
 
       // Close details form
@@ -338,14 +340,14 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
   const handleEdit = (payment: Payment) => {
     setSelectedPayment(payment);
     setNewPayment({
-      invoiceNumber: payment.invoiceNumber,
-      paymentDate: payment.paymentDate.split('T')[0], // Format for date input
+      billNumber: payment.billNumber,
+      paymentDate: payment.paymentDate.includes('T') ? payment.paymentDate.split('T')[0] : payment.paymentDate,
       type: payment.type,
       amount: payment.amount,
       internalNotes: payment.internalNotes,
       status: payment.status,
-      client: payment.client,
-      invoiceId: payment.invoiceId,
+      vendor: payment.vendor,
+      billId: payment.billId,
     });
     setShowDetails(true);
   };
@@ -353,8 +355,8 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
   // Filter payments based on search query
   const filteredPayments = payments.filter(
     (payment) =>
-      payment.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      payment.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      payment.billNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       payment.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -363,21 +365,21 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
       <div className="flex justify-between items-center mb-6">
         <div className="flex justify-start items-center gap-4">
           <h2 className="text-xl font-bold text-gray-900">
-            All Invoice Payments
+            All Bill Payments
           </h2>
           <button
             onClick={() => {
               setShowDetails(!showDetails);
               setSelectedPayment(null);
               setNewPayment({
-                invoiceNumber: "",
+                billNumber: "",
                 paymentDate: new Date().toISOString().split("T")[0],
                 type: "",
                 amount: 0,
                 internalNotes: "",
                 status: "Pending",
-                client: "",
-                invoiceId: "",
+                vendor: "",
+                billId: "",
               });
             }}
             className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full"
@@ -402,7 +404,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by client, invoice, or type"
+            placeholder="Search by vendor, bill, or type"
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <svg
@@ -410,7 +412,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            >
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -427,7 +429,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
           <thead>
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Client / Invoice Number
+                Vendor / Bill Number
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Payment Date ▼
@@ -445,7 +447,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
           </thead>
           {!showDetails && (
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredPayments.length === 0 ? (
+              {paymentsData.length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
@@ -459,10 +461,10 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                   <tr key={payment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="regular-12 font-medium text-gray-900">
-                        {payment.client}
+                        {payment.vendor}
                       </div>
                       <div className="regular-12 text-gray-500">
-                        {payment.invoiceNumber}
+                        {payment.billNumber}
                       </div>
                     </td>
                     <td className="px-6 py-4 regular-12 text-gray-500">
@@ -508,7 +510,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
         </table>
       </div>
 
-      {/* Form for new payment - remains the same */}
+      {/* Form for new payment */}
       {showDetails && (
         <form onSubmit={handleSubmit} className="overflow-x-auto regular-12">
           <table className="min-w-full divide-y border-none divide-gray-200 bg-white rounded-md shadow-md">
@@ -516,22 +518,22 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
               <tr className="border-none">
                 <td className="px-6 py-4">
                   <label
-                    htmlFor="invoice"
-                    className="regular-12text-gray-500 block mb-2"
+                    htmlFor="bill"
+                    className="regular-12 text-gray-500 block mb-2"
                   >
-                    Select Invoice
+                    Select Bill
                   </label>
                   <select
-                    value={newPayment.invoiceId}
-                    onChange={handleInvoiceChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={newPayment.billId}
+                    onChange={handleBillChange}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
-                    <option value="">Select an Invoice</option>
-                    {invoiceArray.map((invoice) => (
-                      <option key={invoice.id} value={invoice.id}>
-                        {invoice.invoiceNumber} - Rs.{" "}
-                        {invoice.grandTotal.toFixed(2)} - {invoice.clientID}
+                    <option value="">Select a bill</option>
+                    {BillArray.map((bill) => (
+                      <option key={bill.id} value={bill.id}>
+                        {bill.billNumber} - Rs.{" "}
+                        {bill.amountDue.toFixed(2)} - {bill.vendor}
                       </option>
                     ))}
                   </select>
@@ -539,7 +541,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                 <td className="px-6 py-4">
                   <label
                     htmlFor="paymentDate"
-                    className="regular-12text-gray-500 block mb-2"
+                    className="regular-12 text-gray-500 block mb-2"
                   >
                     Payment Date
                   </label>
@@ -548,14 +550,14 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                     name="paymentDate"
                     value={newPayment.paymentDate}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
                 </td>
                 <td className="px-6 py-4">
                   <label
                     htmlFor="type"
-                    className="regular-12text-gray-500 block mb-2"
+                    className="regular-12 text-gray-500 block mb-2"
                   >
                     Payment Type
                   </label>
@@ -563,7 +565,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                     name="type"
                     value={newPayment.type}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
                     <option value="">Select Payment Type</option>
@@ -575,9 +577,9 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                 <td className="px-6 py-4">
                   <label
                     htmlFor="amount"
-                    className="regular-12text-gray-500 block mb-2"
+                    className="regular-12 text-gray-500 block mb-2"
                   >
-                    Amount(LKR)
+                    Amount (LKR)
                   </label>
                   <input
                     type="number"
@@ -585,7 +587,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                     value={newPayment.amount}
                     onChange={handleInputChange}
                     placeholder="Amount (LKR)"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                     min="0"
                     step="0.01"
@@ -596,7 +598,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                 <td colSpan={4} className="px-6 py-4">
                   <label
                     htmlFor="internalNotes"
-                    className="regular-12text-gray-500 block mb-2"
+                    className="regular-12 text-gray-500 block mb-2"
                   >
                     Internal Notes
                   </label>
@@ -606,7 +608,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                     onChange={handleInputChange}
                     rows={2}
                     placeholder="Enter notes or details here..."
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </td>
               </tr>
@@ -647,4 +649,4 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
   );
 };
 
-export default InvoicePaymentsInterface;
+export default BillPaymentsInterface;

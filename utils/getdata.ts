@@ -61,9 +61,6 @@ export const getAllClients = () =>
 export const getQuotatoinData = () =>
   fetchData("/project_pulse/Quotation/getAllQuotations", "Quotation data");
 
-export const getBillData = () =>
-  fetchData("/project_pulse/Bill/getAllBills", "bill data");
-
 export const getAllCategories = () =>
   fetchData("/project_pulse/Category/getAllCategories", "category data");
 
@@ -86,6 +83,10 @@ export const getAllProjects = () =>
 
 export const getAllVendors = () =>
   fetchData("/project_pulse/Vendor/getAllVendors", "vendors data");
+export const getAllBills = () =>
+  fetchData("/project_pulse/Bill/getAllBills", "bill data");
+// export const getAllBillByBillType = () =>
+//   fetchData("/project_pulse/Bill/getAllBills", "bill data");
 
 // utils/getdata.ts (add this function)
 export async function getInvoicesByClientId(clientId: string) {
@@ -113,6 +114,67 @@ export async function getInvoicesByClientId(clientId: string) {
     throw error;
   }
 }
+
+export async function getPaymentByTypeBill(type = "bill_payment") {
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const response = await fetch(
+      `${API_URL}/project_pulse/Payment/getPaymentsByType/${type}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch payments by payment type: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching invoices:", error);
+    throw error;
+  }
+}
+
+
+export async function getPaymentsByType(type = "invoice_payment") {
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const response = await fetch(
+      `${API_URL}/project_pulse/Payment/getPaymentsByType/${type}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch payments by payment type: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching invoices:", error);
+    throw error;
+  }
+}
+
+
+
+
 
 // utils/getdata.ts (add this function)
 export async function getInvoiceById(invoiceId: string) {
