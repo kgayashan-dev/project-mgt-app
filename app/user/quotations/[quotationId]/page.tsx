@@ -21,7 +21,6 @@ async function getQuotationData(id: string) {
     if (!quotation) {
       return null;
     }
-
     // Transform the API response to match your ViewQuotation component's expected format
     return {
       id: quotation.id,
@@ -47,7 +46,7 @@ async function getQuotationData(id: string) {
       additionalInfo: quotation.additionalInfo || "",
     };
   } catch (error) {
-    console.error("Error fetching quotation:", error);
+    console.log("Error fetching quotation:", error);
     return null;
   }
 }

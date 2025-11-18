@@ -76,6 +76,8 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
     router.push(`/user/quotations/${quotationId}`);
   };
 
+  
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}

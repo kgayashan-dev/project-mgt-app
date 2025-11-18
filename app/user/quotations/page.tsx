@@ -23,7 +23,7 @@ export default function QuotationPage() {
     fetchData();
   }, []);
 
-  // console.log(quotationData)
+  // console.log(quotationData,"quotation data")
 
   return (
     <div>

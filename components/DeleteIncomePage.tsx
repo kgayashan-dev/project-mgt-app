@@ -1,13 +1,13 @@
 import React from "react";
 import { Filter, ChevronRight, Check } from "lucide-react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 
 const DeleteIncomePage = () => {
-  const router = useRouter();
+  // const router = useRouter();
 
-  const back = () => {
-    router.back();
-  };
+  // const back = () => {
+  //   router.back();
+  // };
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6">
       {/* Header Section */}
@@ -15,7 +15,7 @@ const DeleteIncomePage = () => {
         <div className="flex items-center gap-2">
           <div className="flex justify-start items-center">
             <button
-              onClick={back}
+              // onClick={back}
               className="text-2xl font-bold text-navy-900 text-blue-500 cur"
             >
               All Other Income

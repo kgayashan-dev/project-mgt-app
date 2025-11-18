@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface Payment {
   id: string;
@@ -10,46 +10,66 @@ interface Payment {
   internalNotes: string;
   amount: number;
   status: "Paid" | "Pending" | "Failed";
+  invoiceId: string;
 }
+
+type InvoiceStatus = "Paid" | "Partial" | "Overdue" | "Pending";
 
 interface Client {
   name: string;
-  // Add other client properties if needed
+  id: string;
+}
+
+interface Invoice {
+  id: string;
+  clientID: string;
+  invoiceNumber: string;
+  description?: string;
+  invoiceDate: string;
+  invoiceDueDate?: string;
+  client: string;
+  amount: number;
+  invoiceStatus: string;
+  grandTotal: number;
+  status: InvoiceStatus;
 }
 
 interface ClientsProps {
-  clientArray: Client[]; // Array of Client objects
+  clientArray: Client[];
+  invoiceArray: Invoice[];
 }
 
-const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
+  clientArray,
+  invoiceArray,
+}) => {
   const [showDetails, setShowDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  console.log(invoiceArray, "invoice");
 
   // Form state for new payment
-  const [newPayment, setNewPayment] = useState<Partial<Payment>>({
+  const [newPayment, setNewPayment] = useState({
     invoiceNumber: "",
     paymentDate: new Date().toISOString().split("T")[0],
     type: "",
     amount: 0,
     internalNotes: "",
     status: "Pending",
-    client: "", // Default client name
-  }); 
+    client: "",
+    invoiceId: "",
+  });
 
-  // Payments state
-  const [payments, setPayments] = useState<Payment[]>([
-    {
-      id: "1",
-      client: "Acme Corp",
-      invoiceNumber: "INV-001",
-      paymentDate: "2025-01-15",
-      type: "Credit Card",
-      internalNotes: "Monthly subscription",
-      amount: 1500.0,
-      status: "Paid",
-    },
-  ]);
+  // Payments state - initialize with empty array
+  const [payments, setPayments] = useState<Payment[]>([]);
+
+  useEffect(() => {
+    console.log(invoiceArray);
+  }, []);
 
   // Handle form input changes
   const handleInputChange = (
@@ -64,74 +84,214 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
     }));
   };
 
-  // Handle client selection from dropdown
-  const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedClientName = e.target.value;
-    setNewPayment((prev) => ({
-      ...prev,
-      client: selectedClientName,
-    }));
+  // Handle invoice selection
+  const handleInvoiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedInvoiceId = e.target.value;
+    const selectedInvoice = invoiceArray.find(
+      (inv) => inv.id === selectedInvoiceId
+    );
+
+    if (selectedInvoice) {
+      setNewPayment((prev) => ({
+        ...prev,
+        invoiceId: selectedInvoice.id,
+        invoiceNumber: selectedInvoice.invoiceNumber,
+        client: selectedInvoice.clientID,
+        amount: selectedInvoice.grandTotal,
+      }));
+    }
+  };
+
+  // Generate unique payment ID
+  const generatePaymentId = () => {
+    return `PAY${Date.now()}`;
+  };
+
+  // Create new payment
+  const createPayment = async (paymentData: any) => {
+    try {
+      const paymentId = generatePaymentId();
+
+      const response = await fetch(
+        `${API_URL}/project_pulse/Payment/createPayment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: "",
+            paymentType: "invoice_payment",
+            referenceId: paymentData.invoiceNumber,
+            paymentDate: new Date(paymentData.paymentDate).toISOString(),
+            paymentMethod: paymentData.type,
+            notes: paymentData.internalNotes,
+            amount: paymentData.amount,
+            status: "Completed", // Use Completed instead of Pending for paid invoices
+            transactionReference: `TXN-${Date.now()}`,
+            createdAt: new Date().toISOString(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create payment: ${errorText}`);
+      }
+
+      const result = await response.json();
+      return { ...result, paymentId };
+    } catch (error) {
+      console.error("Error creating payment:", error);
+      throw error;
+    }
+  };
+
+  // Update existing payment
+  const updatePayment = async (paymentId: string, paymentData: any) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/project_pulse/Payment/updatePayment/${paymentId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: paymentId,
+            paymentType: "invoice_payment",
+            referenceId: paymentData.id,
+            paymentDate: new Date(paymentData.paymentDate).toISOString(),
+            paymentMethod: paymentData.type,
+            notes: paymentData.internalNotes,
+            amount: paymentData.amount,
+            status: paymentData.status === "Paid" ? "Completed" : "Pending",
+            transactionReference:
+              paymentData.transactionReference || `TXN-${Date.now()}`,
+            createdAt: new Date().toISOString(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update payment: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      throw error;
+    }
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (selectedPayment) {
-      // Update existing payment
-      const updatedPayments = payments.map((payment) =>
-        payment.id === selectedPayment.id
-          ? {
-              ...payment,
-              client: newPayment.client || payment.client,
-              invoiceNumber: newPayment.invoiceNumber || payment.invoiceNumber,
-              paymentDate: newPayment.paymentDate || payment.paymentDate,
-              type: newPayment.type || payment.type,
-              internalNotes: newPayment.internalNotes || payment.internalNotes,
-              amount: Number(newPayment.amount) || payment.amount,
-              status: newPayment.status || payment.status,
-            }
-          : payment
-      );
-      setPayments(updatedPayments);
-    } else {
-      // Create new payment object
-      const payment: Payment = {
-        id: (payments.length + 1).toString(),
-        client: newPayment.client || "New Client",
-        invoiceNumber: newPayment.invoiceNumber || "",
-        paymentDate:
-          newPayment.paymentDate || new Date().toISOString().split("T")[0],
-        type: newPayment.type || "",
-        internalNotes: newPayment.internalNotes || "",
-        amount: Number(newPayment.amount) || 0,
-        status: "Pending",
-      };
-
-      // Add new payment to payments array
-      setPayments((prev) => [...prev, payment]);
+    // Validation
+    if (!newPayment.invoiceId) {
+      alert("Please select an invoice");
+      return;
     }
 
-    // Reset form
-    setNewPayment({
-      invoiceNumber: "",
-      paymentDate: new Date().toISOString().split("T")[0],
-      type: "",
-      amount: 0,
-      internalNotes: "",
-      status: "Pending",
-      client: "",
-    });
+    if (!newPayment.amount || newPayment.amount <= 0) {
+      alert("Please enter a valid amount");
+      return;
+    }
 
-    // Close details form
-    setShowDetails(false);
-    setSelectedPayment(null);
+    setLoading(true);
+
+    try {
+      if (selectedPayment) {
+        // Update existing payment - use the actual payment ID, not invoice ID
+        await updatePayment(selectedPayment.id, newPayment);
+
+        const updatedPayments = payments.map((payment) =>
+          payment.id === selectedPayment.id
+            ? {
+                ...payment,
+                client: newPayment.client || payment.client,
+                invoiceNumber:
+                  newPayment.invoiceNumber || payment.invoiceNumber,
+                paymentDate: newPayment.paymentDate || payment.paymentDate,
+                type: newPayment.type || payment.type,
+                internalNotes:
+                  newPayment.internalNotes || payment.internalNotes,
+                amount: Number(newPayment.amount) || payment.amount,
+                status:
+                  (newPayment.status as "Paid" | "Pending" | "Failed") ||
+                  payment.status,
+              }
+            : payment
+        );
+        setPayments(updatedPayments);
+      } else {
+        // Create new payment
+        const result = await createPayment(newPayment);
+
+        const payment: Payment = {
+          id: result.paymentId, // Use the generated payment ID from backend
+          client: newPayment.client || "New Client",
+          invoiceNumber: newPayment.invoiceNumber || "",
+          paymentDate:
+            newPayment.paymentDate || new Date().toISOString().split("T")[0],
+          type: newPayment.type || "",
+          internalNotes: newPayment.internalNotes || "",
+          amount: Number(newPayment.amount) || 0,
+          status: "Paid", // Mark as paid when created
+          invoiceId: newPayment.invoiceId,
+        };
+
+        setPayments((prev) => [...prev, payment]);
+      }
+
+      // Reset form
+      setNewPayment({
+        invoiceNumber: "",
+        paymentDate: new Date().toISOString().split("T")[0],
+        type: "",
+        amount: 0,
+        internalNotes: "",
+        status: "Pending",
+        client: "",
+        invoiceId: "",
+      });
+
+      // Close details form
+      setShowDetails(false);
+      setSelectedPayment(null);
+
+      alert(
+        selectedPayment
+          ? "Payment updated successfully!"
+          : "Payment created successfully!"
+      );
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      alert(
+        `Failed to process payment: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle edit button click
   const handleEdit = (payment: Payment) => {
     setSelectedPayment(payment);
-    setNewPayment(payment);
+    setNewPayment({
+      invoiceNumber: payment.invoiceNumber,
+      paymentDate: payment.paymentDate,
+      type: payment.type,
+      amount: payment.amount,
+      internalNotes: payment.internalNotes,
+      status: payment.status,
+      client: payment.client,
+      invoiceId: payment.invoiceId,
+    });
     setShowDetails(true);
   };
 
@@ -153,6 +313,16 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
             onClick={() => {
               setShowDetails(!showDetails);
               setSelectedPayment(null);
+              setNewPayment({
+                invoiceNumber: "",
+                paymentDate: new Date().toISOString().split("T")[0],
+                type: "",
+                amount: 0,
+                internalNotes: "",
+                status: "Pending",
+                client: "",
+                invoiceId: "",
+              });
             }}
             className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full"
           >
@@ -219,53 +389,66 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
           </thead>
           {!showDetails && (
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredPayments.map((payment) => (
-                <tr key={payment.id} className="hover:bg-gray-10">
-                  <td className="px-6 py-4">
-                    <div className="regular-12 font-medium text-gray-900">
-                      {payment.client}
-                    </div>
-                    <div className="regular-12 text-gray-500">
-                      {payment.invoiceNumber}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 regular-12 text-gray-500">
-                    {new Date(payment.paymentDate).toLocaleDateString("en-GB")}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="regular-12 text-gray-900">
-                      {payment.type}
-                    </div>
-                    <div className="regular-12 text-gray-500">
-                      {payment.internalNotes}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="regular-12 font-medium text-gray-900">
-                      Rs. {payment.amount.toFixed(2)}
-                    </div>
-                    <div
-                      className={`regular-12${
-                        payment.status === "Paid"
-                          ? "text-green-600"
-                          : payment.status === "Pending"
-                          ? "text-yellow-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      <span className="regular-12"> {payment.status}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right regular-12">
-                    <button
-                      onClick={() => handleEdit(payment)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Edit
-                    </button>
+              {filteredPayments.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
+                    No payments found. Click the + button to add a payment.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredPayments.map((payment) => (
+                  <tr key={payment.id} className="hover:bg-gray-10">
+                    <td className="px-6 py-4">
+                      <div className="regular-12 font-medium text-gray-900">
+                        {payment.client}
+                      </div>
+                      <div className="regular-12 text-gray-500">
+                        {payment.invoiceNumber}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 regular-12 text-gray-500">
+                      {new Date(payment.paymentDate).toLocaleDateString(
+                        "en-GB"
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="regular-12 text-gray-900">
+                        {payment.type}
+                      </div>
+                      <div className="regular-12 text-gray-500">
+                        {payment.internalNotes}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="regular-12 font-medium text-gray-900">
+                        Rs. {payment.amount.toFixed(2)}
+                      </div>
+                      <div
+                        className={`regular-12 ${
+                          payment.status === "Paid"
+                            ? "text-green-600"
+                            : payment.status === "Pending"
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        <span className="regular-12"> {payment.status}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right regular-12">
+                      <button
+                        onClick={() => handleEdit(payment)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           )}
         </table>
@@ -277,40 +460,32 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
           <table className="min-w-full divide-y border-none divide-gray-200 bg-white rounded-md shadow-md">
             <tbody className="divide-y divide-gray-200">
               <tr className="border-none">
-                <td className="px-6 py-0">
-                  <label htmlFor="invoice" className="regular-12text-gray-500">
-                    Invoice/Client
+                <td className="px-6 py-4">
+                  <label
+                    htmlFor="invoice"
+                    className="regular-12text-gray-500 block mb-2"
+                  >
+                    Select Invoice
                   </label>
-                  <div className="flex justify-center items-center gap-2">
-                    <input
-                      type="text"
-                      name="invoiceNumber"
-                      value={newPayment.invoiceNumber}
-                      onChange={handleInputChange}
-                      placeholder="Invoice"
-                      className="w-32 border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <select
-                      value={newPayment.client || ""}
-                      onChange={handleClientChange}
-                      className={`text-md rounded regular-12 p-2 focus:ring-2 focus:ring-blue-500 border-[0.5px]`}
-                    >
-                      <option value="">Select a Client</option>
-                      {clientArray.map((clientOption) => (
-                        <option
-                          key={clientOption.name}
-                          value={clientOption.name}
-                        >
-                          {clientOption.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <select
+                    value={newPayment.invoiceId}
+                    onChange={handleInvoiceChange}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select an Invoice</option>
+                    {invoiceArray.map((invoice) => (
+                      <option key={invoice.id} value={invoice.id}>
+                        {invoice.invoiceNumber} - Rs.{" "}
+                        {invoice.grandTotal.toFixed(2)} - {invoice.clientID}
+                      </option>
+                    ))}
+                  </select>
                 </td>
                 <td className="px-6 py-4">
                   <label
                     htmlFor="paymentDate"
-                    className="regular-12text-gray-500"
+                    className="regular-12text-gray-500 block mb-2"
                   >
                     Payment Date
                   </label>
@@ -320,10 +495,14 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
                     value={newPayment.paymentDate}
                     onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
                   />
                 </td>
-                <td className="p-6 py-0">
-                  <label htmlFor="type" className="regular-12text-gray-500">
+                <td className="px-6 py-4">
+                  <label
+                    htmlFor="type"
+                    className="regular-12text-gray-500 block mb-2"
+                  >
                     Payment Type
                   </label>
                   <select
@@ -331,6 +510,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
                     value={newPayment.type}
                     onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
                   >
                     <option value="">Select Payment Type</option>
                     <option value="Cash">Cash</option>
@@ -339,7 +519,10 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
                   </select>
                 </td>
                 <td className="px-6 py-4">
-                  <label htmlFor="amount" className="regular-12text-gray-500">
+                  <label
+                    htmlFor="amount"
+                    className="regular-12text-gray-500 block mb-2"
+                  >
                     Amount(LKR)
                   </label>
                   <input
@@ -349,12 +532,20 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
                     onChange={handleInputChange}
                     placeholder="Amount (LKR)"
                     className="w-full border border-gray-300 rounded-md px-3 py-2 regular-12text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                    min="0"
+                    step="0.01"
                   />
                 </td>
               </tr>
               <tr>
-                <td></td>
-                <td colSpan={3} className="px-6 py-4">
+                <td colSpan={4} className="px-6 py-4">
+                  <label
+                    htmlFor="internalNotes"
+                    className="regular-12text-gray-500 block mb-2"
+                  >
+                    Internal Notes
+                  </label>
                   <textarea
                     name="internalNotes"
                     value={newPayment.internalNotes}
@@ -368,13 +559,18 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
               <tr>
                 <td
                   colSpan={4}
-                  className="px-6 py-4 gap-2 text-right  space-x-2"
+                  className="px-6 py-4 gap-2 text-right space-x-2"
                 >
                   <button
                     type="submit"
-                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                    disabled={loading}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
                   >
-                    {selectedPayment ? "Update Payment" : "Add Payment"}
+                    {loading
+                      ? "Processing..."
+                      : selectedPayment
+                      ? "Update Payment"
+                      : "Add Payment"}
                   </button>
                   <button
                     type="button"
@@ -382,7 +578,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({ clientArray }) => {
                       setShowDetails(!showDetails);
                       setSelectedPayment(null);
                     }}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                    className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
                     aria-label="Cancel payment"
                   >
                     Cancel
