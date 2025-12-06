@@ -470,7 +470,7 @@ const BillPaymentsInterface: React.FC<BillsProps> = ({
                     <td className="px-6 py-4 regular-12 text-gray-500">
                       {new Date(payment.paymentDate).toLocaleDateString("en-GB")}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4">sss
                       <div className="regular-12 text-gray-900">
                         {payment.type}
                       </div>
