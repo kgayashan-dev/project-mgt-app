@@ -1,0 +1,23 @@
+
+-- View for bill payment summary
+CREATE VIEW [dbo].[vw_BillPaymentSummary]
+AS
+SELECT 
+    b.Id AS BillId,
+    b.BillNumber,
+    b.VendorId,
+    b.GrandTotal AS BillTotal,
+    ISNULL(SUM(p.Amount), 0) AS TotalPaid,
+    b.GrandTotal - ISNULL(SUM(p.Amount), 0) AS RemainingBalance,
+    CASE 
+        WHEN ISNULL(SUM(p.Amount), 0) = 0 THEN 'Unpaid'
+        WHEN ISNULL(SUM(p.Amount), 0) >= b.GrandTotal THEN 'Paid'
+        ELSE 'Partially Paid'
+    END AS PaymentStatus,
+    COUNT(p.Id) AS NumberOfPayments
+FROM Bills b
+LEFT JOIN Payments p ON b.Id = p.ReferenceId 
+    AND p.PaymentType = 'bill_payment'
+    AND p.Status != 'Cancelled'
+GROUP BY b.Id, b.BillNumber, b.VendorId, b.GrandTotal;
+GO
