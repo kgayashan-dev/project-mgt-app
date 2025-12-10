@@ -1,4 +1,6 @@
-import InvoiceForm from "@/components/NewInvoicePage";
+
+import NewQuotationForm from "@/components/NewQuotation";
+
 import {
   getAllClients,
   getBankData,
@@ -6,7 +8,7 @@ import {
   getQuotatoinData,
 } from "@/utils/getdata"; // Add your bank data function
 
-export default async function InvoicePage() {
+export default async function QuotationPage() {
   let clientData = [];
   let bankData = [];
   let quotationData = [];
@@ -42,7 +44,7 @@ export default async function InvoicePage() {
 
   return (
     <>
-      <InvoiceForm
+      <NewQuotationForm
         initialData={clientData}
         bankData={bankData}
         quotationData={quotationData}
