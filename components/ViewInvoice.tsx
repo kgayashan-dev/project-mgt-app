@@ -102,7 +102,7 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
   const [company, setCompany] = useState<CompanyClientDetails | null>(null);
   const [companyLoading, setCompanyLoading] = useState(true);
 
-  console.log();
+
   // Dynamically import html2pdf on client side only
   useEffect(() => {
     import("html2pdf.js").then((module) => {
@@ -117,7 +117,7 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
         try {
           setCompanyLoading(true);
           const companyData = await getCompanyAData(id);
-          console.log(companyData);
+          console.log(companyData,"Fetched company data");
           setCompany(companyData);
         } catch (error) {
           console.error("Error fetching company:", error);
@@ -385,6 +385,10 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
               </div>
             </div>
           </div>
+
+
+
+  
 
           <div className="flex flex-col justify-between pl-[52px]">
             <div className="regular-12">

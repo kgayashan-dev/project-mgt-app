@@ -42,7 +42,9 @@ export default async function Page({
             <h1 className="text-2xl font-bold text-gray-800 mb-2">
               No invoices found
             </h1>
-            <p className="text-gray-600">Unable to load invoices at this time.</p>
+            <p className="text-gray-600">
+              Unable to load invoices at this time.
+            </p>
           </div>
         </div>
       );
@@ -71,7 +73,11 @@ export default async function Page({
     let paymentsData = [];
     try {
       const paymentsResponse = await getAllPayments();
-      if (paymentsResponse && paymentsResponse.success && Array.isArray(paymentsResponse.data)) {
+      if (
+        paymentsResponse &&
+        paymentsResponse.success &&
+        Array.isArray(paymentsResponse.data)
+      ) {
         paymentsData = paymentsResponse.data;
       }
     } catch (paymentError) {
@@ -83,8 +89,11 @@ export default async function Page({
       <div className="pt-8">
         {isArchived ? (
           <ArchivedIncome />
-        )  : (
-          <InvoicePaymentsInterface invoiceArray={transformedInvoices} paymentsData={paymentsData}/>
+        ) : (
+          <InvoicePaymentsInterface
+            invoiceArray={transformedInvoices}
+            paymentsData={paymentsData}
+          />
         )}
       </div>
     );
@@ -96,7 +105,9 @@ export default async function Page({
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
             Error Loading Page
           </h1>
-          <p className="text-gray-600">Something went wrong. Please try again later.</p>
+          <p className="text-gray-600">
+            Something went wrong. Please try again later.
+          </p>
         </div>
       </div>
     );

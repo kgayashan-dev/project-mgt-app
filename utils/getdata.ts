@@ -234,3 +234,23 @@ export const getCompanyAData = async (
     return null;
   }
 };
+
+
+export const getCompanyADataOfQuotaion = async (
+  quotaionId: string
+): Promise<CompanyClientDetails | null> => {
+  try {
+    const response = await fetch(
+      `${API_URL}/project_pulse/Quotation/getCompanyByQuotationId/${quotaionId}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch company data");
+    }
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching company data:", error);
+    return null;
+  }
+};

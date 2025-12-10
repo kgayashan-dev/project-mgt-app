@@ -9,13 +9,11 @@ interface Payment {
   type: string;
   internalNotes: string;
   amount: number;
-  status: string ;
+  status: string;
   invoiceId: string;
 }
 
 type InvoiceStatus = "Paid" | "Partial" | "Overdue" | "Pending";
-
-
 
 interface Invoice {
   id: string;
@@ -72,14 +70,18 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
     invoiceId: "",
   });
 
-  console.log(paymentsData,"payment data")
+  console.log(invoiceArray, "ivoice data");
 
   // Convert API payments to component payments
-  const convertApiPaymentsToComponentPayments = (apiPayments: ApiPayment[]): Payment[] => {
-    return apiPayments.map(apiPayment => {
+  const convertApiPaymentsToComponentPayments = (
+    apiPayments: ApiPayment[]
+  ): Payment[] => {
+    return apiPayments.map((apiPayment) => {
       // Find the related invoice to get client and invoice number
-      const relatedInvoice = invoiceArray.find(inv => inv.id === apiPayment.referenceId);
-      
+      const relatedInvoice = invoiceArray.find(
+        (inv) => inv.id === apiPayment.referenceId
+      );
+
       return {
         id: apiPayment.id,
         client: relatedInvoice?.clientID || "Unknown Client",
@@ -88,15 +90,19 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
         type: apiPayment.paymentMethod,
         internalNotes: apiPayment.notes,
         amount: apiPayment.amount,
-        status: apiPayment.status === "Completed" ? "Paid" : 
-                apiPayment.status === "Pending" ? "Pending" : "Failed",
-        invoiceId: apiPayment.referenceId
+        status:
+          apiPayment.status === "Completed"
+            ? "Paid"
+            : apiPayment.status === "Pending"
+            ? "Pending"
+            : "Failed",
+        invoiceId: apiPayment.referenceId,
       };
     });
   };
 
   // Initialize payments with converted data
-  const [payments, setPayments] = useState<Payment[]>(() => 
+  const [payments, setPayments] = useState<Payment[]>(() =>
     convertApiPaymentsToComponentPayments(paymentsData)
   );
 
@@ -262,19 +268,23 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
       if (selectedPayment) {
         // Update existing payment
         const result = await updatePayment(selectedPayment.id, newPayment);
-        
+
         // Update local state
         const updatedPayments = payments.map((payment) =>
           payment.id === selectedPayment.id
             ? {
                 ...payment,
                 client: newPayment.client || payment.client,
-                invoiceNumber: newPayment.invoiceNumber || payment.invoiceNumber,
+                invoiceNumber:
+                  newPayment.invoiceNumber || payment.invoiceNumber,
                 paymentDate: newPayment.paymentDate || payment.paymentDate,
                 type: newPayment.type || payment.type,
-                internalNotes: newPayment.internalNotes || payment.internalNotes,
+                internalNotes:
+                  newPayment.internalNotes || payment.internalNotes,
                 amount: Number(newPayment.amount) || payment.amount,
-                status: (newPayment.status as "Paid" | "Pending" | "Failed") || payment.status,
+                status:
+                  (newPayment.status as "Paid" | "Pending" | "Failed") ||
+                  payment.status,
               }
             : payment
         );
@@ -282,15 +292,19 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
       } else {
         // Create new payment
         const result = await createPayment(newPayment);
-        
+
         // Find the related invoice for the new payment
-        const relatedInvoice = invoiceArray.find(inv => inv.id === newPayment.invoiceId);
-        
+        const relatedInvoice = invoiceArray.find(
+          (inv) => inv.id === newPayment.invoiceId
+        );
+
         const payment: Payment = {
           id: result.id || `PAY${Date.now()}`, // Use ID from response or generate one
           client: newPayment.client || relatedInvoice?.clientID || "New Client",
-          invoiceNumber: newPayment.invoiceNumber || relatedInvoice?.invoiceNumber || "",
-          paymentDate: newPayment.paymentDate || new Date().toISOString().split("T")[0],
+          invoiceNumber:
+            newPayment.invoiceNumber || relatedInvoice?.invoiceNumber || "",
+          paymentDate:
+            newPayment.paymentDate || new Date().toISOString().split("T")[0],
           type: newPayment.type || "",
           internalNotes: newPayment.internalNotes || "",
           amount: Number(newPayment.amount) || 0,
@@ -339,7 +353,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
     setSelectedPayment(payment);
     setNewPayment({
       invoiceNumber: payment.invoiceNumber,
-      paymentDate: payment.paymentDate.split('T')[0], // Format for date input
+      paymentDate: payment.paymentDate.split("T")[0], // Format for date input
       type: payment.type,
       amount: payment.amount,
       internalNotes: payment.internalNotes,
@@ -410,7 +424,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            >
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -466,7 +480,9 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                       </div>
                     </td>
                     <td className="px-6 py-4 regular-12 text-gray-500">
-                      {new Date(payment.paymentDate).toLocaleDateString("en-GB")}
+                      {new Date(payment.paymentDate).toLocaleDateString(
+                        "en-GB"
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="regular-12 text-gray-900">
@@ -530,7 +546,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
                     <option value="">Select an Invoice</option>
                     {invoiceArray.map((invoice) => (
                       <option key={invoice.id} value={invoice.id}>
-                        {invoice.invoiceNumber} - Rs.{" "}
+                        {invoice.invoiceNumber} - {invoice.id} - Rs.{" "}
                         {invoice.grandTotal.toFixed(2)} - {invoice.clientID}
                       </option>
                     ))}
