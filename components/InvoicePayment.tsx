@@ -182,8 +182,8 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to create payment: ${errorText}`);
+        const errorText = await response.json();
+        throw new Error(`${errorText.error}`);
       }
 
       const result = await response.json();
@@ -337,7 +337,7 @@ const InvoicePaymentsInterface: React.FC<ClientsProps> = ({
           : "Payment created successfully!"
       );
     } catch (error) {
-      console.error("Error processing payment:", error);
+      // console.error("Error processing payment:", error);
       alert(
         `Failed to process payment: ${
           error instanceof Error ? error.message : "Unknown error"
