@@ -61,7 +61,7 @@ export default async function Page({
     grandTotal: invoiceData.invoiceTotal,
     notes: invoiceData.remarks || "",
     emailAddress: "", // You might need to fetch client email
-    terms: "Net 30", // Default terms
+    terms: invoiceData.terms, // Default terms
     clientAddress: "", // You might need to fetch client address
     invoiceReference: invoiceData.quotationID || invoiceData.poNo || "",
     discountPercentage: 0,
