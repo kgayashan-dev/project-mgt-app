@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import ArchivedIncome from "@/components/ArchivedIncome";
 import InvoicePaymentsInterface from "@/components/InvoicePayment";
 import { getAllInvoices, getAllPayments } from "@/utils/getdata";
@@ -29,7 +30,7 @@ export default async function Page({
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
   const isArchived = searchParams.archived === "true";
-  const isDeleted = searchParams.deleted === "true";
+  // const isDeleted = searchParams.deleted === "true";
 
   try {
     const response = await getAllInvoices();
