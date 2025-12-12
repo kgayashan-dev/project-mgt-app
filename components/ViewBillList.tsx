@@ -52,6 +52,7 @@ const ViewBillList: React.FC<BillDetailsProps> = ({ billArray }) => {
     route.push("/user/bills/new");
   };
 
+  console.log(billArray)
   return (
     <div className="mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center w-full px-8">

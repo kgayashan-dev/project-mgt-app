@@ -76,7 +76,6 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
   BillArray,
   paymentsData,
 }) => {
-  console.log(paymentsData, "payment data arr");
   // State
   const [showDetails, setShowDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -206,8 +205,6 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
       );
 
       const responseText = await response.text();
-      console.log("Raw response:", responseText);
-
       let responseData;
 
       try {
@@ -275,8 +272,6 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
       );
 
       const responseText = await response.text();
-      console.log("Raw update response:", responseText);
-
       let responseData;
 
       try {
@@ -337,7 +332,7 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
       if (selectedPayment) {
         const result = await updatePayment(selectedPayment.id, newPayment);
         console.log("Update payment result:", result);
-
+        
         const updatedPayments = payments.map((payment) =>
           payment.id === selectedPayment.id
             ? {
@@ -350,7 +345,6 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
         setPayments(updatedPayments);
       } else {
         const result = await createPayment(newPayment);
-        console.log("Create payment result:", result);
 
         const newPaymentObj: Payment = {
           id: result.GeneratedPaymentId || result.id || `PAY${Date.now()}`,
@@ -373,8 +367,6 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
       } else {
         setError(errorMessage);
       }
-
-      console.error("Payment error details:", error);
     } finally {
       setLoading(false);
     }
@@ -706,7 +698,7 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                   resetForm();
                   setError(null);
                 }}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded text-gray-700 hover:bg-gray-500"
                 disabled={loading}
               >
                 Cancel
@@ -754,7 +746,7 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
       <div className="bg-white rounded shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-500">
               <tr>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Vendor / Bill
@@ -809,8 +801,8 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                     : 0;
 
                   return (
-                    <tr key={payment.id} className="hover:bg-gray-50">
-                      <td className="px-3 py-2">
+                    <tr key={payment.id} className="hover:bg-gray-500">
+                      <td className="px-2 py-1">
                         <div className="text-xs font-medium text-gray-900">
                           {payment.vendor}
                         </div>
@@ -836,7 +828,7 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                                   {formatCurrency(remainingBalance)}
                                 </span>
                               </div>
-                              <div className="italic">
+                              <div className="italic text-orange-50 border-lime-100">
                                 {relatedBill.billStatus}
                               </div>
                             </div>

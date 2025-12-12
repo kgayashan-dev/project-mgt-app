@@ -49,6 +49,8 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
     },
   ]);
 
+  console.log(vendorArray)
+
   const router = useRouter();
   const [subtotal, setSubtotal] = useState(0);
   const [totalTax, setTotalTax] = useState(0);
