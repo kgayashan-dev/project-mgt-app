@@ -389,7 +389,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
       discountPercentage: discountPercentage,
       discountAmount: discountAmount,
       invoiceTotal: grandTotal,
-      terms: terms || "", // Empty string, not null
+      terms: terms , // Empty string, not null
       items: rows.map((row) => ({
         id: 0, // Integer 0
         description: row.description || "",
@@ -400,7 +400,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
         total: row.total || 0,
       })),
       createdDate: createdDateObj.toISOString(),
-      // status: "Draft" // Commented out in your model
+      status: "Draft" // Commented out in your model
     };
   };
 
@@ -426,7 +426,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
     try {
       const InvoiceData = prepareInvoiceData();
 
-      // console.log("Items first element:", InvoiceData.items[0]);
+      console.log("Items first element:", InvoiceData.items[0]);
 
       const response = await fetch(
         `${API_URL}/project_pulse/Invoice/postInvoice`,
@@ -439,9 +439,11 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
         }
       );
 
+      console.log(InvoiceData,"select")
+
       if (!response.ok) {
         const errorText = await response.json();
-        // console.error(errorText.error);
+        console.log(errorText);
 
         throw new Error(errorText.error);
       }

@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { Search, Plus, ChevronDown } from "lucide-react";
 
 // Define types for invoice status and structure
-type InvoiceStatus = "Paid" | "Partial" | "Overdue" | "Pending";
+type InvoiceStatus = "Paid" | "Partial" | "Overdue" | "Draft";
 
 interface Invoice {
   id: string;
@@ -131,7 +131,7 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
             Rs.{" "}
             {invoiceArray
               .filter(
-                (inv) => inv.status === "Pending" || inv.status === "Partial"
+                (inv) =>  inv.status === "Partial"
               )
               .reduce((sum, inv) => sum + inv.grandTotal, 0)
               .toLocaleString()}
@@ -142,7 +142,7 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
           <h1 className="text-3xl">
             Rs.{" "}
             {invoiceArray
-              .filter((inv) => inv.status === "Pending")
+              .filter((inv) => inv.status === "Draft")
               .reduce((sum, inv) => sum + inv.grandTotal, 0)
               .toLocaleString()}
           </h1>

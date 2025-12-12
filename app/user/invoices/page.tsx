@@ -18,14 +18,14 @@ async function getInvoicesData() {
 export default async function Page() {
   const response = await getInvoicesData(); // Fetching all invoices
 
-
-
   // Check if the response is successful and has data
   if (!response || !response.success || !Array.isArray(response.data)) {
     return (
       <div className="pt-8 flex justify-center items-center min-h-96">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">No invoices found</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            No invoices found
+          </h1>
           <p className="text-gray-600">Unable to load invoices at this time.</p>
         </div>
       </div>
@@ -33,8 +33,8 @@ export default async function Page() {
   }
 
   const data = response.data;
-;
 
+  console.log(data)
   // Transform the API data to match the component's expected format
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const transformedInvoices = data.map((invoice: any) => ({
@@ -42,35 +42,23 @@ export default async function Page() {
     clientID: invoice.clientID, // You might want to fetch client name separately
     invoiceNumber: invoice.invoiceNo,
     description: invoice.remarks || "No description",
-    invoiceDate: new Date(invoice.invoiceDate).toLocaleDateString('en-US'),
-    invoiceDueDate: invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-US') : undefined,
+    invoiceDate: new Date(invoice.invoiceDate).toLocaleDateString("en-US"),
+    invoiceDueDate: invoice.dueDate
+      ? new Date(invoice.dueDate).toLocaleDateString("en-US")
+      : undefined,
     client: invoice.clientID,
     amount: invoice.subtotal,
-    invoiceStatus: invoice.status || "Draft",
+    invoiceStatus: invoice.status ,
     grandTotal: invoice.invoiceTotal,
-    status: getStatusFromInvoiceStatus(invoice.status) // Map to the expected status type
+    status: invoice.status, // Map to the expected status type
   }));
 
+
+  console.log(transformedInvoices,"trans")
   return (
     <div className="pt-8">
       {/* Passing the transformed data into the AllInvoiceData component */}
       <AllInvoiceData invoiceArray={transformedInvoices} />
     </div>
   );
-}
-
-// Helper function to map API status to component status
-function getStatusFromInvoiceStatus(status: string | null): "Paid" | "Partial" | "Overdue" | "Pending" {
-  if (!status) return 'Pending';
-  
-  const statusMap: { [key: string]: "Paid" | "Partial" | "Overdue" | "Pending" } = {
-    'Paid': 'Paid',
-    'Partial': 'Partial',
-    'Overdue': 'Overdue',
-    'Draft': 'Pending',
-    'Sent': 'Pending',
-    'Pending': 'Pending'
-  };
-  
-  return statusMap[status] || 'Pending';
 }

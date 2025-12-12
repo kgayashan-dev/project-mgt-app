@@ -1,27 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ArchivedIncome from "@/components/ArchivedIncome";
 import InvoicePaymentsInterface from "@/components/InvoicePayment";
 import { getAllInvoices, getAllPayments } from "@/utils/getdata";
 
 // Helper function to map API status to component status
-function getStatusFromInvoiceStatus(
-  status: string | null
-): "Paid" | "Partial" | "Overdue" | "Pending" {
-  if (!status) return "Pending";
 
-  const statusMap: {
-    [key: string]: "Paid" | "Partial" | "Overdue" | "Pending";
-  } = {
-    Paid: "Paid",
-    Partial: "Partial",
-    Overdue: "Overdue",
-    Draft: "Pending",
-    Sent: "Pending",
-    Pending: "Pending",
-  };
-
-  return statusMap[status] || "Pending";
-}
 
 // Main Page Component
 export default async function Page({
@@ -65,11 +49,13 @@ export default async function Page({
         : undefined,
       client: invoice.clientID,
       amount: invoice.subtotal,
-      invoiceStatus: invoice.status || "Draft",
+      invoiceStatus: invoice.status,
       grandTotal: invoice.invoiceTotal,
-      status: getStatusFromInvoiceStatus(invoice.status),
+      status: invoice.status
     }));
 
+
+    console.log(transformedInvoices,'transformed')
     // Fetch payments data if needed
     let paymentsData = [];
     try {
@@ -99,7 +85,7 @@ export default async function Page({
       </div>
     );
   } catch (error) {
-    console.error("Error in page component:", error);
+    
     return (
       <div className="pt-8 flex justify-center items-center min-h-96">
         <div className="text-center">

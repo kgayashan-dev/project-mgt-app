@@ -14,8 +14,6 @@ interface Payment {
   invoiceId: string;
 }
 
-type InvoiceStatus = "Paid" | "Partial" | "Overdue" | "Pending";
-
 interface Invoice {
   id: string;
   clientID: string;
@@ -27,7 +25,7 @@ interface Invoice {
   amount: number;
   invoiceStatus: string;
   grandTotal: number;
-  status: InvoiceStatus;
+  status: string;
 }
 
 interface ApiPayment {
@@ -75,6 +73,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
   invoiceArray,
   paymentsData,
 }) => {
+
   // State
   const [showDetails, setShowDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -114,12 +113,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
           type: apiPayment.paymentMethod,
           internalNotes: apiPayment.notes,
           amount: apiPayment.amount,
-          status:
-            apiPayment.status === "Completed"
-              ? "Paid"
-              : apiPayment.status === "Pending"
-              ? "Pending"
-              : "Failed",
+          status: apiPayment.status, // Use backend status directly
           invoiceId: apiPayment.referenceId,
         };
       });
@@ -140,7 +134,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
     return payments
       .filter(
         (payment) =>
-          payment.invoiceId === invoiceId && payment.status === "Paid"
+          payment.invoiceId === invoiceId && payment.status === "Completed"
       )
       .reduce((sum, payment) => sum + payment.amount, 0);
   };
@@ -187,7 +181,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
     }
   };
 
-  // API Functions - UPDATED with better error handling
+  // API Functions
   const createPayment = async (paymentData: NewPaymentForm) => {
     try {
       const response = await fetch(
@@ -205,7 +199,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
             paymentMethod: paymentData.type,
             notes: paymentData.internalNotes,
             amount: paymentData.amount,
-            status: "Completed",
+            status: "Completed", // New payments default to Completed
             transactionReference: `TXN-${Date.now()}`,
             createdAt: new Date().toISOString(),
           }),
@@ -213,38 +207,43 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       );
 
       const responseText = await response.text();
+      console.log("Raw response:", responseText);
+
       let responseData;
 
       try {
         responseData = JSON.parse(responseText);
       } catch {
-        // If response is not JSON, it's likely an error message
         throw new Error(responseText || "Invalid response from server");
       }
 
+      // Check if response is OK
       if (!response.ok) {
-        // Check for specific validation errors from backend
-        const errorMessage =
-          responseData.message ||
-          responseData.error ||
-          "Failed to create payment";
-
-        // Check if it's a balance exceeded error from backend
-        if (
-          errorMessage.includes("exceeds") ||
-          errorMessage.includes("balance") ||
-          errorMessage.includes("Invoice not found") ||
-          errorMessage.includes("Bill not found")
-        ) {
-          throw new Error(`BACKEND_VALIDATION: ${errorMessage}`);
+        // Check if it's a validation error from backend (400 Bad Request)
+        if (response.status === 400 && responseData.isValidationError) {
+          throw new Error(`VALIDATION_ERROR: ${responseData.message}`);
         }
 
-        throw new Error(errorMessage);
+        // Other errors
+        throw new Error(
+          responseData.message ||
+            `HTTP ${response.status}: ${response.statusText}`
+        );
       }
 
       return responseData;
     } catch (error) {
-      console.error("Error creating payment:", error);
+      // Handle validation errors specifically
+      if (error instanceof Error) {
+        if (error.message.startsWith("VALIDATION_ERROR:")) {
+          const validationError = error.message.replace(
+            "VALIDATION_ERROR: ",
+            ""
+          );
+          throw new Error(validationError);
+        }
+      }
+
       throw error;
     }
   };
@@ -269,7 +268,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
             paymentMethod: paymentData.type,
             notes: paymentData.internalNotes,
             amount: paymentData.amount,
-            status: paymentData.status === "Paid" ? "Completed" : "Pending",
+            status: paymentData.status, // Use the actual status from form
             transactionReference: `TXN-${Date.now()}`,
             createdAt: new Date().toISOString(),
           }),
@@ -277,49 +276,52 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       );
 
       const responseText = await response.text();
+      console.log("Raw update response:", responseText);
+
       let responseData;
 
       try {
         responseData = JSON.parse(responseText);
       } catch {
-        // If response is not JSON, it's likely an error message
         throw new Error(responseText || "Invalid response from server");
       }
 
+      // Check if response is OK
       if (!response.ok) {
-        // Check for specific validation errors from backend
-        const errorMessage =
-          responseData.message ||
-          responseData.error ||
-          responseText ||
-          "Failed to update payment";
-
-        // Check if it's a balance exceeded error from backend
-        if (
-          errorMessage.includes("exceeds") ||
-          errorMessage.includes("balance") ||
-          errorMessage.includes("Invoice not found") ||
-          errorMessage.includes("Bill not found")
-        ) {
-          throw new Error(`BACKEND_VALIDATION: ${errorMessage}`);
+        // Check if it's a validation error from backend (400 Bad Request)
+        if (response.status === 400 && responseData.isValidationError) {
+          throw new Error(`VALIDATION_ERROR: ${responseData.message}`);
         }
 
-        throw new Error(errorMessage);
+        // Other errors
+        throw new Error(
+          responseData.message ||
+            `HTTP ${response.status}: ${response.statusText}`
+        );
       }
 
       return responseData;
     } catch (error) {
-      console.error("Error updating payment:", error);
+      // Handle validation errors specifically
+      if (error instanceof Error) {
+        if (error.message.startsWith("VALIDATION_ERROR:")) {
+          const validationError = error.message.replace(
+            "VALIDATION_ERROR: ",
+            ""
+          );
+          throw new Error(validationError);
+        }
+      }
+
       throw error;
     }
   };
 
-  // Handle form submission - UPDATED with better error handling
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Frontend validation
     if (!newPayment.invoiceId) {
       setError("Please select an invoice");
       return;
@@ -330,51 +332,45 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       return;
     }
 
-    // Optional: Frontend check (can be disabled to test backend validation)
-    const remainingBalance = getRemainingBalance(newPayment.invoiceId);
-    if (newPayment.amount > remainingBalance) {
-      setError(
-        `Payment amount exceeds remaining balance of Rs. ${remainingBalance.toFixed(
-          2
-        )}`
-      );
-      return;
-    }
+    // const remainingBalance = getRemainingBalance(newPayment.invoiceId);
+    // if (newPayment.amount > remainingBalance) {
+    //   setError(
+    //     `Payment amount exceeds remaining balance of ${formatCurrency(
+    //       remainingBalance
+    //     )}`
+    //   );
+    //   return;
+    // }
 
     setLoading(true);
 
     try {
       if (selectedPayment) {
-        // Update existing payment
         const result = await updatePayment(selectedPayment.id, newPayment);
         console.log("Update payment result:", result);
 
-        // Update local state
         const updatedPayments = payments.map((payment) =>
           payment.id === selectedPayment.id
             ? {
                 ...payment,
                 ...newPayment,
-                status: newPayment.status as "Paid" | "Pending" | "Failed",
+                status: newPayment.status,
               }
             : payment
         );
         setPayments(updatedPayments);
       } else {
-        // Create new payment
         const result = await createPayment(newPayment);
         console.log("Create payment result:", result);
 
-        // Add to local state
         const newPaymentObj: Payment = {
           id: result.GeneratedPaymentId || result.id || `PAY${Date.now()}`,
           ...newPayment,
-          status: "Paid",
+          status: "Completed", // New payments default to Completed
         };
         setPayments((prev) => [...prev, newPaymentObj]);
       }
 
-      // Reset form
       resetForm();
       setShowDetails(false);
       setSelectedPayment(null);
@@ -382,17 +378,14 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       const errorMessage =
         error instanceof Error ? error.message : "Failed to process payment";
 
-      // Check if it's a backend validation error
       if (errorMessage.startsWith("BACKEND_VALIDATION:")) {
-        // Extract the actual error message
         const backendError = errorMessage.replace("BACKEND_VALIDATION: ", "");
         setError(backendError);
       } else {
         setError(errorMessage);
       }
 
-      // Log the error for debugging
-      console.error("Payment error details:", error);
+      
     } finally {
       setLoading(false);
     }
@@ -443,31 +436,46 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
 
   // Format backend error message for better display
   const formatBackendErrorMessage = (errorMsg: string): string => {
-    // Clean up the error message for display
     return errorMsg
       .replace("THROW", "")
       .replace("5000", "")
-      .replace(/[0-9]+,/g, "") // Remove error codes
+      .replace(/[0-9]+,/g, "")
       .trim();
   };
 
+  // Helper function for status badge color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Completed":
+        return "bg-green-100 text-green-800";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "Cancelled":
+        return "bg-red-100 text-red-800";
+      case "Failed":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   return (
-    <div className="p-4">
+    <div className="p-3">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold text-gray-900">Invoice Payments</h2>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-bold text-gray-900">Invoice Payments</h2>
           <button
             onClick={() => {
               setShowDetails(!showDetails);
               setSelectedPayment(null);
               resetForm();
             }}
-            className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full"
+            className="bg-green-600 hover:bg-green-700 text-white p-1.5 rounded-full"
             aria-label={showDetails ? "Close form" : "Add payment"}
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -482,16 +490,16 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
           </button>
         </div>
 
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full sm:w-56">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search payments..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <svg
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"
+            className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3.5 h-3.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -506,20 +514,20 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
         </div>
       </div>
 
-      {/* Enhanced Error Message - Shows backend validation errors */}
+      {/* Error Message */}
       {error && (
         <div
-          className={`mb-4 p-4 rounded-lg border-l-4 ${
+          className={`mb-3 p-3 rounded border-l-3 text-xs ${
             error.includes("exceeds") || error.includes("balance")
-              ? "bg-red-50 border-red-500"
-              : "bg-yellow-50 border-yellow-500"
+              ? "bg-red-50 border-red-400 text-red-700"
+              : "bg-yellow-50 border-yellow-400 text-yellow-700"
           }`}
         >
           <div className="flex items-start">
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 mt-0.5">
               {error.includes("exceeds") || error.includes("balance") ? (
                 <svg
-                  className="h-5 w-5 text-red-400"
+                  className="h-4 w-4 text-red-500"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -531,7 +539,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                 </svg>
               ) : (
                 <svg
-                  className="h-5 w-5 text-yellow-400"
+                  className="h-4 w-4 text-yellow-500"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -543,41 +551,13 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                 </svg>
               )}
             </div>
-            <div className="ml-3">
-              <h3
-                className={`text-sm font-medium ${
-                  error.includes("exceeds") || error.includes("balance")
-                    ? "text-red-800"
-                    : "text-yellow-800"
-                }`}
-              >
+            <div className="ml-2">
+              <p className="font-medium">
                 {error.includes("exceeds") || error.includes("balance")
                   ? "Payment Validation Failed"
-                  : "Error Processing Payment"}
-              </h3>
-              <div
-                className={`mt-2 text-sm ${
-                  error.includes("exceeds") || error.includes("balance")
-                    ? "text-red-700"
-                    : "text-yellow-700"
-                }`}
-              >
-                <p>{formatBackendErrorMessage(error)}</p>
-              </div>
-              {(error.includes("exceeds") || error.includes("balance")) && (
-                <div
-                  className={`mt-3 p-3 rounded text-xs ${
-                    error.includes("exceeds") || error.includes("balance")
-                      ? "bg-red-100 text-red-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  <p className="font-semibold mb-1">Details from backend:</p>
-                  <p className="font-mono text-xs">
-                    {formatBackendErrorMessage(error)}
-                  </p>
-                </div>
-              )}
+                  : "Error"}
+              </p>
+              <p className="mt-0.5">{formatBackendErrorMessage(error)}</p>
             </div>
           </div>
         </div>
@@ -585,13 +565,13 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
 
       {/* Payment Form */}
       {showDetails && (
-        <div className="mb-4 bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-semibold mb-4">
+        <div className="mb-3 bg-white rounded shadow p-3">
+          <h3 className="text-md font-semibold mb-3">
             {selectedPayment ? "Edit Payment" : "Add New Payment"}
           </h3>
 
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
               {/* Invoice Selection */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -600,22 +580,22 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                 <select
                   value={newPayment.invoiceId}
                   onChange={handleInvoiceChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
-                  disabled={!!selectedPayment} // Can't change invoice when editing
+                  disabled={!!selectedPayment}
                 >
                   <option value="">Select Invoice</option>
                   {invoiceArray.map((invoice) => {
                     const paid = getTotalPaidForInvoice(invoice.id);
                     const balance = getRemainingBalance(invoice.id);
-                  
+                    const statusIcon =
+                      balance <= 0 ? "✓ " : paid > 0 ? "⚠ " : "○ ";
 
                     return (
                       <option key={invoice.id} value={invoice.id}>
-                        {invoice.invoiceNumber} - {invoice.clientID} - Total:{" "}
-                        {formatCurrency(invoice.grandTotal)} - Paid:{" "}
-                        {formatCurrency(paid)} - Balance:{" "}
-                        {formatCurrency(balance)}
+                        {statusIcon}
+                        {invoice.invoiceNumber} - {invoice.clientID} -{" "}
+                        {formatCurrency(invoice.grandTotal)}
                       </option>
                     );
                   })}
@@ -632,7 +612,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                   name="paymentDate"
                   value={newPayment.paymentDate}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -646,7 +626,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                   name="type"
                   value={newPayment.type}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
                 >
                   <option value="">Select Type</option>
@@ -661,66 +641,60 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
               {/* Amount */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Amount (LKR) *
-                  {selectedInvoiceDetails && (
-                    <div className="text-xs text-gray-500 mt-1 space-y-1">
-                      <div className="flex justify-between">
-                        <span>Invoice Total:</span>
-                        <span className="font-semibold">
-                          {formatCurrency(selectedInvoiceDetails.grandTotal)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Already Paid:</span>
-                        <span>
-                          {formatCurrency(
-                            getTotalPaidForInvoice(newPayment.invoiceId)
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Remaining Balance:</span>
-                        <span
-                          className={
-                            getRemainingBalance(newPayment.invoiceId) <= 0
-                              ? "text-green-600 font-semibold"
-                              : "text-red-600 font-semibold"
-                          }
-                        >
-                          {formatCurrency(
-                            getRemainingBalance(newPayment.invoiceId)
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                  Amount *
                 </label>
                 <input
                   type="number"
                   name="amount"
                   value={newPayment.amount}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
                   min="0"
-                  max={
-                    selectedInvoiceDetails
-                      ? getRemainingBalance(newPayment.invoiceId)
-                      : undefined
-                  }
+                  // max={
+                  //   selectedInvoiceDetails
+                  //     ? getRemainingBalance(newPayment.invoiceId)
+                  //     : undefined
+                  // }
                   step="0.01"
                 />
                 {selectedInvoiceDetails && (
-                  <div className="mt-1 text-xs text-gray-500">
-                    Maximum allowed:{" "}
-                    {formatCurrency(getRemainingBalance(newPayment.invoiceId))}
+                  <div className="mt-1 text-xs text-gray-500 space-y-0.5">
+                    <div className="flex justify-between">
+                      <span>Invoice Total:</span>
+                      <span className="font-semibold">
+                        {formatCurrency(selectedInvoiceDetails.grandTotal)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Already Paid:</span>
+                      <span>
+                        {formatCurrency(
+                          getTotalPaidForInvoice(newPayment.invoiceId)
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Remaining:</span>
+                      <span
+                        className={
+                          getRemainingBalance(newPayment.invoiceId) <= 0
+                            ? "text-green-600 font-semibold"
+                            : "text-red-600 font-semibold"
+                        }
+                      >
+                        {formatCurrency(
+                          getRemainingBalance(newPayment.invoiceId)
+                        )}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Notes */}
-            <div className="mb-4">
+            <div className="mb-3">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Notes
               </label>
@@ -729,8 +703,8 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                 value={newPayment.internalNotes}
                 onChange={handleInputChange}
                 rows={2}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter payment notes (optional)..."
+                className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="Payment notes (optional)..."
               />
             </div>
 
@@ -744,7 +718,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                   resetForm();
                   setError(null);
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded text-gray-700 hover:bg-gray-500"
                 disabled={loading}
               >
                 Cancel
@@ -752,12 +726,12 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {loading ? (
                   <>
                     <svg
-                      className="animate-spin h-4 w-4 text-white"
+                      className="animate-spin h-3.5 w-3.5 text-white"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
@@ -788,25 +762,25 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
         </div>
       )}
 
-      {/* Payments Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      {/* Payments Table - Compact Version */}
+      <div className="bg-white rounded shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-500">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Client / Invoice
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Payment Date
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type / Notes
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Amount / Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -816,11 +790,11 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-6 py-8 text-center text-gray-500"
+                    className="px-3 py-4 text-center text-gray-500 text-sm"
                   >
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center py-4">
                       <svg
-                        className="w-12 h-12 text-gray-400 mb-2"
+                        className="w-8 h-8 text-gray-300 mb-1"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -832,10 +806,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
                       </svg>
-                      <p>No payments found</p>
-                      <p className="text-xs mt-1">
-                        Click the + button to add a payment
-                      </p>
+                      <p className="text-sm">No payments found</p>
                     </div>
                   </td>
                 </tr>
@@ -850,69 +821,72 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                     : 0;
 
                   return (
-                    <tr key={payment.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
+                    <tr key={payment.id} className="hover:bg-gray-500">
+                      <td className="px-2 py-1">
                         <div className="text-xs font-medium text-gray-900">
                           {payment.client}
                         </div>
                         <div className="text-xs text-gray-500">
                           {payment.invoiceNumber}
                           {relatedInvoice && (
-                            <div className="text-xs text-gray-400 mt-1 space-y-1">
-                              <div>Invoice: {relatedInvoice.invoiceNumber}</div>
+                            <div className="text-xs text-gray-400 mt-0.5 space-y-0.5">
                               <div>
-                                Total:{" "}
+                                <span className="font-medium">Total:</span>{" "}
                                 {formatCurrency(relatedInvoice.grandTotal)}
                               </div>
-                              <div
-                                className={
-                                  remainingBalance <= 0
-                                    ? "text-green-600"
-                                    : "text-yellow-600"
-                                }
-                              >
-                                Balance: {formatCurrency(remainingBalance)}
+                              <div>
+                                <span className="font-medium">Balance:</span>{" "}
+                                <span
+                                  className={
+                                    remainingBalance <= 0
+                                      ? "text-green-600"
+                                      : "text-yellow-600"
+                                  }
+                                >
+                                  {formatCurrency(remainingBalance)}
+                                </span>
                               </div>
-                              <div className="text-xs italic">
-                                Status: {relatedInvoice.invoiceStatus}
+                              <div className="italic text-orange-50 border-lime-100 ">
+                                {relatedInvoice.invoiceStatus}
                               </div>
                             </div>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-900">
+                      <td className="px-3 py-2 text-xs text-gray-900">
                         {new Date(payment.paymentDate).toLocaleDateString(
-                          "en-GB"
+                          "en-GB",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-2">
                         <div className="text-xs text-gray-900">
                           {payment.type}
                         </div>
-                        <div className="text-xs text-gray-500 truncate max-w-xs">
+                        <div className="text-xs text-gray-500 truncate max-w-[120px]">
                           {payment.internalNotes || "-"}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-xs font-semibold text-gray-900">
+                      <td className="px-3 py-2">
+                        <div className="text-xs font-semibold text-gray-900 mb-1">
                           {formatCurrency(payment.amount)}
                         </div>
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            payment.status === "Paid"
-                              ? "bg-green-100 text-green-800"
-                              : payment.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(
+                            payment.status
+                          )}`}
                         >
                           {payment.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-2">
                         <button
                           onClick={() => handleEdit(payment)}
-                          className="text-blue-600 hover:text-blue-900 text-xs font-medium px-3 py-1 border border-blue-300 rounded hover:bg-blue-50"
+                          className="text-blue-600 hover:text-blue-800 text-xs font-medium px-2 py-1 border border-blue-200 rounded hover:bg-blue-50"
                         >
                           Edit
                         </button>

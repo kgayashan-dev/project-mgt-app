@@ -110,7 +110,7 @@ export async function getInvoicesByClientId(clientId: string) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+
     throw error;
   }
 }
@@ -138,7 +138,7 @@ export async function getPaymentByTypeBill(type = "bill_payment") {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+
     throw error;
   }
 }
@@ -167,7 +167,7 @@ export async function getPaymentsByType(type = "invoice_payment") {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+    // console.error("Error fetching invoices:", error);
     throw error;
   }
 }
@@ -198,7 +198,7 @@ export async function getInvoiceById(invoiceId: string) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching invoice:", error);
+    // console.error("Error fetching invoice:", error);
     throw error;
   }
 }
@@ -250,7 +250,7 @@ export const getCompanyADataOfQuotaion = async (
 
     return data;
   } catch (error) {
-    console.error("Error fetching company data:", error);
+    console.warn("Error fetching company data:", error);
     return null;
   }
 };
