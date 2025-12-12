@@ -136,6 +136,8 @@ export async function getPaymentByTypeBill(type = "bill_payment") {
     }
 
     const data = await response.json();
+
+
     return data;
   } catch (error) {
 
@@ -144,7 +146,7 @@ export async function getPaymentByTypeBill(type = "bill_payment") {
 }
 
 
-export async function getPaymentsByType(type = "invoice_payment") {
+export async function getPaymentsByTypeInv(type = "invoice_payment") {
   try {
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
     const response = await fetch(
@@ -165,6 +167,8 @@ export async function getPaymentsByType(type = "invoice_payment") {
     }
 
     const data = await response.json();
+
+    console.log(data,"data datdadtatd ")
     return data;
   } catch (error) {
     // console.error("Error fetching invoices:", error);

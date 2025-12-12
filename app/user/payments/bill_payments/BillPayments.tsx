@@ -76,6 +76,9 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
   BillArray,
   paymentsData,
 }) => {
+
+  console.log("Bill array data:", BillArray);
+
   // State
   const [showDetails, setShowDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -94,6 +97,24 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
     vendor: "",
     billId: "",
   });
+
+  // Debug effect to track calculations
+  useEffect(() => {
+    if (newPayment.billId) {
+      const bill = BillArray.find(b => b.id === newPayment.billId);
+      const paid = getTotalPaidForBill(newPayment.billId, selectedPayment?.id);
+      console.log(`Debug Bill ${newPayment.billId}:`, {
+        billNumber: bill?.billNumber,
+        grandTotal: bill?.grandTotal,
+        amountDueFromDB: bill?.amountDue,
+        calculatedPaid: paid,
+        remainingByGrandTotal: bill ? bill.grandTotal - paid : 0,
+        remainingByAmountDue: bill ? bill.amountDue - paid : 0,
+        selectedPaymentId: selectedPayment?.id,
+        selectedPaymentAmount: selectedPayment?.amount
+      });
+    }
+  }, [newPayment.billId, BillArray, selectedPayment]);
 
   // Convert API payments to component payments
   const convertApiPaymentsToComponentPayments = (
@@ -130,21 +151,35 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
     setPayments(convertApiPaymentsToComponentPayments(paymentsData));
   }, [paymentsData]);
 
-  // Calculate total paid for a bill
-  const getTotalPaidForBill = (billId: string): number => {
+  // Calculate total paid for a bill - FIXED VERSION
+  const getTotalPaidForBill = (billId: string, excludePaymentId?: string): number => {
     return payments
-      .filter((payment) => payment.billId === billId && payment.status === "Completed")
+      .filter(
+        (payment) => 
+          payment.billId === billId && 
+          payment.status === "Completed" &&
+          (excludePaymentId ? payment.id !== excludePaymentId : true)
+      )
       .reduce((sum, payment) => sum + payment.amount, 0);
   };
 
-  // Calculate remaining balance for a bill
-  const getRemainingBalance = (billId: string): number => {
+  // Calculate remaining balance for a bill - FIXED VERSION
+  const getRemainingBalance = (billId: string, excludePaymentId?: string): number => {
     const bill = BillArray.find((bill) => bill.id === billId);
     if (!bill) return 0;
 
-    const totalPaid = getTotalPaidForBill(billId);
-    const billTotal = bill.amountDue || bill.grandTotal;
-    return billTotal - totalPaid;
+    const totalPaid = getTotalPaidForBill(billId, excludePaymentId);
+    // Always use grandTotal for calculations (original bill amount)
+    return bill.grandTotal - totalPaid;
+  };
+
+  // Calculate amount already paid from database perspective
+  const getAlreadyPaidFromDB = (billId: string): number => {
+    const bill = BillArray.find((bill) => bill.id === billId);
+    if (!bill) return 0;
+    
+    // This is what's already been paid according to the database
+    return bill.grandTotal - (bill.amountDue || bill.grandTotal);
   };
 
   // Handle form input changes
@@ -160,21 +195,26 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
     }));
   };
 
-  // Handle bill selection
+  // Handle bill selection - FIXED VERSION
   const handleBillChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedBillId = e.target.value;
     const selectedBill = BillArray.find((bill) => bill.id === selectedBillId);
 
     if (selectedBill) {
-      const remainingBalance = getRemainingBalance(selectedBillId);
-      const billTotal = selectedBill.amountDue || selectedBill.grandTotal;
+      const remainingBalance = getRemainingBalance(
+        selectedBillId, 
+        selectedPayment?.id
+      );
 
       setNewPayment((prev) => ({
         ...prev,
         billId: selectedBill.id,
         billNumber: selectedBill.billNumber,
         vendor: selectedBill.vendor,
-        amount: Math.min(remainingBalance, billTotal),
+        // Use remaining balance or current amount
+        amount: selectedPayment 
+          ? prev.amount // Keep existing payment amount when editing
+          : Math.max(0, Math.min(remainingBalance, selectedBill.grandTotal)), // Don't go below 0 or above grandTotal
       }));
     }
   };
@@ -326,13 +366,20 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
       return;
     }
 
+    // Validate amount doesn't exceed remaining balance
+    const remainingBalance = getRemainingBalance(newPayment.billId, selectedPayment?.id);
+    if (newPayment.amount > remainingBalance) {
+      setError(`Payment amount (${formatCurrency(newPayment.amount)}) exceeds remaining balance (${formatCurrency(remainingBalance)})`);
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (selectedPayment) {
         const result = await updatePayment(selectedPayment.id, newPayment);
         console.log("Update payment result:", result);
-        
+
         const updatedPayments = payments.map((payment) =>
           payment.id === selectedPayment.id
             ? {
@@ -567,17 +614,16 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                 >
                   <option value="">Select Bill</option>
                   {BillArray.map((bill) => {
-                    const paid = getTotalPaidForBill(bill.id);
-                    const balance = getRemainingBalance(bill.id);
-                    const billTotal = bill.amountDue || bill.grandTotal;
+                    const paidFromDB = getAlreadyPaidFromDB(bill.id);
+                    const remainingBalance = getRemainingBalance(bill.id);
                     const statusIcon =
-                      balance <= 0 ? "✓ " : paid > 0 ? "⚠ " : "○ ";
+                      remainingBalance <= 0 ? "✓ " : paidFromDB > 0 ? "⚠ " : "○ ";
 
                     return (
                       <option key={bill.id} value={bill.id}>
                         {statusIcon}
                         {bill.billNumber} - {bill.vendor} -{" "}
-                        {formatCurrency(billTotal)}
+                        {formatCurrency(bill.grandTotal)} (Due: {formatCurrency(bill.amountDue)})
                       </option>
                     );
                   })}
@@ -638,36 +684,53 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                 {selectedBillDetails && (
                   <div className="mt-1 text-xs text-gray-500 space-y-0.5">
                     <div className="flex justify-between">
-                      <span>Bill Total:</span>
+                      <span>Original Bill Total:</span>
                       <span className="font-semibold">
-                        {formatCurrency(
-                          selectedBillDetails.amountDue ||
-                            selectedBillDetails.grandTotal
-                        )}
+                        {formatCurrency(selectedBillDetails.grandTotal)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Already Paid:</span>
+                      <span>Already Paid (from DB):</span>
                       <span>
-                        {formatCurrency(
-                          getTotalPaidForBill(newPayment.billId)
-                        )}
+                        {formatCurrency(getAlreadyPaidFromDB(newPayment.billId))}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Remaining:</span>
+                      <span>Already Paid (from Payments):</span>
+                      <span>
+                        {formatCurrency(getTotalPaidForBill(
+                          newPayment.billId, 
+                          selectedPayment?.id
+                        ))}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>DB Amount Due:</span>
+                      <span className="font-semibold text-blue-600">
+                        {formatCurrency(selectedBillDetails.amountDue)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Remaining Balance (calculated):</span>
                       <span
                         className={
-                          getRemainingBalance(newPayment.billId) <= 0
+                          getRemainingBalance(newPayment.billId, selectedPayment?.id) <= 0
                             ? "text-green-600 font-semibold"
                             : "text-red-600 font-semibold"
                         }
                       >
-                        {formatCurrency(
-                          getRemainingBalance(newPayment.billId)
-                        )}
+                        {formatCurrency(getRemainingBalance(
+                          newPayment.billId, 
+                          selectedPayment?.id
+                        ))}
                       </span>
                     </div>
+                    {selectedPayment && (
+                      <div className="flex justify-between italic text-gray-400">
+                        <span>Editing Payment:</span>
+                        <span>{selectedPayment.id} ({formatCurrency(selectedPayment.amount)})</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -796,8 +859,9 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                     (bill) => bill.id === payment.billId
                   );
                   const totalPaid = getTotalPaidForBill(payment.billId);
+                  // Use grandTotal for calculations
                   const remainingBalance = relatedBill
-                    ? (relatedBill.amountDue || relatedBill.grandTotal) - totalPaid
+                    ? relatedBill.grandTotal - totalPaid
                     : 0;
 
                   return (
@@ -812,9 +876,11 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                             <div className="text-xs text-gray-400 mt-0.5 space-y-0.5">
                               <div>
                                 <span className="font-medium">Total:</span>{" "}
-                                {formatCurrency(
-                                  relatedBill.amountDue || relatedBill.grandTotal
-                                )}
+                                {formatCurrency(relatedBill.grandTotal)}
+                              </div>
+                              <div>
+                                <span className="font-medium">DB Due:</span>{" "}
+                                {formatCurrency(relatedBill.amountDue)}
                               </div>
                               <div>
                                 <span className="font-medium">Balance:</span>{" "}
@@ -829,7 +895,7 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                                 </span>
                               </div>
                               <div className="italic text-orange-50 border-lime-100">
-                                {relatedBill.billStatus}
+                                {relatedBill.status}
                               </div>
                             </div>
                           )}

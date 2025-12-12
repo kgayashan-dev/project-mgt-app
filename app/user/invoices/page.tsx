@@ -54,7 +54,6 @@ export default async function Page() {
   }));
 
 
-  console.log(transformedInvoices,"trans")
   return (
     <div className="pt-8">
       {/* Passing the transformed data into the AllInvoiceData component */}

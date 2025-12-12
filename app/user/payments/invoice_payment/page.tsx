@@ -2,10 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ArchivedIncome from "@/components/ArchivedIncome";
 import InvoicePaymentsInterface from "@/components/InvoicePayment";
-import { getAllInvoices, getAllPayments } from "@/utils/getdata";
+import { getAllInvoices, getPaymentByTypeBill, getPaymentsByTypeInv } from "@/utils/getdata";
 
 // Helper function to map API status to component status
-
 
 // Main Page Component
 export default async function Page({
@@ -51,27 +50,23 @@ export default async function Page({
       amount: invoice.subtotal,
       invoiceStatus: invoice.status,
       grandTotal: invoice.invoiceTotal,
-      status: invoice.status
+      status: invoice.status,
     }));
 
-
-    console.log(transformedInvoices,'transformed')
     // Fetch payments data if needed
     let paymentsData = [];
-    try {
-      const paymentsResponse = await getAllPayments();
-      if (
-        paymentsResponse &&
-        paymentsResponse.success &&
-        Array.isArray(paymentsResponse.data)
-      ) {
-        paymentsData = paymentsResponse.data;
-      }
-    } catch (paymentError) {
-      console.error("Error fetching payments:", paymentError);
-      // Continue without payments data
-    }
-
+       try {
+         const paymentsResponse = await getPaymentsByTypeInv();
+   
+         paymentsData = paymentsResponse;
+         // console.log("Payments data:", paymentsData);
+   
+         // console.log("Payments API response:", paymentsResponse);
+       } catch (paymentError) {
+         console.error("Error fetching payments:", paymentError);
+         // Continue without payments data
+       }
+   
     return (
       <div className="pt-8">
         {isArchived ? (
@@ -85,7 +80,6 @@ export default async function Page({
       </div>
     );
   } catch (error) {
-    
     return (
       <div className="pt-8 flex justify-center items-center min-h-96">
         <div className="text-center">

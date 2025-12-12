@@ -2,32 +2,6 @@
 import { getPaymentByTypeBill, getAllBills } from "@/utils/getdata";
 import BillPayments from "./BillPayments";
 
-// Helper function to determine bill status based on amount due and dates
-function determineBillStatus(
-  bill: any
-): "Paid" | "Partial" | "Overdue" | "Pending" {
-  const now = new Date();
-  const dueDate = new Date(bill.dueDate);
-
-  // If amount due is 0, bill is paid
-  if (bill.amountDue === 0 || bill.totalOutstanding === 0) {
-    return "Paid";
-  }
-
-  // If amount due is less than grand total but not zero, it's partial
-  if (bill.amountDue > 0 && bill.amountDue < bill.grandTotal) {
-    return "Partial";
-  }
-
-  // If due date has passed and there's amount due, it's overdue
-  if (dueDate < now && bill.amountDue > 0) {
-    return "Overdue";
-  }
-
-  // Default to pending
-  return "Pending";
-}
-
 // Helper function to format date safely
 function formatDateSafe(dateString: string): string {
   try {
@@ -51,7 +25,7 @@ export default async function Page({
   try {
     const response = await getAllBills();
 
-    console.log("API Response:", response);
+    // console.log("API Response:", response);
 
     // Check if the response is successful and has data
     if (!response || !response.success || !Array.isArray(response.data)) {
@@ -68,12 +42,11 @@ export default async function Page({
     }
 
     const data = response.data;
-    console.log("Raw bill data:", data);
 
+    // console.log(data,"billssss")
     // Transform the API data to match the component's expected format for bills
     const transformedBills = data.map((bill: any) => {
       // Determine status based on amount due and dates
-      const calculatedStatus = determineBillStatus(bill);
 
       return {
         id: bill.id || "",
@@ -84,11 +57,11 @@ export default async function Page({
         billDueDate: bill.dueDate ? formatDateSafe(bill.dueDate) : undefined,
         vendor: bill.companyName || "",
         amount: bill.subTotal || 0, // Note: API uses subTotal (camelCase)
-        billStatus: calculatedStatus, // Use calculated status since API doesn't provide status
+        billStatus: bill.status, // Use calculated status since API doesn't provide status
         grandTotal: bill.grandTotal || 0,
         totalOutstanding: bill.totalOutstanding || 0,
         amountDue: bill.amountDue || 0,
-        status: calculatedStatus,
+        status: bill.status,
         // Include additional bill-specific fields
         vendorId: bill.vendorId || "",
         emailAddress: bill.emailAddress || "",
@@ -105,15 +78,15 @@ export default async function Page({
       const paymentsResponse = await getPaymentByTypeBill();
 
       paymentsData = paymentsResponse;
-      console.log("Payments data:", paymentsData);
+      // console.log("Payments data:", paymentsData);
 
-      console.log("Payments API response:", paymentsResponse);
+      // console.log("Payments API response:", paymentsResponse);
     } catch (paymentError) {
       console.error("Error fetching payments:", paymentError);
       // Continue without payments data
     }
 
-    console.log("Transformed bills:", transformedBills);
+    // console.log("normal pay bill bills:", paymentsData);
 
     // Check if we have any valid bills after transformation
     if (transformedBills.length === 0) {
@@ -129,7 +102,7 @@ export default async function Page({
       );
     }
 
-    console.log(transformedBills, "payment data");
+    // console.log(transformedBills, "payment data");
     return (
       <div className="pt-8">
         {isArchived ? (

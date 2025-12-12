@@ -2,9 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaTrashAlt } from "react-icons/fa";
-import Link from "next/link";
-import html2pdf from "html2pdf.js";
-import { Router } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type Row = {
@@ -15,6 +12,20 @@ type Row = {
   category: string;
 };
 
+interface Vendor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  companyName: string;
+  address: string;
+}
+
+interface ViewvendorArrayProps {
+  vendorArray: Vendor[];
+}
+
 const categories = [
   "Services",
   "Products",
@@ -24,20 +35,21 @@ const categories = [
   "Other",
 ];
 
-interface ViewvendorArrayProps {
-  vendorArray: object; // Adjust the type according to your data structure
-}
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
-  const [vendor, setVendor] = useState<Vendor | null>(null); // Client or null
-  console.log(vendorArray);
+  const [vendor, setVendor] = useState<Vendor | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [billId, setBillId] = useState("0000001");
-  const [billDate, setBillDate] = useState(
+  const [billNumber, setBillNumber] = useState("");
+  const [issueDate, setIssueDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  const [billNumber, setBillNumber] = useState("0000001");
+  const [dueDate, setDueDate] = useState("");
   const [taxPercentage, setTaxPercentage] = useState(0);
+  const [remarks, setRemarks] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const [rows, setRows] = useState<Row[]>([
     {
@@ -49,12 +61,11 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
     },
   ]);
 
-  console.log(vendorArray)
-
   const router = useRouter();
   const [subtotal, setSubtotal] = useState(0);
   const [totalTax, setTotalTax] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
+  const [amountDue, setAmountDue] = useState(0);
 
   // Calculate totals whenever rows or tax percentage changes
   useEffect(() => {
@@ -63,7 +74,9 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
 
     setSubtotal(calculatedSubtotal);
     setTotalTax(calculatedTax);
-    setGrandTotal(calculatedSubtotal + calculatedTax);
+    const calculatedGrandTotal = calculatedSubtotal + calculatedTax;
+    setGrandTotal(calculatedGrandTotal);
+    setAmountDue(calculatedGrandTotal); // Initially amount due equals grand total
   }, [rows, taxPercentage]);
 
   const handleInputChange = <K extends keyof Row>(
@@ -99,26 +112,6 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
     setRows(rows.filter((_, rowIndex) => rowIndex !== index));
   };
 
-  // Rest of the component remains the same until the totals section
-  const clickPdf = () => {
-    const element = document.getElementById("estimate-content");
-    if (!element) return;
-
-    const opt = {
-      margin: 0.25,
-      filename: `${billNumber}_${billDate}_invoice.pdf`,
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-    };
-
-    html2pdf()
-      .from(element)
-      .set(opt)
-      .save()
-      .then(() => console.log("PDF generated successfully!"))
-      .catch((error: unknown) => console.error("Error generating PDF:", error));
-  };
-
   const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       setFile(acceptedFiles[0]);
@@ -130,6 +123,162 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
     maxFiles: 1,
     accept: { "image/*": [] },
   });
+
+  // Generate bill number
+  const generateBillNumber = () => {
+    const timestamp = Date.now();
+    const randomNum = Math.floor(Math.random() * 1000);
+    return `BILL-${timestamp}-${randomNum}`;
+  };
+
+  // Initialize bill number on component mount
+  useEffect(() => {
+    setBillNumber(generateBillNumber());
+
+    // Set due date to 30 days from today by default
+    const today = new Date();
+    const dueDate = new Date(today);
+    dueDate.setDate(today.getDate() + 30);
+    setDueDate(dueDate.toISOString().split("T")[0]);
+  }, []);
+
+  const validateForm = (): boolean => {
+    if (!vendor) {
+      setError("Please select a vendor");
+      return false;
+    }
+
+    if (!billNumber.trim()) {
+      setError("Bill number is required");
+      return false;
+    }
+
+    if (!issueDate) {
+      setError("Issue date is required");
+      return false;
+    }
+
+    if (!dueDate) {
+      setError("Due date is required");
+      return false;
+    }
+
+    if (rows.length === 0 || rows.some((row) => !row.description.trim())) {
+      setError("Please add at least one item with description");
+      return false;
+    }
+
+    if (grandTotal <= 0) {
+      setError("Grand total must be greater than 0");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleCreateBill = async () => {
+    setError(null);
+    setSuccess(null);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const billData = {
+        id: "", // Will be generated by backend
+        billNumber,
+        companyName: vendor?.companyName || "",
+        vendorId: vendor?.id || "",
+        issueDate: new Date(issueDate).toISOString(),
+        dueDate: new Date(dueDate).toISOString(),
+        emailAddress: vendor?.email || "",
+        phoneNumber: vendor?.phone || "",
+        totalOutstanding: amountDue,
+        subTotal: subtotal,
+        tax: taxPercentage,
+        status: "Completed",
+        grandTotal,
+        amountDue,
+        totalTax,
+        remarks,
+        table: rows.map((row, index) => ({
+          id: index + 1,
+          billId: "", // Will be populated by backend
+          description: row.description,
+          category: row.category,
+          rate: row.rate,
+          qty: row.qty,
+          total: row.total,
+        })),
+      };
+
+      console.log("Sending bill data:", billData);
+
+      const response = await fetch(`${API_URL}/project_pulse/Bill/createBill`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(billData),
+      });
+
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch {
+        throw new Error(responseText || "Invalid response from server");
+      }
+
+      if (!response.ok) {
+        const responseText = await response.json();
+        console.log(responseText.message,'resp mes');
+        throw new Error(
+          responseData.message ||
+            `HTTP ${response.status}: ${response.statusText}`
+        );
+      }
+
+      setSuccess("Bill created successfully!");
+
+      // Reset form after successful creation
+      setTimeout(() => {
+        router.push("/user/bills");
+      }, 2000);
+    } catch (error) {
+      console.error("Error creating bill:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to create bill"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = () => {
+    handleCreateBill();
+  };
+
+  const handleSaveAndSend = async () => {
+    await handleCreateBill();
+    // Add email sending logic here if needed
+  };
+
+  const handleCancel = () => {
+    if (
+      confirm(
+        "Are you sure you want to cancel? All unsaved changes will be lost."
+      )
+    ) {
+      router.back();
+    }
+  };
+
   return (
     <div className="flex flex-col m-8">
       {/* Header */}
@@ -137,96 +286,242 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
         <h1 className="text-3xl font-bold text-navy-900">New Bill</h1>
         <div className="flex gap-3">
           <button
-            onClick={() => router.back()}
+            onClick={handleCancel}
             className="px-4 py-2 text-gray-600 rounded hover:bg-gray-200"
+            disabled={loading}
           >
             Cancel
           </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            Save
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Saving...
+              </>
+            ) : (
+              "Save"
+            )}
           </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+          <button
+            onClick={handleSaveAndSend}
+            disabled={loading}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+          >
             Send To...
           </button>
           <button
-            onClick={clickPdf}
+            onClick={() => {
+              // PDF generation logic
+              alert("PDF generation would go here");
+            }}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            disabled={loading}
           >
             Save as PDF
           </button>
         </div>
       </div>
 
-      <div
-        id="estimate-content"
-        className="max-w-2xl max-h-[150vh] regular-12 p-6 bg-white rounded-lg shadow"
-      >
-        <div className="flex justify-between spacy">
-          <div className="w- flex flex-col justify-start space-y-6">
-            <select
-              value={vendor?.firstName || ""}
-              onChange={(e) => {
-                const selectedClient = vendorArray.find(
-                  (vendorOption) => vendorOption.firstName === e.target.value
-                );
-                setVendor(selectedClient || null); // Set the selected client
-              }}
-              className="rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 bg-white shadow-sm hover:border-blue-300 transition duration-300 ease-in-out"
+      {/* Error and Success Messages */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="flex items-center">
+            <svg
+              className="h-5 w-5 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
             >
-              <option value="" className="text-gray-500 text-md">
-                Select a Vendor
-              </option>
-              {vendorArray.map((vendorOption) => (
-                <option
-                  key={vendorOption.firstName}
-                  value={vendorOption.firstName}
-                  className="regular-14"
-                >
-                  {vendorOption.firstName} {vendorOption.lastName}
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {error}
+          </div>
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+          <div className="flex items-center">
+            <svg
+              className="h-5 w-5 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {success}
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-2xl max-h-[150vh] regular-12 p-6 bg-white rounded-lg shadow">
+        <div className="flex justify-between space-y-6">
+          <div className="w-full flex flex-col justify-start space-y-6">
+            {/* Vendor Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Select Vendor *
+              </label>
+              <select
+                value={vendor?.id || ""}
+                onChange={(e) => {
+                  const selectedVendor = vendorArray.find(
+                    (vendorOption) => vendorOption.id === e.target.value
+                  );
+                  setVendor(selectedVendor || null);
+                }}
+                className="rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 bg-white shadow-sm hover:border-blue-300 transition duration-300 ease-in-out"
+                required
+              >
+                <option value="" className="text-gray-500 text-md">
+                  Select a Vendor
                 </option>
-              ))}
-            </select>
+                {vendorArray.map((vendorOption) => (
+                  <option
+                    key={vendorOption.id}
+                    value={vendorOption.id}
+                    className="regular-14"
+                  >
+                    {vendorOption.companyName} - {vendorOption.firstName}{" "}
+                    {vendorOption.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Vendor Details (if selected) */}
+            {vendor && (
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                <div>
+                  <span className="font-medium">Company:</span>{" "}
+                  {vendor.companyName}
+                </div>
+                <div>
+                  <span className="font-medium">Email:</span> {vendor.email}
+                </div>
+                <div>
+                  <span className="font-medium">Phone:</span> {vendor.phone}
+                </div>
+                <div>
+                  <span className="font-medium">Address:</span> {vendor.address}
+                </div>
+              </div>
+            )}
+
+            {/* Date Fields */}
             <div className="flex flex-row justify-start items-center gap-4 regular-12">
               <div className="flex flex-col">
-                <label>Issue Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Issue Date *
+                </label>
                 <input
                   type="date"
-                  value={billDate}
-                  onChange={(e) => setBillDate(e.target.value)}
-                  className="py-1 px-2"
+                  value={issueDate}
+                  onChange={(e) => setIssueDate(e.target.value)}
+                  className="py-2 px-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
               <div className="flex flex-col">
-                <label>Due Date</label>
-                <input type="date" className="py-1 px-2" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Due Date *
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="py-2 px-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
               </div>
               <div className="flex flex-col">
-                <label>Bill Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bill Number *
+                </label>
                 <input
                   type="text"
                   value={billNumber}
                   onChange={(e) => setBillNumber(e.target.value)}
-                  placeholder="Bill number (optional)"
-                  className="py-1 px-2"
+                  className="py-2 px-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
             </div>
+
+            {/* Remarks */}
+            <div className="flex flex-col">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Remarks
+              </label>
+              <textarea
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                placeholder="Additional notes or remarks..."
+                className="py-2 px-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 h-24"
+                rows={3}
+              />
+            </div>
           </div>
 
+          {/* File Upload */}
           <div className="flex justify-between">
             <div
               {...getRootProps()}
-              className={`w-40  h-44 ${
-                file ? "" : "border-2 border-dashed"
-              } rounded-lg flex items-center justify-center cursor-pointer`}
+              className={`w-40 h-44 ${
+                file ? "" : "border-2 border-dashed border-gray-300"
+              } rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors`}
             >
               <input {...getInputProps()} />
               {!file && (
-                <p className="text-center text-gray-500p">
-                  {isDragActive
-                    ? "Drop the file here..."
-                    : "Drag & drop an image here, or click to select one"}
-                </p>
+                <div className="text-center p-4">
+                  <svg
+                    className="w-12 h-12 mx-auto text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {isDragActive
+                      ? "Drop the file here..."
+                      : "Upload receipt or image"}
+                  </p>
+                </div>
               )}
               {file && (
                 <div className="text-center">
@@ -235,21 +530,45 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
                     alt={file.name}
                     className="w-40 h-44 object-contain rounded"
                   />
+                  <p className="mt-1 text-xs text-gray-500 truncate">
+                    {file.name}
+                  </p>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        <div className="my-4">
+        {/* Items Table */}
+        <div className="my-8">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Items</h3>
+            <button
+              onClick={addRow}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              + Add Item
+            </button>
+          </div>
+
           <table className="w-full mb-4">
             <thead>
-              <tr className="border-b">
-                <th className="text-left p-2">Description</th>
-                <th className="text-left p-2">Category</th>
-                <th className="text-center p-2">Rate</th>
-                <th className="text-center p-2">Qty</th>
-                <th className="text-center p-2">Total</th>
+              <tr className="border-b bg-gray-100">
+                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                  Description
+                </th>
+                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                  Category
+                </th>
+                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                  Rate
+                </th>
+                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                  Qty
+                </th>
+                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                  Total
+                </th>
                 <th className="w-8"></th>
               </tr>
             </thead>
@@ -259,26 +578,25 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
                   key={index}
                   className="border-b group hover:bg-gray-100 transition-colors"
                 >
-                  <td className="p-2">
+                  <td className="p-3">
                     <input
                       type="text"
                       value={row.description}
-                      placeholder="Description..."
+                      placeholder="Item description"
                       onChange={(e) =>
                         handleInputChange(index, "description", e.target.value)
                       }
-                      className={`w-full regular-12 p-2 rounded focus:ring-2 focus:ring-blue-500 ${
-                        row.description ? "border-none" : "border-[0.5px]"
-                      }`}
+                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
                     />
                   </td>
-                  <td className="p-2">
+                  <td className="p-3">
                     <select
                       value={row.category}
                       onChange={(e) =>
                         handleInputChange(index, "category", e.target.value)
                       }
-                      className="w-full regular-12 p-2 rounded focus:ring-2 focus:ring-blue-500 border-[0.5px]"
+                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Select Category</option>
                       {categories.map((category) => (
@@ -288,35 +606,39 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
                       ))}
                     </select>
                   </td>
-                  <td className="p-2">
+                  <td className="p-3">
                     <input
                       type="number"
-                      value={row.rate}
+                      value={row.rate || ""}
                       onChange={(e) =>
                         handleInputChange(index, "rate", Number(e.target.value))
                       }
-                      className={`w-[10vh] regular-12 text-right p-2 rounded focus:ring-2 focus:ring-blue-500 ${
-                        row.rate ? "border-none" : "border-[0.5px]"
-                      }`}
+                      placeholder="0.00"
+                      className="w-full p-2 border border-gray-300 rounded text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      min="0"
+                      step="0.01"
                     />
                   </td>
-                  <td className="p-2">
+                  <td className="p-3">
                     <input
                       type="number"
-                      value={row.qty}
+                      value={row.qty || ""}
                       onChange={(e) =>
                         handleInputChange(index, "qty", Number(e.target.value))
                       }
-                      className={`w-[10vh] regular-12 text-right p-2 rounded focus:ring-2 focus:ring-blue-500 ${
-                        row.qty ? "border-none" : "border-[0.5px]"
-                      }`}
+                      placeholder="0"
+                      className="w-full p-2 border border-gray-300 rounded text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      min="0"
                     />
                   </td>
-                  <td className="p-2 text-right">Rs.{row.total.toFixed(2)}</td>
-                  <td className="p-2 text-center">
+                  <td className="p-3 text-right font-medium">
+                    Rs.{row.total.toFixed(2)}
+                  </td>
+                  <td className="p-3 text-center">
                     <button
                       onClick={() => deleteRow(index)}
-                      className="text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-700 transition-opacity"
+                      className="text-gray-400 hover:text-red-600 transition-colors"
+                      title="Delete row"
                     >
                       <FaTrashAlt />
                     </button>
@@ -325,42 +647,42 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
               ))}
             </tbody>
           </table>
-
-          <div className="relative group w-full">
-            <button
-              onClick={addRow}
-              className="w-full mt-2 py-1 border-2 border-transparent text-white bg-blue-600 rounded opacity-0 group-hover:opacity-100 group-hover:border-dashed group-hover:text-blue-600 group-hover:bg-blue-50 transition-all duration-300"
-            >
-              + Add a Line
-            </button>
-          </div>
         </div>
 
+        {/* Totals Section */}
         <div className="flex justify-end mb-8">
-          <div className="w-64">
-            <div className="flex justify-between py-1">
-              <span>Subtotal</span>
-              <span>Rs.{subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between ">
-              <div>
-                <span>Tax</span>
-                <input
-                  type="number"
-                  value={taxPercentage}
-                  onChange={(e) => setTaxPercentage(Number(e.target.value))}
-                  className="w-10 regular-12 p-1 text-right rounded focus:ring-2 focus:ring-blue-500 border-[0.5px]"
-                />
-                <span>(%)</span>
+          <div className="w-80 bg-gray-100 p-6 rounded-lg">
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subtotal</span>
+                <span className="font-medium">Rs.{subtotal.toFixed(2)}</span>
               </div>
-              <div>
-                <span>Rs.{totalTax.toFixed(2)}</span>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-600">Tax</span>
+                  <input
+                    type="number"
+                    value={taxPercentage}
+                    onChange={(e) => setTaxPercentage(Number(e.target.value))}
+                    className="w-16 p-1 text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                  />
+                  <span className="text-gray-600">%</span>
+                </div>
+                <span className="font-medium">Rs.{totalTax.toFixed(2)}</span>
               </div>
-            </div>
-            <div className="border border-spacing-1"></div>
-            <div className="flex justify-between py-2 font-medium">
-              <span>Bill Total</span>
-              <span>Rs.{grandTotal.toFixed(2)}</span>
+              <div className="border-t pt-3">
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Grand Total</span>
+                  <span>Rs.{grandTotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between mt-2 text-sm text-gray-600">
+                  <span>Amount Due</span>
+                  <span>Rs.{amountDue.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
