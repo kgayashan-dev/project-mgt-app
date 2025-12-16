@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaTrashAlt } from "react-icons/fa";
 import Link from "next/link";
-import SearchableSelect from "./SearchableSelect";
+// import SearchableSelect from "./SearchableSelect";
+import { getQuotatoinData } from "@/utils/getdata";
 
 type Row = {
   description: string;
@@ -47,29 +48,57 @@ interface CompanyData {
   country: string;
 }
 
-interface QuotationData {
+// interface InvoiceData {
+//   id: string;
+//   InvoiceNumber: string;
+// }
+
+interface Quotation {
   id: string;
   quotationNumber: string;
+  quotationDate: string;
+  clientId: string;
+  companyID: string;
+  discountPercentage: number;
+  discountAmount: number;
+  subtotal: number;
+  totalTax: number;
+  terms: string;
+  grandTotal: number;
+  qItems: Array<{
+    id: number;
+    description: string;
+    quotationId: string;
+    unit: string;
+    qty: number;
+    rate: number;
+  }>;
 }
 
-interface NewQuotationProps {
+interface NewInvoiceProps {
   initialData: Client[];
   bankData: BankAccount[];
-  quotationData: QuotationData[];
+  // InvoiceData: InvoiceData[];
   companyData: CompanyData[];
+  quotationsData?: Quotation[]; // Add quotations prop
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const QuotationForm: React.FC<NewQuotationProps> = ({
+const InvoiceForm: React.FC<NewInvoiceProps> = ({
   initialData,
-  bankData,
-  quotationData,
+
   companyData,
+  quotationsData = [], // Default to empty array
 }) => {
   // State for client-side initialization
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isClient, setIsClient] = useState(false);
-  
+  const [quotations, setQuotations] = useState<Quotation[]>(quotationsData);
+  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(
+    null
+  );
+
   // File upload state
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -78,12 +107,14 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
 
   // Client form state
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
-  
+  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(
+    null
+  );
+
   // Initialize with empty strings to avoid hydration mismatch
-  const [quotationDate, setQuotationDate] = useState("");
-  const [quotationDueDate, setQuotationDueDate] = useState("");
-  const [quotationNumber, setQuotationNumber] = useState("");
+  const [InvoiceDate, setInvoiceDate] = useState("");
+  const [InvoiceDueDate, setInvoiceDueDate] = useState("");
+  const [InvoiceNumber, setInvoiceNumber] = useState("");
   const [reference, setReference] = useState("No");
 
   // Table state
@@ -108,7 +139,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   const [taxPercentage, setTaxPercentage] = useState(0); // Tax percentage (not amount)
 
   // Edit states
-  const [isQuotationNumberEditing, setIsQuotationNumberEditing] = useState(false);
+  const [isInvoiceNumberEditing, setIsInvoiceNumberEditing] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [isAdditionalInfoEditing, setIsAdditionalInfoEditing] = useState(true);
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(true);
@@ -122,12 +153,12 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   // Initialize client-side only values
   useEffect(() => {
     setIsClient(true);
-    
-    // Initialize dates and quotation number
+
+    // Initialize dates and Invoice number
     const today = new Date().toISOString().split("T")[0];
-    setQuotationDate(today);
-    setQuotationDueDate(today);
-    setQuotationNumber("QTN000001"); // You might want to generate this dynamically
+    setInvoiceDate(today);
+    setInvoiceDueDate(today);
+    setInvoiceNumber("INV01"); // You might want to generate this dynamically
 
     // Initialize html2pdf
     import("html2pdf.js").then((module) => {
@@ -140,7 +171,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     if (file) {
       const url = URL.createObjectURL(file);
       setFileUrl(url);
-      
+
       return () => {
         URL.revokeObjectURL(url);
       };
@@ -149,6 +180,26 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     }
   }, [file]);
 
+  // Fetch quotations if not provided via props
+  useEffect(() => {
+    const fetchQuotations = async () => {
+      try {
+        const quotationData = await getQuotatoinData();
+        console.log("Quotation data:", quotationData);
+
+        if (quotationData && Array.isArray(quotationData)) {
+          setQuotations(quotationData);
+        }
+      } catch (error) {
+        console.error("Error fetching quotations:", error);
+      }
+    };
+
+    if (quotationsData.length === 0) {
+      fetchQuotations();
+    }
+  }, [quotationsData]);
+
   // Auto-select first company if available
   useEffect(() => {
     if (companyData.length > 0 && !selectedCompany) {
@@ -156,8 +207,83 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     }
   }, [companyData, selectedCompany]);
 
+  // When quotation is selected, populate the form with quotation data
+  useEffect(() => {
+    if (selectedQuotation) {
+      console.log("Selected quotation:", selectedQuotation);
+
+      // Find the client from initialData
+      const client = initialData.find(
+        (c) => c.id === selectedQuotation.clientId
+      );
+      if (client) {
+        setSelectedClient(client);
+      }
+
+      // Find the company from companyData
+      const company = companyData.find(
+        (c) => c.id === selectedQuotation.companyID
+      );
+      if (company) {
+        setSelectedCompany(company);
+      }
+
+      // Set invoice date to today
+      const today = new Date().toISOString().split("T")[0];
+      setInvoiceDate(today);
+
+      // Set invoice due date (maybe 30 days from now)
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
+      setInvoiceDueDate(dueDate.toISOString().split("T")[0]);
+
+      // Set tax percentage
+      const calculatedTaxPercentage =
+        selectedQuotation.subtotal > 0
+          ? (selectedQuotation.totalTax / selectedQuotation.subtotal) * 100
+          : 0;
+      setTaxPercentage(calculatedTaxPercentage);
+
+      // Set discount
+      setDiscountPercentage(selectedQuotation.discountPercentage);
+
+      // Set terms
+      setTerms(selectedQuotation.terms);
+
+      // Convert quotation items to rows
+      if (selectedQuotation.qItems && selectedQuotation.qItems.length > 0) {
+        const newRows = selectedQuotation.qItems.map((item) => ({
+          description: item.description || "",
+          rate: item.rate || 0,
+          tax: calculatedTaxPercentage, // Use the same tax percentage
+          qty: item.qty || 0,
+          total: (item.rate || 0) * (item.qty || 0),
+          unit: item.unit || "",
+          taxAmount:
+            ((item.rate || 0) * (item.qty || 0) * calculatedTaxPercentage) /
+            100,
+        }));
+        setRows(newRows);
+      }
+
+      // Calculate and set totals
+      const calculatedSubtotal = selectedQuotation.subtotal || 0;
+      const calculatedDiscountAmount = selectedQuotation.discountAmount || 0;
+      const calculatedTax = selectedQuotation.totalTax || 0;
+      const calculatedGrandTotal = selectedQuotation.grandTotal || 0;
+
+      setSubtotal(calculatedSubtotal);
+      setDiscountAmount(calculatedDiscountAmount);
+      setTotalTax(calculatedTax);
+      setGrandTotal(calculatedGrandTotal);
+    }
+  }, [selectedQuotation, initialData, companyData]);
+
   // Calculate totals including discount - UPDATED TO MATCH BACKEND LOGIC
   useEffect(() => {
+    // Don't recalculate if we just set from quotation
+    if (selectedQuotation) return;
+
     // Calculate subtotal from items (sum of quantity * rate)
     let calculatedSubtotal = 0;
     rows.forEach((row) => {
@@ -165,20 +291,22 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     });
 
     // Calculate discount amount based on percentage
-    const calculatedDiscountAmount = (calculatedSubtotal * discountPercentage) / 100;
+    const calculatedDiscountAmount =
+      (calculatedSubtotal * discountPercentage) / 100;
 
     // Calculate tax (using tax percentage on taxable amount)
     const taxableAmount = calculatedSubtotal - calculatedDiscountAmount;
     const calculatedTax = (taxableAmount * taxPercentage) / 100;
 
-    // Calculate final quotation total
-    const calculatedGrandTotal = calculatedSubtotal - calculatedDiscountAmount + calculatedTax;
+    // Calculate final Invoice total
+    const calculatedGrandTotal =
+      calculatedSubtotal - calculatedDiscountAmount + calculatedTax;
 
     setSubtotal(calculatedSubtotal);
     setDiscountAmount(calculatedDiscountAmount);
     setTotalTax(calculatedTax);
     setGrandTotal(calculatedGrandTotal);
-  }, [rows, discountPercentage, taxPercentage]);
+  }, [rows, discountPercentage, taxPercentage, selectedQuotation]);
 
   // File upload handling
   const onDrop = (acceptedFiles: File[]) => {
@@ -231,36 +359,53 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     setRows(rows.filter((_, rowIndex) => rowIndex !== index));
   };
 
-  // Prepare quotation data for API - CORRECTED TO MATCH EXPECTED FORMAT
-  const prepareQuotationData = () => {
-    // Convert dates to DateTime format
-    const quotationDateObj = new Date(quotationDate);
+  // Handle quotation selection
+  const handleQuotationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedQuotationId = e.target.value;
+    if (selectedQuotationId) {
+      const quotation = quotations.find((q) => q.id === selectedQuotationId);
+      setSelectedQuotation(quotation || null);
+    } else {
+      setSelectedQuotation(null);
+    }
+  };
+
+  const prepareInvoiceData = () => {
+    const invoiceDateObj = new Date(InvoiceDate);
+    const createdDateObj = new Date();
 
     return {
-      id: "", // Will be generated by backend
-      quotationNumber: quotationNumber,
-      quotationDate: quotationDateObj.toISOString(),
-      clientId: selectedClient?.id || "",
-      companyID: selectedCompany?.id || "",
+      id: "", // Empty string, not null
+      invoiceNo: InvoiceNumber || "", // Empty string if not set
+      poNo: reference || "", // Empty string, not "No"
+      bankAccId: "BNK0000001", // Make sure this exists in database
+      invoiceDate: invoiceDateObj.toISOString(),
+      quotationID: selectedQuotation?.id || "", // Empty string, not null
+      companyID: selectedCompany?.id || "", // Empty string, not null
+      remarks: additionalInfo || "", // Empty string, not null
+      clientID: selectedClient?.id || "", // Empty string, not null
+      subtotal: subtotal,
+      tax: taxPercentage,
       discountPercentage: discountPercentage,
       discountAmount: discountAmount,
-      subtotal: subtotal,
-      totalTax: taxPercentage, // Send tax percentage only
-      terms: terms || "",
-      grandTotal: grandTotal,
-      qItems: rows.map((row, index) => ({
-        id: index,
-        description: row.description,
-        quotationId: "", // Will be set by backend
-        unit: row.unit,
-        qty: row.qty,
-        rate: row.rate,
+      invoiceTotal: grandTotal,
+      terms: terms , // Empty string, not null
+      items: rows.map((row) => ({
+        id: 0, // Integer 0
+        description: row.description || "",
+        unit: row.unit || "",
+        qty: row.qty || 0,
+        rate: row.rate || 0,
+        invoiceId: "", // Empty string
+        total: row.total || 0,
       })),
+      createdDate: createdDateObj.toISOString(),
+      status: "Draft" // Commented out in your model
     };
   };
 
-  // Save Quotation function
-  const saveQuotation = async () => {
+  // Save Invoice function
+  const saveInvoice = async () => {
     if (!selectedClient) {
       alert("Please select a client");
       return;
@@ -272,49 +417,47 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     }
 
     if (rows.length === 0 || rows.every((row) => !row.description.trim())) {
-      alert("Please add at least one item to the quotation");
+      alert("Please add at least one item to the Invoice");
       return;
     }
 
     setLoading(true);
 
     try {
-      const quotationData = prepareQuotationData();
+      const InvoiceData = prepareInvoiceData();
 
-      console.log("Sending quotation data:", quotationData);
+      console.log("Items first element:", InvoiceData.items[0]);
 
       const response = await fetch(
-        `${API_URL}/project_pulse/Quotation/postQuotation`,
+        `${API_URL}/project_pulse/Invoice/postInvoice`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(quotationData),
+          body: JSON.stringify(InvoiceData),
         }
       );
 
+      console.log(InvoiceData,"select")
+
       if (!response.ok) {
         const errorText = await response.json();
-        console.log(errorText.error);
-        throw new Error(
-          ` ${errorText.error}`
-        );
+        console.log(errorText);
+
+        throw new Error(errorText.error);
       }
 
       const result = await response.json();
 
-      if (result.message === "Quotation saved successfully.") {
-        alert("Quotation saved successfully!");
-        console.log("Generated Quotation ID:", result.quotationId);
+      if (result.message === "Invoice saved successfully.") {
+        alert(result.message + " " + result.invoiceId);
       } else {
-        throw new Error(result.message || "Failed to save quotation");
+        throw new Error(result.message || "Failed to save Invoice");
       }
     } catch (error) {
       alert(
-        `${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     } finally {
       setLoading(false);
@@ -322,16 +465,16 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   };
 
   // Generate PDF
-  const clickPdf = (quotationNum: string, quotationDt: string) => {
+  const clickPdf = (InvoiceNum: string, InvoiceDt: string) => {
     if (!html2pdf) {
       alert("PDF generator is still loading. Please try again in a moment.");
       return;
     }
 
-    const element = document.getElementById("quotation-content");
+    const element = document.getElementById("Invoice-content");
     const opt = {
       margin: 0.25,
-      filename: `${quotationNum}_${quotationDt}_quotation.pdf`,
+      filename: `${InvoiceNum}_${InvoiceDt}_Invoice.pdf`,
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
     };
@@ -352,23 +495,23 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     <div className="flex flex-col m-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold text-navy-900">New Quotation</h1>
+        <h1 className="text-xl font-bold text-navy-900">New Invoice</h1>
         <div className="flex gap-2">
           <Link
-            href={"/user/quotations"}
+            href={"/user/Invoices"}
             className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded border border-gray-300"
           >
             Cancel
           </Link>
           <button
-            onClick={saveQuotation}
+            onClick={saveInvoice}
             disabled={loading}
             className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Saving..." : "Save"}
           </button>
           <button
-            onClick={() => clickPdf(quotationNumber, quotationDate)}
+            onClick={() => clickPdf(InvoiceNumber, InvoiceDate)}
             disabled={!html2pdf}
             className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
@@ -378,7 +521,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
       </div>
 
       <div
-        id="quotation-content"
+        id="Invoice-content"
         className="max-w-6xl w-full p-4 bg-white rounded-lg shadow border border-gray-200"
       >
         {/* File Upload and Company Info */}
@@ -405,7 +548,9 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                 />
               </div>
             ) : (
-              <p className="text-center text-gray-500 text-xs px-2">Loading...</p>
+              <p className="text-center text-gray-500 text-xs px-2">
+                Loading...
+              </p>
             )}
           </div>
 
@@ -515,16 +660,62 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
             </div>
           </div>
 
-          {/* Quotation Dates */}
+          {/* Quotation Details */}
+          <div className="md:col-span-2">
+            <label className="block text-gray-700 text-xs mb-1">
+              Select Quotation (Optional)
+            </label>
+            <select
+              value={selectedQuotation?.id || ""}
+              onChange={handleQuotationChange}
+              className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Select a Quotation (Optional)</option>
+              {quotations.map((quotation) => (
+                <option key={quotation.id} value={quotation.id}>
+                  {quotation.quotationNumber} -{" "}
+                  {quotation.quotationDate.split("T")[0]} - Rs.{" "}
+                  {quotation.grandTotal.toFixed(2)}
+                </option>
+              ))}
+            </select>
+
+            {selectedQuotation && (
+              <div className="mt-2 p-2 border border-gray-300 rounded bg-blue-50">
+                <div className="flex flex-col">
+                  <span className="font-semibold text-xs text-blue-800">
+                    Selected Quotation: {selectedQuotation.quotationNumber}
+                  </span>
+                  <div className="text-xs text-gray-600 mt-0.5">
+                    <div>
+                      Date: {selectedQuotation.quotationDate.split("T")[0]}
+                    </div>
+                    <div>
+                      Amount: Rs. {selectedQuotation.grandTotal.toFixed(2)}
+                    </div>
+                    <div>Items: {selectedQuotation.qItems?.length || 0}</div>
+                  </div>
+                </div>
+                <button
+                  className="mt-1 text-xs text-red-600 hover:text-red-800 transition-colors"
+                  onClick={() => setSelectedQuotation(null)}
+                >
+                  Clear selection
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Invoice Dates */}
           <div>
             <div className="mb-2">
               <label className="block text-gray-700 text-xs mb-1">
-                Quotation Date
+                Invoice Date
               </label>
               <input
                 type="date"
-                value={quotationDate}
-                onChange={(e) => setQuotationDate(e.target.value)}
+                value={InvoiceDate}
+                onChange={(e) => setInvoiceDate(e.target.value)}
                 className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -535,34 +726,34 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
               </label>
               <input
                 type="date"
-                value={quotationDueDate}
-                onChange={(e) => setQuotationDueDate(e.target.value)}
+                value={InvoiceDueDate}
+                onChange={(e) => setInvoiceDueDate(e.target.value)}
                 className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
-          {/* Quotation Number & Reference */}
+          {/* Invoice Number & Reference */}
           <div>
             <div className="mb-2">
               <label className="block text-gray-700 text-xs mb-1">
-                Quotation Number
+                Invoice Number
               </label>
-              {isQuotationNumberEditing ? (
+              {isInvoiceNumberEditing ? (
                 <input
                   type="text"
-                  value={quotationNumber}
-                  placeholder="Quotation Number..."
-                  onChange={(e) => setQuotationNumber(e.target.value)}
-                  onBlur={() => setIsQuotationNumberEditing(false)}
+                  value={InvoiceNumber}
+                  placeholder="Invoice Number..."
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  onBlur={() => setIsInvoiceNumberEditing(false)}
                   className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
               ) : (
                 <p
-                  onClick={() => setIsQuotationNumberEditing(true)}
+                  onClick={() => setIsInvoiceNumberEditing(true)}
                   className="cursor-pointer p-1.5 text-xs rounded hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-300"
                 >
-                  {quotationNumber || "Quotation Number"}
+                  {InvoiceNumber || "Invoice Number"}
                 </p>
               )}
             </div>
@@ -594,9 +785,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
         {/* Amount Due Section */}
         <div className="flex justify-end mb-4">
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <p className="text-xs text-gray-600 mb-0.5">
-              Quotation Total (LKR)
-            </p>
+            <p className="text-xs text-gray-600 mb-0.5">Invoice Total (LKR)</p>
             <h1 className="text-xl font-bold text-blue-800">
               Rs.{" "}
               {grandTotal.toLocaleString("en-IN", {
@@ -857,10 +1046,9 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                 <div className="border-t border-gray-300 pt-2">
                   <div className="flex justify-between items-center py-1">
                     <span className="font-bold text-xs text-gray-800">
-                      Quotation Total
+                      Invoice Total
                     </span>
                     <span className="font-bold text-xs text-blue-800">
-                      
                       Rs.{" "}
                       {grandTotal.toLocaleString("en-IN", {
                         minimumFractionDigits: 2,
@@ -878,4 +1066,4 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   );
 };
 
-export default QuotationForm;
+export default InvoiceForm;

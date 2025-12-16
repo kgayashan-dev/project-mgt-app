@@ -18,6 +18,7 @@ async function getQuotationData(id: string) {
 
     const quotation = await response.json();
 
+    console.log(quotation,"Quotations")
     if (!quotation) {
       return null;
     }
@@ -27,8 +28,8 @@ async function getQuotationData(id: string) {
       quotationNumber: quotation.quotationNumber,
       quotationDate: quotation.quotationDate,
       clientName: quotation.clientName,
-      clientAddress: quotation.location || "Not mentioned", // Map location to clientAddress
-      location: quotation.location || "Not mentioned",
+      clientAddress: quotation.clientLocation , // Map location to clientAddress
+      location: quotation.clientLocation ,
       outstandingRevenue: quotation.outstandingRevenue || 0,
       rows: quotation.qItems?.length || 0, // Use qItems length as rows
       table: quotation.qItems || [], // Map qItems to table

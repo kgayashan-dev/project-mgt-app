@@ -1,198 +1,468 @@
+// app/bills/page.tsx (or wherever your page is)
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   MegaphoneIcon,
   ChevronDown,
   FileText,
   Upload,
+  Eye,
+  Download,
+  MoreVertical,
+  Calendar,
+  User,
+  DollarSign,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
-type Row = {
+
+// Types
+interface BillItem {
+  id: number;
+  billId: string;
   description: string;
+  category: string;
   rate: number;
-  tax: number;
   qty: number;
   total: number;
-  unit: string;
-  taxAmount: number;
-  category: string; // Add category property
-};
+}
 
-interface BillArray {
+interface Bill {
   id: string;
   billNumber: string;
+  companyName: string;
+  vendorId: string;
   issueDate: string;
   dueDate: string;
-  client: string;
-  table: Row[];
-  subtotal: number;
+  emailAddress: string;
+  phoneNumber: string;
+  totalOutstanding: number;
+  subTotal: number;
   tax: number;
   grandTotal: number;
-  emailAddress: string;
-  invoiceReference: string;
-  taxPercentage: number;
-  totalOutstanding: number;
   amountDue: number;
-  vendor: string;
+  totalTax: number;
+  table: BillItem[];
+  remarks?: string;
+  status?: string;
+  createdAt?: string;
 }
 
-interface BillDetailsProps {
-  billArray: BillArray;
-  // myCompany: any; // Define myCompany prop
+interface BillListProps {
+  bills: Bill[];
 }
 
-const ViewBillList: React.FC<BillDetailsProps> = ({ billArray }) => {
-  const route = useRouter();
+const BillsPage: React.FC<BillListProps> = ({ bills }) => {
+  const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredBills, setFilteredBills] = useState<Bill[]>(bills);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [overdueAmount, setOverdueAmount] = useState(0);
+  const [totalOutstanding, setTotalOutstanding] = useState(0);
 
-  const redirect = () => {
-    route.push("/user/bills/new");
+  // Calculate totals on component mount
+  useEffect(() => {
+    const now = new Date();
+    let overdue = 0;
+    let outstanding = 0;
+
+    bills.forEach(bill => {
+      outstanding += bill.totalOutstanding;
+      
+      // Check if bill is overdue
+      if (bill.status !== "Paid" && bill.dueDate) {
+        const dueDate = new Date(bill.dueDate);
+        if (dueDate < now) {
+          overdue += bill.amountDue;
+        }
+      }
+    });
+
+    setOverdueAmount(overdue);
+    setTotalOutstanding(outstanding);
+  }, [bills]);
+
+  // Filter bills based on search and status
+  useEffect(() => {
+    let result = bills;
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(bill =>
+        bill.billNumber.toLowerCase().includes(query) ||
+        bill.companyName.toLowerCase().includes(query) ||
+        bill.vendorId.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by status
+    if (selectedStatus !== "all") {
+      result = result.filter(bill => {
+        const billStatus = getBillStatus(bill);
+        return billStatus === selectedStatus;
+      });
+    }
+
+    setFilteredBills(result);
+  }, [searchQuery, selectedStatus, bills]);
+
+  const redirectToNewBill = () => {
+    router.push("/user/bills/new");
+  };
+
+  const getBillStatus = (bill: Bill): string => {
+    if (bill.amountDue === 0 || bill.totalOutstanding === 0) {
+      return "Paid";
+    }
+
+    const now = new Date();
+    const dueDate = new Date(bill.dueDate);
+
+    if (dueDate < now && bill.amountDue > 0) {
+      return "Overdue";
+    }
+
+    if (bill.amountDue > 0 && bill.amountDue < bill.grandTotal) {
+      return "Partial";
+    }
+
+    return "Pending";
+  };
+
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch {
+      return "Invalid Date";
+    }
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat("en-LK", {
+      style: "currency",
+      currency: "LKR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case "Paid":
+        return "bg-green-100 text-green-800";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "Overdue":
+        return "bg-red-100 text-red-800";
+      case "Partial":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleViewBill = (billId: string) => {
+    router.push(`/user/bills/${billId}`);
+  };
+
+  const handleDownloadBill = (bill: Bill) => {
+    // Implement download functionality
+    console.log("Downloading bill:", bill.billNumber);
+    alert(`Downloading ${bill.billNumber}`);
+  };
+
+  const handleMoreActions = (bill: Bill, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("More actions for:", bill.billNumber);
+    // Implement more actions menu
   };
 
   return (
-    <div className="mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center w-full px-8">
-        <h1 className="text-xl font-bold text-navy-900">Bills</h1>
-        <div className="relative">
+    <div className="p-4 md:p-6">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Bills</h1>
+          <p className="text-gray-600 mt-1">Manage and track your bills</p>
+        </div>
+        
+        <div className="relative mt-4 md:mt-0">
           <button
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 transition-colors"
           >
-            New Bill
+            <span className="font-medium">New Bill</span>
             <ChevronDown className="w-4 h-4" />
           </button>
+          
           {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10 py-2">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10 border border-gray-200 py-2">
               <button
-                onClick={redirect}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
+                onClick={redirectToNewBill}
+                className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 transition-colors"
               >
                 <FileText className="w-4 h-4" />
-                Manually Create
+                <span className="text-sm font-medium">Create Bill</span>
               </button>
-              <button className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2">
+              <button className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 transition-colors">
                 <Upload className="w-4 h-4" />
-                Upload Bill
+                <span className="text-sm font-medium">Upload Bill</span>
               </button>
             </div>
           )}
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-8">
-        {/* Header Section */}
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-xl font-bold text-navy-900 mb-2">Rs. 0</h1>
-            <p className="text-gray-600 regular-14">overdue</p>
-          </div>
-          <div className="text-right">
-            <h1 className="text-xl font-bold text-navy-900 mb-2">Rs. 0</h1>
-            <p className="text-gray-600 regular-14">total outstanding</p>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Overdue</p>
+              <p className="text-xl font-bold text-red-600 mt-1">
+                {formatCurrency(overdueAmount)}
+              </p>
+            </div>
+            <div className="bg-red-50 p-2 rounded-full">
+              <Calendar className="w-5 h-5 text-red-600" />
+            </div>
           </div>
         </div>
 
-        {/* All Bills Section */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold">All Bills</h2>
-              <button
-                onClick={redirect}
-                className="bg-green-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-lg"
-              >
-                +
-              </button>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Total Outstanding</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">
+                {formatCurrency(totalOutstanding)}
+              </p>
             </div>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search"
-                className="pl-10 pr-4 py-2 border rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            </div>
-          </div>
-
-          {/* Bills Table */}
-          <div className="bg-white border border-gray-200 rounded-lg  regular-12 shadow-sm">
-            <div className="space-y-4">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 px-4 py-3 text-gray-600 border-b">
-                <div className="col-span-1">
-                  <input
-                    type="checkbox"
-                    className="rounded"
-                    aria-label="Select all"
-                  />
-                </div>
-                <div className="col-span-3">Vendor / Category / Bill No.</div>
-                <div className="col-span-2">Issue Date / Due Date</div>
-                <div className="col-span-3">Description</div>
-                <div className="col-span-3 text-right">
-                  Amount / Tax / Status
-                </div>
-              </div>
-
-              {/* Bill Rows */}
-              <div className="divide-y divide-gray-200">
-                {billArray.map((bill) => (
-                  <Link key={bill.id} href={`/user/bills/${bill.id}`}>
-                    <div className="grid grid-cols-12 px-4 py-3 hover:bg-gray-10">
-                      <div className="col-span-1">
-                        <input
-                          type="checkbox"
-                          className="rounded"
-                          aria-label={`Select ${bill.vendor}`}
-                        />
-                      </div>
-                      <div className="col-span-3">
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{bill.vendor}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
-                            <MegaphoneIcon size={16} />
-                            <span>{bill.category}</span>
-                          </div>
-                          <div className="text-sm text-gray-600">{bill.id}</div>
-                        </div>
-                      </div>
-                      <div className="col-span-2">
-                        <div className="flex flex-col">
-                          <span>{bill.issueDate}</span>
-                          <span className="text-sm text-gray-600">
-                            {bill.dueDate}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="col-span-3">
-                        <span>{bill.description}</span>
-                      </div>
-                      <div className="col-span-3 text-right">
-                        <div className="flex flex-col items-end">
-                          <span>Rs. {bill.amount}</span>
-                          <span className="text-sm text-gray-600">
-                            Rs. {bill.tax} tax
-                          </span>
-                          <span className="px-2 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full">
-                            {bill.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+            <div className="bg-blue-50 p-2 rounded-full">
+              <DollarSign className="w-5 h-5 text-blue-600" />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Filters and Search */}
+      <div className="bg-white rounded-lg shadow mb-6 p-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <h2 className="text-lg font-semibold text-gray-900">All Bills</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedStatus("all")}
+                className={`px-3 py-1.5 text-sm rounded-full ${selectedStatus === "all" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setSelectedStatus("Pending")}
+                className={`px-3 py-1.5 text-sm rounded-full ${selectedStatus === "Pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+              >
+                Pending
+              </button>
+              <button
+                onClick={() => setSelectedStatus("Overdue")}
+                className={`px-3 py-1.5 text-sm rounded-full ${selectedStatus === "Overdue" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+              >
+                Overdue
+              </button>
+              <button
+                onClick={() => setSelectedStatus("Paid")}
+                className={`px-3 py-1.5 text-sm rounded-full ${selectedStatus === "Paid" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+              >
+                Paid
+              </button>
+            </div>
+          </div>
+
+          <div className="relative w-full md:w-64">
+            <input
+              type="text"
+              placeholder="Search bills..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          </div>
+        </div>
+      </div>
+
+      {/* Bills Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        {filteredBills.length === 0 ? (
+          <div className="p-8 text-center">
+            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <FileText className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No bills found</h3>
+            <p className="text-gray-600 mb-4">
+              {searchQuery || selectedStatus !== "all" 
+                ? "Try adjusting your search or filter" 
+                : "Get started by creating your first bill"}
+            </p>
+            {!searchQuery && selectedStatus === "all" && (
+              <button
+                onClick={redirectToNewBill}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Create New Bill
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Vendor / Bill Details
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Dates
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount Details
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredBills.map((bill) => {
+                  const status = getBillStatus(bill);
+                  const categories = [...new Set(bill.table.map(item => item.category))];
+                  
+                  return (
+                    <tr 
+                      key={bill.id} 
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => handleViewBill(bill.id)}
+                    >
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <User className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium text-gray-900">
+                              {bill.companyName || bill.vendorId}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <MegaphoneIcon className="w-4 h-4 text-gray-400" />
+                            <div className="flex gap-1">
+                              {categories.map((cat, idx) => (
+                                <span key={idx} className="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                                  {cat}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {bill.billNumber}
+                          </div>
+                        </div>
+                      </td>
+                      
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          <div>
+                            <span className="text-xs text-gray-500">Issued:</span>
+                            <div className="text-sm font-medium">{formatDate(bill.issueDate)}</div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500">Due:</span>
+                            <div className={`text-sm font-medium ${status === "Overdue" ? "text-red-600" : ""}`}>
+                              {formatDate(bill.dueDate)}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          <div className="text-sm font-semibold text-gray-900">
+                            {formatCurrency(bill.grandTotal)}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            Tax: {formatCurrency(bill.totalTax)}
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-gray-600">Due: </span>
+                            <span className="font-medium">{formatCurrency(bill.amountDue)}</span>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+                          {status}
+                        </span>
+                      </td>
+                      
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewBill(bill.id);
+                            }}
+                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="View Bill"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadBill(bill);
+                            }}
+                            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => handleMoreActions(bill, e)}
+                            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                            title="More actions"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Summary Footer */}
+      {filteredBills.length > 0 && (
+        <div className="mt-4 text-sm text-gray-600">
+          Showing {filteredBills.length} of {bills.length} bills
+        </div>
+      )}
     </div>
   );
 };
 
-export default ViewBillList;
+
+export default BillsPage;

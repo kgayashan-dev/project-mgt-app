@@ -28,6 +28,7 @@ interface InvoiceArray {
   totalTax: number;
   grandTotal: number;
   notes: string;
+
   emailAddress: string;
   terms: string;
   clientAddress: string;
@@ -75,17 +76,18 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
     invoiceNumber,
     clientAddress,
     invoiceDate,
+    notes,
     phoneNumber,
     table = [],
     subtotal,
     totalTax,
     grandTotal,
-    notes,
+    terms,
     emailAddress,
     invoiceReference,
   } = invoiceArray;
 
-  console.log(invoiceArray,'invoice array')
+
 
   // File upload state
   const [file, setFile] = useState<File | null>(null);
@@ -102,7 +104,6 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
   const [company, setCompany] = useState<CompanyClientDetails | null>(null);
   const [companyLoading, setCompanyLoading] = useState(true);
 
-  console.log();
   // Dynamically import html2pdf on client side only
   useEffect(() => {
     import("html2pdf.js").then((module) => {
@@ -117,7 +118,7 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
         try {
           setCompanyLoading(true);
           const companyData = await getCompanyAData(id);
-          console.log(companyData);
+          console.log(companyData, "Fetched company data");
           setCompany(companyData);
         } catch (error) {
           console.error("Error fetching company:", error);
@@ -583,11 +584,17 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
                   </div>
                 </div>
               )}
-
-              {/* Note Section */}
-              <div className="mt-3 regular-9 text-gray-600 max-w-md">
-                {notes}
-              </div>
+            </div>
+            {/* Note Section */}
+            <div className="mt-3 regular-9 text-gray-600 max-w-md">
+              {terms ? (
+                <div>
+                  <h1>Terms:</h1>
+                  <span className="font-semibold">{terms}</span> 
+                </div>
+              ) : (
+                "No terms specified"
+              )}
             </div>
           </div>
         </div>

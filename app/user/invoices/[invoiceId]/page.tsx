@@ -7,9 +7,10 @@ import { getInvoiceById } from "@/utils/getdata";
 async function getInvoiceData(id: string) {
   try {
     const response = await getInvoiceById(id);
+    console.log(response,"response")
     return response;
   } catch (error) {
-    console.error("Error fetching invoice data:", error);
+    // console.error("Error fetching invoice data:", error);
     return null;
   }
 }
@@ -61,7 +62,7 @@ export default async function Page({
     grandTotal: invoiceData.invoiceTotal,
     notes: invoiceData.remarks || "",
     emailAddress: "", // You might need to fetch client email
-    terms: "Net 30", // Default terms
+    terms: invoiceData.terms, // Default terms
     clientAddress: "", // You might need to fetch client address
     invoiceReference: invoiceData.quotationID || invoiceData.poNo || "",
     discountPercentage: 0,
@@ -70,6 +71,8 @@ export default async function Page({
     additionalInfo: "",
     phoneNumber: 0, // You might need to fetch client phone
   };
+
+  console.log(transformedInvoice)
 
   return <ViewInvoice invoiceArray={transformedInvoice} />;
 }

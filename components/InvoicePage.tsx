@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaTrashAlt } from "react-icons/fa";
 import Link from "next/link";
-import SearchableSelect from "./SearchableSelect";
-// import { getCompanyData } from "@/utils/getdata";
+// import SearchableSelect from "./SearchableSelect";
+import { getQuotatoinData } from "@/utils/getdata";
+
 type Row = {
   description: string;
   rate: number;
@@ -47,26 +48,60 @@ interface CompanyData {
   country: string;
 }
 
-interface QuotationData {
+// interface InvoiceData {
+//   id: string;
+//   InvoiceNumber: string;
+// }
+
+interface Quotation {
   id: string;
   quotationNumber: string;
+  quotationDate: string;
+  clientId: string;
+  companyID: string;
+  discountPercentage: number;
+  discountAmount: number;
+  subtotal: number;
+  totalTax: number;
+  terms: string;
+  grandTotal: number;
+  qItems: Array<{
+    id: number;
+    description: string;
+    quotationId: string;
+    unit: string;
+    qty: number;
+    rate: number;
+  }>;
 }
 
-interface NewQuotationProps {
+interface NewInvoiceProps {
   initialData: Client[];
   bankData: BankAccount[];
-  quotationData: QuotationData[];
+  // InvoiceData: InvoiceData[];
   companyData: CompanyData[];
+  quotationsData?: Quotation[]; // Add quotations prop
 }
 
-const QuotationForm: React.FC<NewQuotationProps> = ({
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const InvoiceForm: React.FC<NewInvoiceProps> = ({
   initialData,
-  bankData,
-  quotationData,
+
   companyData,
+  quotationsData = [], // Default to empty array
 }) => {
+  // State for client-side initialization
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isClient, setIsClient] = useState(false);
+  const [quotations, setQuotations] = useState<Quotation[]>(quotationsData);
+  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(
+    null
+  );
+
   // File upload state
   const [file, setFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [html2pdf, setHtml2pdf] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -75,16 +110,12 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(
     null
   );
-  const [QuotationDate, setQuotationDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [QuotationDueDate, setQuotationDueDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [QuotationNumber, setQuotationNumber] = useState("0000001");
+
+  // Initialize with empty strings to avoid hydration mismatch
+  const [InvoiceDate, setInvoiceDate] = useState("");
+  const [InvoiceDueDate, setInvoiceDueDate] = useState("");
+  const [InvoiceNumber, setInvoiceNumber] = useState("");
   const [reference, setReference] = useState("No");
-  const [selectedBankAccount, setSelectedBankAccount] = useState<string>("");
-  const [selectedQuotation, setSelectedQuotation] = useState<string>("");
 
   // Table state
   const [rows, setRows] = useState<Row[]>([
@@ -105,11 +136,10 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   const [terms, setTerms] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [taxPercentage, setTaxPercentage] = useState(0);
+  const [taxPercentage, setTaxPercentage] = useState(0); // Tax percentage (not amount)
 
   // Edit states
-  const [isQuotationNumberEditing, setIsQuotationNumberEditing] =
-    useState(false);
+  const [isInvoiceNumberEditing, setIsInvoiceNumberEditing] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [isAdditionalInfoEditing, setIsAdditionalInfoEditing] = useState(true);
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(true);
@@ -120,16 +150,55 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   const [isTaxEditing, setIsTaxEditing] = useState(true);
   const [isReferenceEditing, setIsReferenceEditing] = useState(true);
 
-  // Bank selection state
-  const [showBankSelection, setShowBankSelection] = useState(true);
+  // Initialize client-side only values
+  useEffect(() => {
+    setIsClient(true);
 
-  // Get selected bank account details
-  const selectedBank = bankData.find((bank) => bank.id === selectedBankAccount);
+    // Initialize dates and Invoice number
+    const today = new Date().toISOString().split("T")[0];
+    setInvoiceDate(today);
+    setInvoiceDueDate(today);
+    setInvoiceNumber("INV01"); // You might want to generate this dynamically
 
-  // Get selected quotation details
-  const selectedQuotationData = quotationData.find(
-    (q) => q.id === selectedQuotation
-  );
+    // Initialize html2pdf
+    import("html2pdf.js").then((module) => {
+      setHtml2pdf(() => module.default);
+    });
+  }, []);
+
+  // Handle file URL creation and cleanup
+  useEffect(() => {
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setFileUrl(url);
+
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setFileUrl(null);
+    }
+  }, [file]);
+
+  // Fetch quotations if not provided via props
+  useEffect(() => {
+    const fetchQuotations = async () => {
+      try {
+        const quotationData = await getQuotatoinData();
+        console.log("Quotation data:", quotationData);
+
+        if (quotationData && Array.isArray(quotationData)) {
+          setQuotations(quotationData);
+        }
+      } catch (error) {
+        console.error("Error fetching quotations:", error);
+      }
+    };
+
+    if (quotationsData.length === 0) {
+      fetchQuotations();
+    }
+  }, [quotationsData]);
 
   // Auto-select first company if available
   useEffect(() => {
@@ -138,44 +207,106 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     }
   }, [companyData, selectedCompany]);
 
-  // Dynamically import html2pdf on client side only
+  // When quotation is selected, populate the form with quotation data
   useEffect(() => {
-    import("html2pdf.js").then((module) => {
-      setHtml2pdf(() => module.default);
-    });
-  }, []);
+    if (selectedQuotation) {
+      console.log("Selected quotation:", selectedQuotation);
 
-  // Auto-select first bank account if available
-  useEffect(() => {
-    if (bankData.length > 0 && !selectedBankAccount) {
-      setSelectedBankAccount(bankData[0].id);
+      // Find the client from initialData
+      const client = initialData.find(
+        (c) => c.id === selectedQuotation.clientId
+      );
+      if (client) {
+        setSelectedClient(client);
+      }
+
+      // Find the company from companyData
+      const company = companyData.find(
+        (c) => c.id === selectedQuotation.companyID
+      );
+      if (company) {
+        setSelectedCompany(company);
+      }
+
+      // Set invoice date to today
+      const today = new Date().toISOString().split("T")[0];
+      setInvoiceDate(today);
+
+      // Set invoice due date (maybe 30 days from now)
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
+      setInvoiceDueDate(dueDate.toISOString().split("T")[0]);
+
+      // Set tax percentage
+      const calculatedTaxPercentage =
+        selectedQuotation.subtotal > 0
+          ? (selectedQuotation.totalTax / selectedQuotation.subtotal) * 100
+          : 0;
+      setTaxPercentage(calculatedTaxPercentage);
+
+      // Set discount
+      setDiscountPercentage(selectedQuotation.discountPercentage);
+
+      // Set terms
+      setTerms(selectedQuotation.terms);
+
+      // Convert quotation items to rows
+      if (selectedQuotation.qItems && selectedQuotation.qItems.length > 0) {
+        const newRows = selectedQuotation.qItems.map((item) => ({
+          description: item.description || "",
+          rate: item.rate || 0,
+          tax: calculatedTaxPercentage, // Use the same tax percentage
+          qty: item.qty || 0,
+          total: (item.rate || 0) * (item.qty || 0),
+          unit: item.unit || "",
+          taxAmount:
+            ((item.rate || 0) * (item.qty || 0) * calculatedTaxPercentage) /
+            100,
+        }));
+        setRows(newRows);
+      }
+
+      // Calculate and set totals
+      const calculatedSubtotal = selectedQuotation.subtotal || 0;
+      const calculatedDiscountAmount = selectedQuotation.discountAmount || 0;
+      const calculatedTax = selectedQuotation.totalTax || 0;
+      const calculatedGrandTotal = selectedQuotation.grandTotal || 0;
+
+      setSubtotal(calculatedSubtotal);
+      setDiscountAmount(calculatedDiscountAmount);
+      setTotalTax(calculatedTax);
+      setGrandTotal(calculatedGrandTotal);
     }
-  }, [bankData, selectedBankAccount]);
+  }, [selectedQuotation, initialData, companyData]);
 
-  // Calculate totals including discount
+  // Calculate totals including discount - UPDATED TO MATCH BACKEND LOGIC
   useEffect(() => {
-    let calculatedSubtotal = 0;
-    let calculatedTax = 0;
+    // Don't recalculate if we just set from quotation
+    if (selectedQuotation) return;
 
+    // Calculate subtotal from items (sum of quantity * rate)
+    let calculatedSubtotal = 0;
     rows.forEach((row) => {
-      calculatedSubtotal += row.total;
+      calculatedSubtotal += row.rate * row.qty;
     });
 
-    // Calculate discount amount
+    // Calculate discount amount based on percentage
     const calculatedDiscountAmount =
       (calculatedSubtotal * discountPercentage) / 100;
-    setDiscountAmount(calculatedDiscountAmount);
 
-    // Calculate tax on discounted amount
+    // Calculate tax (using tax percentage on taxable amount)
     const taxableAmount = calculatedSubtotal - calculatedDiscountAmount;
-    calculatedTax = taxableAmount * (taxPercentage / 100);
+    const calculatedTax = (taxableAmount * taxPercentage) / 100;
+
+    // Calculate final Invoice total
+    const calculatedGrandTotal =
+      calculatedSubtotal - calculatedDiscountAmount + calculatedTax;
 
     setSubtotal(calculatedSubtotal);
+    setDiscountAmount(calculatedDiscountAmount);
     setTotalTax(calculatedTax);
-    setGrandTotal(
-      calculatedSubtotal - calculatedDiscountAmount + calculatedTax
-    );
-  }, [rows, discountPercentage, taxPercentage]);
+    setGrandTotal(calculatedGrandTotal);
+  }, [rows, discountPercentage, taxPercentage, selectedQuotation]);
 
   // File upload handling
   const onDrop = (acceptedFiles: File[]) => {
@@ -228,9 +359,54 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     setRows(rows.filter((_, rowIndex) => rowIndex !== index));
   };
 
-  // Save Quotation function
-  // Save Quotation function
-  const saveQuotation = async () => {
+  // Handle quotation selection
+  const handleQuotationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedQuotationId = e.target.value;
+    if (selectedQuotationId) {
+      const quotation = quotations.find((q) => q.id === selectedQuotationId);
+      setSelectedQuotation(quotation || null);
+    } else {
+      setSelectedQuotation(null);
+    }
+  };
+
+  // Prepare Invoice data for API - CORRECTED TO MATCH EXPECTED FORMAT
+  const prepareInvoiceData = () => {
+    // Convert dates to DateTime format
+
+    const invoiceDateObj = new Date(InvoiceDate);
+    const createdDateObj = new Date();
+    return {
+      id: "", // Will be generated by backend
+      invoiceNo: InvoiceNumber,
+      poNo: reference || "", // Using reference as PO Number
+      bankAccId: "BNK0000001", // You need to get this from your bank data
+      invoiceDate: invoiceDateObj.toISOString(),
+      quotationID: selectedQuotation?.id || "",
+      companyID: selectedCompany?.id || "",
+      remarks: additionalInfo || "",
+      clientID: selectedClient?.id || "",
+      subtotal: subtotal,
+      tax: taxPercentage, // Send tax percentage
+      discountPercentage: discountPercentage,
+      discountAmount: discountAmount,
+      invoiceTotal: grandTotal,
+      createdDate: createdDateObj.toISOString(),
+     
+      items: rows.map((row) => ({
+        id: "",
+        description: row.description,
+        InvoiceId: "", // Will be set by backend
+        unit: row.unit,
+        qty: row.qty,
+        rate: row.rate,
+        total:row.total
+      })),
+    };
+  };
+
+  // Save Invoice function
+  const saveInvoice = async () => {
     if (!selectedClient) {
       alert("Please select a client");
       return;
@@ -242,147 +418,102 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     }
 
     if (rows.length === 0 || rows.every((row) => !row.description.trim())) {
-      alert("Please add at least one item to the Quotation");
+      alert("Please add at least one item to the Invoice");
       return;
     }
 
     setLoading(true);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const InvoiceData = prepareInvoiceData();
 
-      // MATCH THE REQUIRED JSON FORMAT EXACTLY
-      const QuotationData = {
-        id: "", // Will be generated by backend
-        quotationNumber: QuotationNumber, // Changed from quotationNo to quotationNumber
-        quotationDate: new Date(QuotationDate).toISOString(),
-        clientId: selectedClient.id, // Changed from clientID to clientId (lowercase 'd')
-        companyID: selectedCompany.id,
-        discountPercentage: discountPercentage,
-        discountAmount: discountAmount,
-        subtotal: subtotal,
-        totalTax: totalTax,
-        terms: terms, // Add terms field
-        grandTotal: grandTotal,
-        qItems: rows.map((row) => ({
-          // Changed from items to qItems
-          id: 0, // Must be integer 0, not index
-          description: row.description,
-          quotationId: "", // Will be set by backend
-          unit: row.unit,
-          qty: row.qty,
-          rate: row.rate,
-          // Removed total field as it's not in the required format
-        })),
-        // Removed createdDate and status as they're not in the required format
-      };
-
-      console.log(
-        "Sending Quotation data:",
-        JSON.stringify(QuotationData, null, 2)
-      );
+      console.log("Sending Invoice data:", InvoiceData);
 
       const response = await fetch(
-        `${API_URL}/project_pulse/Quotation/postQuotation`,
+        `${API_URL}/project_pulse/Invoice/postInvoice`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(QuotationData),
+          body: JSON.stringify(InvoiceData),
         }
       );
 
+      console.log(response)
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error response:", errorText);
-        throw new Error(
-          `Failed to save Quotation: ${response.status} - ${errorText}`
-        );
+        const errorText = await response.json();
+     
+  
+        throw new Error(` ${errorText.message}`);
       }
 
       const result = await response.json();
-      console.log("Success response:", result);
 
-      if (result.message === "Quotation saved successfully.") {
-        alert("Quotation saved successfully!");
-        console.log("Generated Quotation ID:", result.QuotationId);
-
-        // Optional: Redirect to Quotations list or clear form
-        // window.location.href = "/user/Quotations";
+      if (result.message === "Invoice saved successfully.") {
+        alert("Invoice saved successfully!");
+        console.log("Generated Invoice ID:", result.InvoiceId);
       } else {
-        throw new Error(result.message || "Failed to save Quotation");
+        throw new Error(result.message || "Failed to save Invoice");
       }
     } catch (error) {
-      console.error("Error saving Quotation:", error);
-      alert(
-        `Error saving Quotation: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+
+      console.log("error," ,error)
+      alert(`${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setLoading(false);
     }
   };
 
   // Generate PDF
-  const clickPdf = (QuotationNum: string, QuotationDt: string) => {
+  const clickPdf = (InvoiceNum: string, InvoiceDt: string) => {
     if (!html2pdf) {
       alert("PDF generator is still loading. Please try again in a moment.");
       return;
     }
 
-    // Hide bank selection before generating PDF
-    setShowBankSelection(false);
+    const element = document.getElementById("Invoice-content");
+    const opt = {
+      margin: 0.25,
+      filename: `${InvoiceNum}_${InvoiceDt}_Invoice.pdf`,
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+    };
 
-    // Small delay to ensure DOM updates
-    setTimeout(() => {
-      const element = document.getElementById("Quotation-content");
-      const opt = {
-        margin: 0.25,
-        filename: `${QuotationNum}_${QuotationDt}_Quotation.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-      };
-
-      html2pdf()
-        .from(element)
-        .set(opt)
-        .save()
-        .then(() => {
-          console.log("PDF generated successfully!");
-        })
-        .catch((error: any) => {
-          console.error("Error generating PDF:", error);
-        })
-        .finally(() => {
-          // Show bank selection again after PDF generation
-          setShowBankSelection(true);
-        });
-    }, 100);
+    html2pdf()
+      .from(element)
+      .set(opt)
+      .save()
+      .then(() => {
+        console.log("PDF generated successfully!");
+      })
+      .catch((error: any) => {
+        console.error("Error generating PDF:", error);
+      });
   };
 
   return (
     <div className="flex flex-col m-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold text-navy-900">New Quotation</h1>
+        <h1 className="text-xl font-bold text-navy-900">New Invoice</h1>
         <div className="flex gap-2">
           <Link
-            href={"/user/Quotations"}
+            href={"/user/Invoices"}
             className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded border border-gray-300"
           >
             Cancel
           </Link>
           <button
-            onClick={saveQuotation}
+            onClick={saveInvoice}
             disabled={loading}
             className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Saving..." : "Save"}
           </button>
           <button
-            onClick={() => clickPdf(QuotationNumber, QuotationDate)}
+            onClick={() => clickPdf(InvoiceNumber, InvoiceDate)}
             disabled={!html2pdf}
             className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
@@ -392,7 +523,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
       </div>
 
       <div
-        id="Quotation-content"
+        id="Invoice-content"
         className="max-w-6xl w-full p-4 bg-white rounded-lg shadow border border-gray-200"
       >
         {/* File Upload and Company Info */}
@@ -404,21 +535,24 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
             } rounded-lg flex items-center justify-center cursor-pointer bg-gray-100 hover:bg-gray-100 transition-colors`}
           >
             <input {...getInputProps()} />
-            {!file && (
+            {!file ? (
               <p className="text-center text-gray-500 text-xs px-2">
                 {isDragActive
                   ? "Drop the file here..."
                   : "Drag & drop company logo here, or click to select"}
               </p>
-            )}
-            {file && (
+            ) : fileUrl ? (
               <div className="text-center">
                 <img
-                  src={URL.createObjectURL(file)}
+                  src={fileUrl}
                   alt={file.name}
                   className="w-48 h-24 object-contain rounded"
                 />
               </div>
+            ) : (
+              <p className="text-center text-gray-500 text-xs px-2">
+                Loading...
+              </p>
             )}
           </div>
 
@@ -528,54 +662,100 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
             </div>
           </div>
 
-          {/* Quotation Dates */}
+          {/* Quotation Details */}
+          <div className="md:col-span-2">
+            <label className="block text-gray-700 text-xs mb-1">
+              Select Quotation (Optional)
+            </label>
+            <select
+              value={selectedQuotation?.id || ""}
+              onChange={handleQuotationChange}
+              className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Select a Quotation (Optional)</option>
+              {quotations.map((quotation) => (
+                <option key={quotation.id} value={quotation.id}>
+                  {quotation.quotationNumber} -{" "}
+                  {quotation.quotationDate.split("T")[0]} - Rs.{" "}
+                  {quotation.grandTotal.toFixed(2)}
+                </option>
+              ))}
+            </select>
+
+            {selectedQuotation && (
+              <div className="mt-2 p-2 border border-gray-300 rounded bg-blue-50">
+                <div className="flex flex-col">
+                  <span className="font-semibold text-xs text-blue-800">
+                    Selected Quotation: {selectedQuotation.quotationNumber}
+                  </span>
+                  <div className="text-xs text-gray-600 mt-0.5">
+                    <div>
+                      Date: {selectedQuotation.quotationDate.split("T")[0]}
+                    </div>
+                    <div>
+                      Amount: Rs. {selectedQuotation.grandTotal.toFixed(2)}
+                    </div>
+                    <div>Items: {selectedQuotation.qItems?.length || 0}</div>
+                  </div>
+                </div>
+                <button
+                  className="mt-1 text-xs text-red-600 hover:text-red-800 transition-colors"
+                  onClick={() => setSelectedQuotation(null)}
+                >
+                  Clear selection
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Invoice Dates */}
           <div>
             <div className="mb-2">
               <label className="block text-gray-700 text-xs mb-1">
-                Quotation Date
+                Invoice Date
               </label>
               <input
                 type="date"
-                value={QuotationDate}
-                onChange={(e) => setQuotationDate(e.target.value)}
+                value={InvoiceDate}
+                onChange={(e) => setInvoiceDate(e.target.value)}
                 className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
             <div>
               <label className="block text-gray-700 text-xs mb-1">
-                Due Date
+                Valid Until
               </label>
               <input
                 type="date"
-                value={QuotationDueDate}
-                onChange={(e) => setQuotationDueDate(e.target.value)}
+                value={InvoiceDueDate}
+                onChange={(e) => setInvoiceDueDate(e.target.value)}
                 className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
-          {/* Quotation Number & Reference */}
+          {/* Invoice Number & Reference */}
           <div>
             <div className="mb-2">
               <label className="block text-gray-700 text-xs mb-1">
-                Quotation Number
+                Invoice Number
               </label>
-              {isQuotationNumberEditing ? (
+              {isInvoiceNumberEditing ? (
                 <input
                   type="text"
-                  value={QuotationNumber}
-                  placeholder="Quotation Number..."
-                  onChange={(e) => setQuotationNumber(e.target.value)}
-                  onBlur={() => setIsQuotationNumberEditing(false)}
+                  value={InvoiceNumber}
+                  placeholder="Invoice Number..."
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  onBlur={() => setIsInvoiceNumberEditing(false)}
                   className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
               ) : (
                 <p
-                  onClick={() => setIsQuotationNumberEditing(true)}
+                  onClick={() => setIsInvoiceNumberEditing(true)}
                   className="cursor-pointer p-1.5 text-xs rounded hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-300"
                 >
-                  {QuotationNumber || "Quotation Number"}
+                  {InvoiceNumber || "Invoice Number"}
                 </p>
               )}
             </div>
@@ -601,24 +781,20 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                 </p>
               )}
             </div>
-            {/* Quotation and Amount Due Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* Amount Due */}
-              <div className="flex justify-end">
-                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  <p className="text-xs text-gray-600 mb-0.5">
-                    Amount Due (LKR)
-                  </p>
-                  <h1 className="text-xl font-bold text-blue-800">
-                    Rs.{" "}
-                    {grandTotal.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </h1>
-                </div>
-              </div>
-            </div>
+          </div>
+        </div>
+
+        {/* Amount Due Section */}
+        <div className="flex justify-end mb-4">
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <p className="text-xs text-gray-600 mb-0.5">Invoice Total (LKR)</p>
+            <h1 className="text-xl font-bold text-blue-800">
+              Rs.{" "}
+              {grandTotal.toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </h1>
           </div>
         </div>
 
@@ -763,7 +939,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                   <td className="p-2 text-center">
                     <button
                       onClick={() => deleteRow(index)}
-                      className="text-red-400   group-hover:opacity-100 hover:text-red-600 transition-all duration-200  rounded text-xs"
+                      className="text-red-400 hover:text-red-600 transition-all duration-200 rounded text-xs"
                       title="Delete row"
                     >
                       <FaTrashAlt />
@@ -782,7 +958,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
           </button>
         </div>
 
-        {/* Totals and Bank Account */}
+        {/* Totals Section */}
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
           {/* Notes & Terms */}
           <div className="flex-1 space-y-3">
@@ -872,7 +1048,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                 <div className="border-t border-gray-300 pt-2">
                   <div className="flex justify-between items-center py-1">
                     <span className="font-bold text-xs text-gray-800">
-                      Quotation Total
+                      Invoice Total
                     </span>
                     <span className="font-bold text-xs text-blue-800">
                       Rs.{" "}
@@ -884,57 +1060,6 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                   </div>
                 </div>
               </div>
-
-              <div className="mt-4">
-                <label className="block text-gray-700 text-xs mb-1">
-                  Bank Account
-                </label>
-                {showBankSelection && (
-                  <select
-                    value={selectedBankAccount}
-                    onChange={(e) => setSelectedBankAccount(e.target.value)}
-                    className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Select Bank Account</option>
-                    {bankData.map((bank) => (
-                      <option key={bank.id} value={bank.id}>
-                        {bank.accountName} - {bank.bankName} (
-                        {bank.accountNumber})
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                {selectedBank && (
-                  <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
-                    <h3 className="font-semibold text-xs text-gray-800 mb-1">
-                      Bank Account Details
-                    </h3>
-                    <div className="text-xs space-y-0.5">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Account Name:</span>
-                        <span className="text-xs">
-                          {selectedBank.accountName}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Bank:</span>
-                        <span className="text-xs">{selectedBank.bankName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Branch:</span>
-                        <span className="text-xs">{selectedBank.branch}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Account Number:</span>
-                        <span className="text-xs">
-                          {selectedBank.accountNumber}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -943,4 +1068,4 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   );
 };
 
-export default QuotationForm;
+export default InvoiceForm;

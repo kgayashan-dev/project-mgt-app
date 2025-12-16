@@ -110,7 +110,7 @@ export async function getInvoicesByClientId(clientId: string) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+
     throw error;
   }
 }
@@ -136,15 +136,17 @@ export async function getPaymentByTypeBill(type = "bill_payment") {
     }
 
     const data = await response.json();
+
+
     return data;
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+
     throw error;
   }
 }
 
 
-export async function getPaymentsByType(type = "invoice_payment") {
+export async function getPaymentsByTypeInv(type = "invoice_payment") {
   try {
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
     const response = await fetch(
@@ -165,9 +167,11 @@ export async function getPaymentsByType(type = "invoice_payment") {
     }
 
     const data = await response.json();
+
+    console.log(data,"data datdadtatd ")
     return data;
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+    // console.error("Error fetching invoices:", error);
     throw error;
   }
 }
@@ -198,7 +202,7 @@ export async function getInvoiceById(invoiceId: string) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching invoice:", error);
+    // console.error("Error fetching invoice:", error);
     throw error;
   }
 }
@@ -231,6 +235,26 @@ export const getCompanyAData = async (
     return data;
   } catch (error) {
     console.error("Error fetching company data:", error);
+    return null;
+  }
+};
+
+
+export const getCompanyADataOfQuotaion = async (
+  quotaionId: string
+): Promise<CompanyClientDetails | null> => {
+  try {
+    const response = await fetch(
+      `${API_URL}/project_pulse/Quotation/getCompanyByQuotationId/${quotaionId}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch company data");
+    }
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.warn("Error fetching company data:", error);
     return null;
   }
 };

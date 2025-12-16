@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import Link from "next/link";
 import html2pdf from "html2pdf.js";
+import { getCompanyADataOfQuotaion } from "@/utils/getdata";
 
 // Defining types for TypeScript
 type Row = {
@@ -41,8 +42,22 @@ interface QuotationDetailPageProps {
   quoteArray: QuotationData;
 }
 
+interface CompanyClientDetails {
+  id: string;
+  companyName: string;
+  address: string;
+  phoneNumber: string;
+  email: string;
+  registrationNumber: string;
+  clientID: string;
+  clientPhone: string;
+  clientName: string;
+
+  // Add other company fields as needed
+}
 const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
   const {
+    id,
     reference,
     subtotal,
     clientAddress,
@@ -81,6 +96,10 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
     }
   };
 
+  const [company, setCompany] = useState<CompanyClientDetails | null>(null);
+  const [companyLoading, setCompanyLoading] = useState(true);
+  // console.log(quoteArray, "Q array")
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     maxFiles: 1,
@@ -114,6 +133,28 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
       });
   };
 
+  // Fetch company data when component mounts
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      if (id) {
+        try {
+          setCompanyLoading(true);
+          const companyData = await getCompanyADataOfQuotaion(id);
+          console.log(companyData, "Fetched company data");
+          setCompany(companyData);
+        } catch (error) {
+          console.error("Error fetching company:", error);
+        } finally {
+          setCompanyLoading(false);
+        }
+      } else {
+        setCompanyLoading(false);
+      }
+    };
+
+    fetchCompanyData();
+  }, [id]);
+
   const addressParts = clientAddress
     ? clientAddress.split(",").map((part) => part.trim())
     : [];
@@ -138,10 +179,10 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
           ))}
         </ol>
       );
-    } else if (typeof termsState === 'string') {
+    } else if (typeof termsState === "string") {
       return (
         <div className="regular-9">
-          {termsState.split('\n').map((line, index) => (
+          {termsState.split("\n").map((line, index) => (
             <p key={index} className="mb-1 leading-none">
               {line}
             </p>
@@ -184,7 +225,7 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
         <div className="regular-9 flex justify-end items-center absolute top-1 right-8">
           {currentDate}
         </div>
-        
+
         {/* File Upload and Company Info */}
         <div className="grid grid-cols-2 gap-6 mb-3">
           <div className="flex justify-between items-start">
@@ -215,11 +256,11 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
               </div>
               <div className="text-left regular-12 flex flex-col gap-1 my-2 leading-none">
                 <div className="">
-                  <h2 className="font-medium">SESO Company</h2>
+                  <h2 className="font-medium">{company?.companyName}</h2>
                   <div className="leading-none">
                     <div className="flex flex-col justify-center gap-0 regular-12 font-semibold">
                       <span className="font-semibold leading-tight">
-                        {clientName}
+                        {company?.email}
                       </span>
                       <span>
                         {addressParts[0]}
@@ -229,8 +270,8 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
                           </div>
                         ))}
                         <div className="flex flex-col justify-end">
-                          <span>{phoneNumber}</span>
-                          <p>{emailAddress}</p>
+                          {/* <span>{company?.clientPhone}</span>
+                          <p>{company?.clientID}</p> */}
                         </div>
                       </span>
                     </div>
@@ -241,17 +282,11 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
                 <div className="">
                   <div className="flex flex-col justify-center gap-0 regular-12 font-semibold">
                     <span className="underline">Client Details</span>
-                    <span className="font-semibold leading-tight text-blue-700">
-                      {clientName}
-                    </span>
-                    <span className="text-blue-700">
-                      {addressParts[0]}
-                      {addressParts.slice(1).map((part, index) => (
-                        <div key={index} className="regular-12 leading-tight">
-                          {part}
-                        </div>
-                      ))}
-                    </span>
+                    <div className="font-semibold text-xs leading-tight text-blue-700">
+                      {company?.clientName}
+                      <p>{company?.clientPhone}</p>
+                      <p>{company?.clientID}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -313,7 +348,7 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
                   </td>
                 </tr>
               ))}
-              
+
               {/* Totals section */}
               <tr className="border-gray-300 regular-10">
                 <td colSpan={4} className=""></td>
@@ -355,7 +390,7 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
               <p className="regular-9">{additionalInfo}</p>
             </div>
           )}
-          
+
           {termsState && (
             <div>
               <h3 className="font-semibold">Terms and Conditions:</h3>
