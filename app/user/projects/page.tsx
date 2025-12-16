@@ -1,41 +1,85 @@
+// app/projects/page.tsx
+
 import ProjectsPage from "@/components/ViewProjects";
-import { PROJECTS, COMPANY } from "@/constraints/index";
 
-// Function to get all project data
+// Function to get all project data from API
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 async function getAllProjectData() {
-  // Assuming PROJECTS is an array of projects
-  if (!PROJECTS || PROJECTS.length === 0) {
-    return null; // Return null if there are no projects
-  }
+  try {
+    const response = await fetch(`${API_URL}/project_pulse/Project/all`, {
+      method: "GET",
+      headers: {
+        accept: "*/*",
+        "Cache-Control": "no-cache",
+      },
+      // Disable caching for development
+      cache: "no-store",
+    });
 
-  // Map through the projects to return the necessary data structure
-  return PROJECTS.map((project) => ({
-    id: project.id,
-    projectName: project.projectName,
-    clientId: project.clientId,
-    projectDescription: project.description,
-    projectStartDate: project.startDate,
-    projectEndDate: project.endDate,
-    projectFlatRate: project.flatRate,
-    projectTotalHours: project.totalHours,
-    projectStatus: project.status,
-    projectServices: project.services || [],
-    projectTeamMember: project.teamMembers || [],
-  }));
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      return result.data; // Return the actual data array
+    } else {
+      throw new Error(result.message || "Failed to fetch projects");
+    }
+  } catch (error) {
+    console.error("Error fetching project data:", error);
+    return null;
+  }
 }
 
 // Main Page Component
 export default async function Page() {
-  const data = await getAllProjectData(); // Fetching all project data
+  const data = await getAllProjectData(); // Fetching all project data from API
 
   if (!data) {
-    return <div>No projects found</div>; // Handle case where no data is found
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-20 to-white p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="text-red-600 mb-4">
+              <svg
+                className="w-12 h-12 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No projects found
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Unable to load projects from the server
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="pt-8">
       {/* Passing the data directly into the ProjectsPage component */}
-      <ProjectsPage projectArray={data} company={COMPANY} />
+      <ProjectsPage initialData={data} />
     </div>
   );
 }

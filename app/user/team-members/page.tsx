@@ -20,22 +20,24 @@ export default function TeamMembersPage() {
   const [error, setError] = useState<string | null>(null);
 
   // API Base URL
-  const API_BASE_URL = "http://localhost:5132/project_pulse/TeamMembers";
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   // Function to fetch all team members
   const fetchAllTeamMembers = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch(`${API_BASE_URL}/getAllTeamMembers`);
-      
+
+      const response = await fetch(
+        `${API_URL}/project_pulse/TeamMembers/getAllTeamMembers`
+      );
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setTeamMembers(result.data);
       } else {
@@ -64,7 +66,7 @@ export default function TeamMembersPage() {
     members: teamMembers,
     loading: loading,
     error: error,
-    onRefresh: refreshTeamMembers
+    onRefresh: refreshTeamMembers,
   };
 
   return (

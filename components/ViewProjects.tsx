@@ -1,168 +1,628 @@
+// components/ProjectsPage.tsx
 "use client";
-import React, { useState } from "react";
-import Link from "next/link";
-import { Calendar, Search } from "lucide-react";
+
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Search, Filter, Plus, Download, Eye, Edit, Trash2, FileText, Calendar, DollarSign, Users, Clock } from "lucide-react";
 
 interface Project {
   id: string;
   projectName: string;
   clientId: string;
-  projectDescription: string;
-  projectStartDate: string;
-  projectEndDate: string;
-  projectFlatRate: number; // Changed to number since flatRate is a number in the data
-  projectTotalHours: number; // Changed to number since totalHours is a number
-  projectStatus: string;
-  projectServices: {
-    id: string;
-    description: string;
-    hours: number;
-    rate: number;
-  }[]; // Changed to array of objects
-  projectTeamMember: string[]; // Changed to array of strings
+  description: string;
+  startDate: string;
+  endDate: string;
+  flatRate: number;
+  totalHours: number;
+  status: string;
+  services: Service[];
+  teamMembers: TeamMember[];
 }
 
-interface AllInvoiceDataProps {
-  projectArray: Project[]; // Accept projectArray as a prop
+interface Service {
+  id: number;
+  description: string;
+  hours: number;
+  rate: number;
 }
 
-const ProjectsPage = ({ projectArray }: AllInvoiceDataProps) => {
+interface TeamMember {
+  memId: string;
+  role: string;
+}
+
+interface ProjectsPageProps {
+  initialData: Project[];
+  // company?: any;
+}
+ const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL 
+export default function ProjectsPage({ initialData }: ProjectsPageProps) {
   const router = useRouter();
-  const [showFilters, setShowFilters] = useState(false);
+  const [projects, setProjects] = useState<Project[]>(initialData);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>(initialData);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  // Filter projects based on search and status
+  useEffect(() => {
+    let filtered = projects;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(project =>
+        project.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.clientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(project => project.status === statusFilter);
+    }
+
+    setFilteredProjects(filtered);
+  }, [searchTerm, statusFilter, projects]);
+
+  // Handle project click
+  const handleProjectClick = (project: Project) => {
+    setSelectedProject(project);
+    setShowDetailsModal(true);
+  };
+
+  // Handle delete project
+  const handleDeleteProject = async (projectId: string) => {
+    if (!confirm("Are you sure you want to delete this project?")) return;
+
+    try {
+
+      const response = await fetch(`${API_URL}/project_pulse/Project/delete/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'accept': '*/*'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Project deleted successfully!");
+        // Remove from local state
+        setProjects(projects.filter(p => p.id !== projectId));
+      } else {
+        alert(`Error: ${result.message || 'Failed to delete project'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert('Failed to delete project. Please try again.');
+    }
+  };
+
+  // Calculate project statistics
+  const getStats = () => {
+    const totalProjects = projects.length;
+    const activeProjects = projects.filter(p => p.status === "Active").length;
+    const completedProjects = projects.filter(p => p.status === "Completed").length;
+    const totalRevenue = projects.reduce((sum, project) => sum + project.flatRate, 0);
+    const totalTeamMembers = new Set(
+      projects.flatMap(p => p.teamMembers.map(tm => tm.memId))
+    ).size;
+
+    return {
+      totalProjects,
+      activeProjects,
+      completedProjects,
+      totalRevenue,
+      totalTeamMembers
+    };
+  };
+
+  const stats = getStats();
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   return (
-    <div className="mx-auto">
-      <div className="flex justify-between items-center mb-12">
-        <h1 className="text-3xl font-bold text-navy-900">Projects</h1>
-        <div className="flex items-center gap-4 relative">
-          <div className="relative">
-            <button
-              onClick={() => router.push("/user/projects/new")}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors"
-            >
-              Create New...
-            </button>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-blue-20 to-white p-8">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold text-navy-900">Projects</h1>
+          <p className="text-gray-600 mt-2">
+            Manage and track all your projects in one place
+          </p>
         </div>
-      </div>
-      <div className="flex justify-between items-center mb-8 ">
-        <div className="flex justify-start items-center">
-          <Link
-            href={"/user/projects"}
-            className="text-2xl font-bold text-navy-900 "
-          >
-            All Projects
-          </Link>
-        </div>
-        <div className="flex gap-2">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-3 flex items-center">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search"
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+        <div className="flex items-center gap-3 mt-4 lg:mt-0">
           <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="p-2 border border-gray-300 rounded-full hover:bg-gray-10"
+            onClick={() => router.push('/user/projects/new')}
+            className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
-            <Calendar className="h-5 w-5 text-gray-600" />
+            <Plus size={20} />
+            New Project
           </button>
         </div>
       </div>
 
-      {showFilters && (
-        <div className="absolute right-0 top-[25vh] bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-90 z-10">
-          <h2 className="text-lg font-semibold mb-4">Filters</h2>
-
-          <form action="">
-            <div className="flex gap-4 mb-4">
-              <div className="flex-1">
-                <input
-                  type="date"
-                  placeholder="Start"
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div className="flex-1">
-                <input
-                  type="date"
-                  placeholder="End"
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                />
-              </div>
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Total Projects</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.totalProjects}</h3>
             </div>
-            <div className="flex justify-start items-center gap-4 py-2 hover:cursor-pointer">
-              <label className="flex items-center gap-2 text-lg">
-                <input type="radio" name="invoiceFilter" />
-                <span>Last invoice</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="invoiceFilter" className="text-lg" />
-                <span>Issued date</span>
-              </label>
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+              <FileText className="w-6 h-6 text-blue-600" />
             </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-green-600 font-medium">
+              {stats.activeProjects} active
+            </span>
+            <span className="mx-2">•</span>
+            <span className="text-gray-500">{stats.completedProjects} completed</span>
+          </div>
+        </div>
 
-            <div className="flex flex-row justify-center items-center gap-2">
-              <button
-                type="reset"
-                className="w-full border-2 border-green-600 text-black py-2 px-4 rounded-lg hover:bg-green-600"
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Active Projects</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.activeProjects}</h3>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+          <div className="mt-4 text-sm text-gray-500">
+            Currently in progress
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Total Revenue</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-2">
+                ${stats.totalRevenue.toLocaleString()}
+              </h3>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+          <div className="mt-4 text-sm text-gray-500">
+            From all projects
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Team Members</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-2">{stats.totalTeamMembers}</h3>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+              <Users className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+          <div className="mt-4 text-sm text-gray-500">
+            Working across projects
+          </div>
+        </div>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search projects by name, ID, or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="text-gray-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                Clear
-              </button>
-              <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">
-                Apply
-              </button>
+                <option value="all">All Status</option>
+                <option value="Active">Active</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
             </div>
-          </form>
+            
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <Download size={18} />
+              Export
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Projects Table */}
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Project</th>
+                <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Client</th>
+                <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Timeline</th>
+                <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Budget</th>
+                <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Team</th>
+                <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Status</th>
+                <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredProjects.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center">
+                      <FileText className="w-12 h-12 text-gray-300 mb-4" />
+                      <p className="text-lg font-medium">No projects found</p>
+                      <p className="text-sm mt-1">
+                        {searchTerm || statusFilter !== "all" 
+                          ? "Try adjusting your filters or search term" 
+                          : "Create your first project to get started"}
+                      </p>
+                      {!searchTerm && statusFilter === "all" && (
+                        <button
+                          onClick={() => router.push('/projects/new')}
+                          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          Create New Project
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredProjects.map((project) => {
+                  // const startDate = new Date(project.startDate);
+                  const endDate = new Date(project.endDate);
+                  const today = new Date();
+                  const isOverdue = endDate < today && project.status === "Active";
+                  const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                  
+                  return (
+                    <tr 
+                      key={project.id}
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => handleProjectClick(project)}
+                    >
+                      <td className="py-4 px-6">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <FileText className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-gray-900">{project.projectName}</h3>
+                            <p className="text-sm text-gray-500 mt-1">{project.id}</p>
+                            <p className="text-sm text-gray-500 line-clamp-1 mt-1">
+                              {project.description}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                            <span className="text-xs font-medium text-purple-600">
+                              {project.clientId.charAt(3)}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{project.clientId}</p>
+                            <p className="text-xs text-gray-500">Client ID</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div>
+                          <div className="text-sm font-medium">
+                            {formatDate(project.startDate)} - {formatDate(project.endDate)}
+                          </div>
+                          <div className={`text-xs mt-1 ${isOverdue ? 'text-red-600' : 'text-gray-500'}`}>
+                            {isOverdue ? (
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                Overdue by {Math.abs(daysRemaining)} days
+                              </span>
+                            ) : project.status === "Active" ? (
+                              <span className="text-green-600">
+                                {daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Ending today'}
+                              </span>
+                            ) : (
+                              <span className="capitalize">{project.status.toLowerCase()}</span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div>
+                          <div className="font-medium">
+                            ${project.flatRate.toLocaleString()}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {project.totalHours} hours
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            ${project.totalHours > 0 ? (project.flatRate / project.totalHours).toFixed(2) : '0.00'}/hour
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex -space-x-2">
+                          {project.teamMembers.slice(0, 3).map((member, index) => (
+                            <div
+                              key={member.memId}
+                              className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-700"
+                              style={{ zIndex: 3 - index }}
+                            >
+                              {member.memId.charAt(3)}
+                            </div>
+                          ))}
+                          {project.teamMembers.length > 3 && (
+                            <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-700">
+                              +{project.teamMembers.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                          project.status === "Active" 
+                            ? "bg-green-100 text-green-800" 
+                            : project.status === "Completed" 
+                            ? "bg-blue-100 text-blue-800"
+                            : project.status === "On Hold"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}>
+                          {project.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleProjectClick(project)}
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                            title="View Details"
+                          >
+                            <Eye size={18} />
+                          </button>
+                          <button
+                            onClick={() => router.push(`/projects/edit/${project.id}`)}
+                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg"
+                            title="Edit Project"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProject(project.id)}
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                            title="Delete Project"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {filteredProjects.length > 0 && (
+          <div className="px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">
+                Showing {filteredProjects.length} of {projects.length} projects
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Project Details Modal */}
+      {showDetailsModal && selectedProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedProject.projectName}</h2>
+                  <div className="flex items-center gap-4 mt-2">
+                    <span className="text-gray-500">{selectedProject.id}</span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedProject.status === "Active" 
+                        ? "bg-green-100 text-green-800" 
+                        : selectedProject.status === "Completed" 
+                        ? "bg-blue-100 text-blue-800"
+                        : selectedProject.status === "On Hold"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    }`}>
+                      {selectedProject.status}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Project Details */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Details</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-500">Description</label>
+                      <p className="mt-1 text-gray-900">{selectedProject.description}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-500">Start Date</label>
+                        <p className="mt-1 font-medium">
+                          {formatDate(selectedProject.startDate)}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-500">End Date</label>
+                        <p className="mt-1 font-medium">
+                          {formatDate(selectedProject.endDate)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-500">Client ID</label>
+                        <p className="mt-1 font-medium">{selectedProject.clientId}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-500">Total Hours</label>
+                        <p className="mt-1 font-medium">{selectedProject.totalHours}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Financial Summary */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h3>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Flat Rate</span>
+                        <span className="font-bold text-lg">
+                          ${selectedProject.flatRate.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Hourly Rate</span>
+                        <span className="font-medium">
+                          ${selectedProject.totalHours > 0 
+                            ? (selectedProject.flatRate / selectedProject.totalHours).toFixed(2) 
+                            : '0.00'}/hour
+                        </span>
+                      </div>
+                      <div className="pt-3 border-t">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-900 font-semibold">Total Value</span>
+                          <span className="text-2xl font-bold text-green-600">
+                            ${selectedProject.flatRate.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Services */}
+                <div className="lg:col-span-2">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Services</h3>
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Service</th>
+                          <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Hours</th>
+                          <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Rate</th>
+                          <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {selectedProject.services.map((service) => (
+                          <tr key={service.id}>
+                            <td className="py-3 px-4">{service.description}</td>
+                            <td className="py-3 px-4">{service.hours}</td>
+                            <td className="py-3 px-4">${service.rate.toFixed(2)}</td>
+                            <td className="py-3 px-4 font-medium">
+                              ${(service.hours * service.rate).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Team Members */}
+                <div className="lg:col-span-2">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Members</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedProject.teamMembers.map((member) => (
+                      <div key={member.memId} className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg">
+                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                          <span className="font-medium text-blue-600">
+                            {member.memId.charAt(3)}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{member.memId}</h4>
+                          <p className="text-sm text-gray-600">{member.role}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t bg-gray-50">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    router.push(`/projects/edit/${selectedProject.id}`);
+                    setShowDetailsModal(false);
+                  }}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Edit Project
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
-
-      <div className="relative">
-        {/* Project Table */}
-        <table className="w-full border border-gray-200 rounded-lg regular-12 overflow-hidden text-left">
-          <thead className="bg-white text-sm text-gray-500 uppercase">
-            <tr>
-              <th className="py-4 px-6">Project Name / Client</th>
-              <th className="py-4 px-6">Hours Logged</th>
-              <th className="py-4 px-6">
-                Unbilled Hours / Amount / Last Invoice
-              </th>
-              <th className="py-4 px-6">Due Date</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
-            {projectArray.map((project, index) => (
-              <tr
-                onClick={() => router.push(`/user/projects/${project.id}`)}
-                key={index}
-                className="text-gray-700 hover:bg-gray-10 hover:cursor-pointer"
-              >
-                <td className="py-4 px-6">
-                  <strong>{project.projectName}</strong> <br />
-                  <span className="text-sm text-gray-500">
-                    {project.clientId} {/* Assuming client ID is used here */}
-                  </span>
-                </td>
-                <td className="py-4 px-6">{project.projectTotalHours} hrs</td>
-                <td className="py-4 px-6">
-                  {/* Calculating unbilled amount */}
-                  {project.projectTotalHours - project.projectFlatRate} hrs /
-                  Rs. {project.projectFlatRate} /{" "}
-                  {/* Add last invoice if applicable */}
-                </td>
-                <td className="py-4 px-6">{project.projectEndDate}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
-};
-
-export default ProjectsPage;
+}

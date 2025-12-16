@@ -8,7 +8,7 @@ const fetchData = async (
 ) => {
   try {
     const fullUrl = `${API_URL}${url}`;
-    console.log("Fetching from:", fullUrl);
+    // console.log("Fetching from:", fullUrl);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(
@@ -31,6 +31,8 @@ const fetchData = async (
     }
 
     const data = await response.json();
+
+    console.log(data)
     return { success: true, data };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
@@ -44,7 +46,7 @@ const fetchData = async (
   }
 };
 
-// Client related functions
+
 export const getBankData = () =>
   fetchData("/project_pulse/BankAccount/getAllBankAccounts", "Bank data");
 
@@ -56,6 +58,13 @@ export const getClientById = (id: string) =>
 
 export const getAllClients = () =>
   fetchData("/project_pulse/Client/getAllClients", "clients data");
+
+export const getAllProjects = () =>
+  fetchData("/project_pulse/Project/getAllProjects", "project data");
+
+export const getAllTeamMembers = () =>
+  fetchData("/project_pulse/TeamMembers/getAllTeamMembers", "team members data");
+
 
 // Other data functions
 export const getQuotatoinData = () =>
@@ -78,8 +87,7 @@ export const getItems = () =>
 export const getAllPayments = () =>
   fetchData("/project_pulse/Payment/getAllPayments", "payments data");
 
-export const getAllProjects = () =>
-  fetchData("/project_pulse/Project/getAllProjects", "Projects data");
+
 
 export const getAllVendors = () =>
   fetchData("/project_pulse/Vendor/getAllVendors", "vendors data");

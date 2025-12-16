@@ -35,6 +35,14 @@ export const formatCurrency = (value?: number) => {
   );
 };
 
+export  const formatDate2 = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   
 export const formatCurrencyOrNA = (value: number | null | undefined) => {
   return value !== null && value !== undefined 
