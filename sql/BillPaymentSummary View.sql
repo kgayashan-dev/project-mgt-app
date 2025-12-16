@@ -1,6 +1,6 @@
 
 -- View for bill payment summary
-CREATE VIEW [dbo].[vw_BillPaymentSummary]
+CREATE or alter VIEW [dbo].[vw_BillPaymentSummary]
 AS
 SELECT 
     b.Id AS BillId,
@@ -98,3 +98,10 @@ EXEC [dbo].[sp_CreatePayment]
     @Amount = 500.00,
     @Status = 'Completed',
     @TransactionReference = 'TXN123456';
+
+
+
+use project_pulse
+
+SELECT * FROM Quotations
+SELECT * FROM Invoices
