@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from "react";
 import {
   Plus,
@@ -26,18 +25,22 @@ interface TeamMember {
 }
 
 interface TeamMembersProps {
-  members: TeamMember[];
-  loading: boolean;
-  error: string | null;
-  onRefresh: () => void;
+  teamMembersData: TeamMember[];
+  onRefresh?: () => void;
+  loading?: boolean;
+  error?: string | null;
 }
+
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 const TeamMembers: React.FC<TeamMembersProps> = ({
-  members = [],
+  teamMembersData = [],
+  onRefresh = () => {},
   loading = false,
   error = null,
-  onRefresh,
 }) => {
+
+  console.log(teamMembersData)
   // State management for UI components only
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showEditMemberModal, setShowEditMemberModal] = useState(false);
@@ -326,7 +329,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
   };
 
   // Filter team members based on search and filter criteria
-  const filteredMembers = members.filter((member) => {
+  const filteredMembers = teamMembersData.filter((member) => {
     const matchesSearch =
       searchTerm === "" ||
       member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -343,14 +346,14 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
   // Get unique departments for filter dropdown
   const departments = [
     ...new Set(
-      members
+      teamMembersData
         .map((member) => member.department)
         .filter((dept) => dept && dept.trim() !== "")
     ),
   ];
 
   // Get active members count
-  const activeMembersCount = members.filter((member) => member.isActive).length;
+  const activeMembersCount = teamMembersData.filter((member) => member.isActive).length;
 
   // Get initials from name
   const getInitials = (name: string) => {
@@ -362,20 +365,17 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
       .slice(0, 2);
   };
 
-  // Format date
- 
-
   // Combined loading state
   const isLoading = loading || apiLoading;
 
   return (
-    <div className=" mx-auto p-6">
+    <div className="mx-auto p-6">
       {/* Header with Stats and Refresh Button */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Team Members</h1>
           <p className="text-gray-600 mt-1">
-            {activeMembersCount} active members • {members.length} total members
+            {activeMembersCount} active members • {teamMembersData.length} total members
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -472,12 +472,10 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
       </div>
 
       {/* Loading State */}
-      {isLoading && (
+      {isLoading && !apiLoading && (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">
-            {apiLoading ? "Processing..." : "Loading team members..."}
-          </p>
+          <p className="mt-4 text-gray-600">Loading team members...</p>
         </div>
       )}
 
@@ -556,7 +554,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                         : "text-gray-600 hover:bg-gray-100"
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                     title={member.isActive ? "Deactivate" : "Activate"}
-                    disabled={isLoading}
+                    disabled={apiLoading}
                   >
                     {member.isActive ? <Eye size={18} /> : <EyeOff size={18} />}
                   </button>
@@ -564,7 +562,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                     onClick={() => openEditModal(member)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-md hover:bg-opacity-20 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Edit"
-                    disabled={isLoading}
+                    disabled={apiLoading}
                   >
                     <Edit size={18} />
                   </button>
@@ -572,7 +570,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                     onClick={() => openDeleteConfirm(member)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-md hover:bg-opacity-20 disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete"
-                    disabled={isLoading}
+                    disabled={apiLoading}
                   >
                     <Trash2 size={18} />
                   </button>
@@ -968,12 +966,12 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
               <div>Join Date</div>
               <div className="text-right">Status</div>
             </div>
-            {members.filter((member) => !member.isActive).length === 0 ? (
+            {teamMembersData.filter((member) => !member.isActive).length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 No inactive team members found.
               </div>
             ) : (
-              members
+              teamMembersData
                 .filter((member) => !member.isActive)
                 .map((member) => (
                   <div
@@ -1005,7 +1003,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                       <button
                         onClick={() => toggleActiveStatus(member)}
                         className="px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={isLoading}
+                        disabled={apiLoading}
                       >
                         Activate
                       </button>

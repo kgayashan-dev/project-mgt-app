@@ -64,6 +64,8 @@ export const getAllProjects = () =>
 
 export const getAllTeamMembers = () =>
   fetchData("/project_pulse/TeamMembers/getAllTeamMembers", "team members data");
+export const getAllActiveTeamMembers = () =>
+  fetchData("/project_pulse/TeamMembers/getActiveTeamMembers", "team members data");
 
 
 // Other data functions

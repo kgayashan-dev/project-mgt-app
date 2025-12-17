@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import TeamMembers from "./TeamMembers";
+import { getAllTeamMembers } from "@/utils/getdata";
 
 interface TeamMember {
   memId: string;
@@ -14,64 +15,73 @@ interface TeamMember {
   createdDate: string;
 }
 
+// This is a Client Component
 export default function TeamMembersPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // API Base URL
-  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const teamMembersResponse = await getAllTeamMembers();
+        
+        console.log("Team members response:", teamMembersResponse);
+        
+        // Handle different response structures
+        if (teamMembersResponse.success) {
+          setTeamMembers(teamMembersResponse.data || []);
+        } else if (Array.isArray(teamMembersResponse)) {
+          setTeamMembers(teamMembersResponse);
+        } else {
+          throw new Error("Unexpected response structure");
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch team members";
+        setError(errorMessage);
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Function to fetch all team members
-  const fetchAllTeamMembers = async () => {
+    fetchData();
+  }, []);
+
+  const handleRefresh = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      const response = await fetch(
-        `${API_URL}/project_pulse/TeamMembers/getAllTeamMembers`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setTeamMembers(result.data);
+      
+      const teamMembersResponse = await getAllTeamMembers();
+      
+      if (teamMembersResponse.success) {
+        setTeamMembers(teamMembersResponse.data || []);
+      } else if (Array.isArray(teamMembersResponse)) {
+        setTeamMembers(teamMembersResponse);
       } else {
-        throw new Error(result.message || "Failed to fetch team members");
+        throw new Error("Unexpected response structure");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      console.error("Error fetching team members:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to refresh data";
+      setError(errorMessage);
+      console.error("Error refreshing data:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Function to refresh data
-  const refreshTeamMembers = () => {
-    fetchAllTeamMembers();
-  };
-
-  // Fetch team members on component mount
-  useEffect(() => {
-    fetchAllTeamMembers();
-  }, []);
-
-  // Prepare data to pass as props
-  const teamMembersData = {
-    members: teamMembers,
-    loading: loading,
-    error: error,
-    onRefresh: refreshTeamMembers,
-  };
-
   return (
     <div>
-      <TeamMembers {...teamMembersData} />
+      <TeamMembers 
+        teamMembersData={teamMembers}
+        loading={loading}
+        error={error}
+        onRefresh={handleRefresh}
+      />
     </div>
   );
 }
