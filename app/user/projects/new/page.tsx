@@ -2,8 +2,9 @@ import NewProject from "@/components/NewProject";
 import {
   getAllClients,
   getAllActiveTeamMembers,
-  getAllTeamMembers,
+  // getAllTeamMembers,
 } from "@/utils/getdata";
+
 
 export default async function NewProjectPage() {
   let clientData = [];
@@ -17,7 +18,7 @@ export default async function NewProjectPage() {
       activeTeamMembersResponse,
     ] = await Promise.all([
       getAllClients(),
-      getAllTeamMembers(),
+      // getAllTeamMembers(),
       getAllActiveTeamMembers(),
     ]);
 
@@ -25,6 +26,7 @@ export default async function NewProjectPage() {
       clientData = clientsResponse.data;
     }
 
+    
     // if (teamMembersResponse.success) {
     //   teamMembersData = teamMembersResponse.data; // Not teamMembersResponse.data.data
     // }
@@ -35,6 +37,8 @@ export default async function NewProjectPage() {
   } catch (error) {
     console.warn("Error fetching data:", error);
   }
+
+  console.log(activeTeamMembersData)
 
   // Pass teamMembersData (not teamMembersData.data) to NewProject
   return (

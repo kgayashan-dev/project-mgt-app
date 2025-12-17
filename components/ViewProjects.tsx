@@ -251,7 +251,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
               </select>
             </div>
             
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
               <Download size={18} />
               Export
             </button>
@@ -263,7 +263,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-100">
               <tr>
                 <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Project</th>
                 <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Client</th>
@@ -308,7 +308,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
                   return (
                     <tr 
                       key={project.id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="hover:bg-gray-100 cursor-pointer transition-colors"
                       onClick={() => handleProjectClick(project)}
                     >
                       <td className="py-4 px-6">
@@ -522,7 +522,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
                 {/* Financial Summary */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h3>
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="bg-gray-100 rounded-lg p-4">
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Flat Rate</span>
@@ -555,7 +555,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Services</h3>
                   <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                     <table className="w-full">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gray-100">
                         <tr>
                           <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Service</th>
                           <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Hours</th>
@@ -601,17 +601,17 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
               </div>
             </div>
 
-            <div className="p-6 border-t bg-gray-50">
+            <div className="p-6 border-t bg-gray-100">
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDetailsModal(false)}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
                 >
                   Close
                 </button>
                 <button
                   onClick={() => {
-                    router.push(`/projects/edit/${selectedProject.id}`);
+                    router.push(`/user/projects/${selectedProject.id}`);
                     setShowDetailsModal(false);
                   }}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

@@ -13,11 +13,12 @@ import {
   Clock4,
   Save,
   Clock,
+  Edit,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import SearchableSelect from "@/components/SearchableSelect"; // Import the component
+import { useRouter, useParams } from "next/navigation";
+import SearchableSelect from "@/components/SearchableSelect";
 
-// Types
+// Types (same as before)
 interface Service {
   id?: number;
   description: string;
@@ -45,23 +46,40 @@ interface Client {
   businessType: string;
 }
 
-interface NewProjectProps {
+interface ProjectData {
+  id: string;
+  projectName: string;
+  clientId: string;
+  clientName?: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  flatRate: number;
+  totalHours: number;
+  status: string;
+  services: Service[];
+  teamMembers: Array<{
+    memId: string;
+    name?: string;
+    role: string;
+  }>;
+}
+
+interface EditProjectProps {
   clients: Client[];
   teamMembers: TeamMember[];
+  projectId: string;
 }
 
 type ProjectType = "flat-rate" | "hourly";
 
-const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
+const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, projectId }) => {
   const router = useRouter();
-
-  console.log(teamMembers,"ss")
+  const params = useParams();
 
   // State management
   const [client, setClient] = useState<Client | null>(null);
-  const [selectedTeamMembers, setSelectedTeamMembers] = useState<TeamMember[]>(
-    []
-  );
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<TeamMember[]>([]);
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -75,6 +93,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
     { description: "", hours: 0, rate: 0 },
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [showTeamMemberModal, setShowTeamMemberModal] = useState(false);
   const [searchTeamMember, setSearchTeamMember] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("Team Member");
@@ -100,20 +119,89 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
     label: status,
   }));
 
-  // Initialize with default dates
+  // Fetch project data on mount
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    setStartDate(today);
+    const fetchProjectData = async () => {
+      if (!projectId) return;
+      
+      try {
+        setIsFetching(true);
+        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const response = await fetch(`${API_URL}/project_pulse/Project/${projectId}`);
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const project = result.data;
+            populateForm(project);
+          } else {
+            alert("Failed to fetch project data");
+            router.back();
+          }
+        } else {
+          alert("Project not found");
+          router.back();
+        }
+      } catch (error) {
+        console.error("Error fetching project:", error);
+        alert("Error loading project data");
+        router.back();
+      } finally {
+        setIsFetching(false);
+      }
+    };
 
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + 30);
-    setEndDate(futureDate.toISOString().split("T")[0]);
+    fetchProjectData();
+  }, [projectId, router]);
 
-    // Set first client by default if available
-    if (clients.length > 0) {
-      setClient(clients[0]);
+  // Populate form with existing data
+  const populateForm = (project: ProjectData) => {
+    setProjectName(project.projectName);
+    setDescription(project.description || "");
+    
+    // Format dates
+    const start = new Date(project.startDate);
+    const end = new Date(project.endDate);
+    setStartDate(start.toISOString().split('T')[0]);
+    setEndDate(end.toISOString().split('T')[0]);
+    
+    setFlatRate(project.flatRate.toString());
+    setTotalHours(project.totalHours.toString());
+    setStatus(project.status);
+    
+    // Determine project type
+    const isHourly = project.services && project.services.length > 0;
+    setSelectedType(isHourly ? "hourly" : "flat-rate");
+    
+    // Set services
+    if (project.services && project.services.length > 0) {
+      setServices(project.services);
     }
-  }, [clients]);
+    
+    // Set client
+    const foundClient = clients.find(c => c.id === project.clientId);
+    if (foundClient) {
+      setClient(foundClient);
+    }
+    
+    // Set team members
+    if (project.teamMembers && project.teamMembers.length > 0) {
+      const populatedMembers = project.teamMembers.map(member => {
+        const fullMember = teamMembers.find(tm => tm.memId === member.memId);
+        return {
+          memId: member.memId,
+          name: fullMember?.name || member.memId,
+          email: fullMember?.email || "",
+          phone: fullMember?.phone || "",
+          department: fullMember?.department || "",
+          role: member.role,
+          isActive: fullMember?.isActive || true
+        };
+      }).filter(member => member); // Remove undefined entries
+      
+      setSelectedTeamMembers(populatedMembers);
+    }
+  };
 
   // Filter team members based on search
   const filteredTeamMembers = teamMembers.filter(
@@ -227,8 +315,8 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
     }).format(amount);
   };
 
-  // Handle save project
-  const handleSave = async () => {
+  // Handle update project
+  const handleUpdate = async () => {
     // Validation
     if (!projectName.trim()) {
       alert("Please enter a project name");
@@ -248,7 +336,6 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
     setIsLoading(true);
 
     const projectData = {
-      id: "",
       projectName: projectName.trim(),
       clientId: client.id,
       description: description.trim(),
@@ -262,7 +349,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
       status,
       services: services
         .map((service) => ({
-          id: 0,
+          id: service.id || 0,
           description: service.description,
           hours: service.hours,
           rate: service.rate,
@@ -273,11 +360,11 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
         role: member.role,
       })),
     };
-    // console.log(projectData)
+
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-      const response = await fetch(`${API_URL}/project_pulse/Project/create`, {
-        method: "POST",
+      const response = await fetch(`${API_URL}/project_pulse/Project/update/${projectId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           accept: "*/*",
@@ -289,20 +376,19 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
       console.log(result);
 
       if (response.ok) {
-        alert(`✅ ${result.message}!\nProject ID: ${result.id}`);
-        // console.log(result);
-        // router.push('/projects');
+        alert(`✅ ${result.message}!`);
+        router.push(`/projects/${projectId}`); // Redirect to project detail page
       } else {
-        // console.log(result);
         alert(`❌ Error: ${result.message}\n Msg: ${result.error}`);
       }
     } catch (error) {
-      console.warn("Error creating project:", error);
-      alert("❌ Failed to create project. Please try again.");
+      console.warn("Error updating project:", error);
+      alert("❌ Failed to update project. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
   // Calculate project duration in days
   const calculateDuration = () => {
     if (!startDate || !endDate) return 0;
@@ -323,14 +409,29 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
     }
   };
 
+  // Show loading state
+  if (isFetching) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-20 to-white p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading project data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-20 to-white p-8">
       {/* Header */}
       <div className="flex flex-row justify-between items-center mb-6">
         <div>
-          <h1 className="text-4xl font-bold text-navy-900">New Project</h1>
+          <h1 className="text-4xl font-bold text-navy-900 flex items-center gap-3">
+            <Edit className="text-blue-600" size={32} />
+            Edit Project: {projectId}
+          </h1>
           <p className="text-gray-500 mt-2">
-            Create a new project with all necessary details
+            Update project details, team members, and services
           </p>
         </div>
         <div className="flex space-x-3">
@@ -342,19 +443,19 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
             Cancel
           </button>
           <button
-            onClick={handleSave}
+            onClick={handleUpdate}
             disabled={isLoading || !projectName || !client}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Saving...
+                Updating...
               </>
             ) : (
               <>
                 <Save size={18} />
-                Save Project
+                Update Project
               </>
             )}
           </button>
@@ -969,4 +1070,4 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
   );
 };
 
-export default NewProject;
+export default EditProject;
