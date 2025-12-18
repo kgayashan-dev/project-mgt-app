@@ -5,7 +5,6 @@ import {
   // getAllTeamMembers,
 } from "@/utils/getdata";
 
-
 export default async function NewProjectPage() {
   let clientData = [];
   // let teamMembersData = [];
@@ -26,13 +25,12 @@ export default async function NewProjectPage() {
       clientData = clientsResponse.data;
     }
 
-    
     // if (teamMembersResponse.success) {
     //   teamMembersData = teamMembersResponse.data; // Not teamMembersResponse.data.data
     // }
 
     if (activeTeamMembersResponse.success) {
-      activeTeamMembersData = activeTeamMembersResponse.data; // Not activeTeamMembersResponse.data.data
+      activeTeamMembersData = activeTeamMembersResponse.data.data; // Not activeTeamMembersResponse.data.data
     }
   } catch (error) {
     console.warn("Error fetching data:", error);

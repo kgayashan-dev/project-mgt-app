@@ -74,17 +74,19 @@ interface EditProjectProps {
 
 type ProjectType = "flat-rate" | "hourly";
 
-const EditProject: React.FC<EditProjectProps> = ({ 
-  clients, 
-  teamMembers, 
+const EditProject: React.FC<EditProjectProps> = ({
+  clients,
+  teamMembers,
   projectId,
-  initialProjectData 
+  initialProjectData,
 }) => {
   const router = useRouter();
 
   // State management
   const [client, setClient] = useState<Client | null>(null);
-  const [selectedTeamMembers, setSelectedTeamMembers] = useState<TeamMember[]>([]);
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<TeamMember[]>(
+    []
+  );
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -113,7 +115,7 @@ const EditProject: React.FC<EditProjectProps> = ({
   ];
 
   // Convert clients to SearchableSelect format
-  const clientOptions = clients.map((client : Client) => ({
+  const clientOptions = clients.map((client: Client) => ({
     value: client.id,
     label: `${client.name} (${client.id}) - ${client.businessType}`,
   }));
@@ -138,12 +140,14 @@ const EditProject: React.FC<EditProjectProps> = ({
   // Fallback function to fetch project data
   const fetchProjectData = async () => {
     if (!projectId) return;
-    
+
     try {
       setIsFetching(true);
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-      const response = await fetch(`${API_URL}/project_pulse/Project/${projectId}`);
-      
+      const response = await fetch(
+        `${API_URL}/project_pulse/Project/${projectId}`
+      );
+
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
@@ -167,58 +171,65 @@ const EditProject: React.FC<EditProjectProps> = ({
 
   // Populate form with existing data
   const populateForm = (project: ProjectData) => {
-    console.log('Populating form with:', project);
-    
+    console.log("Populating form with:", project);
+
     setProjectName(project.projectName);
     setDescription(project.description || "");
-    
+
     // Format dates
     const start = new Date(project.startDate);
     const end = new Date(project.endDate);
-    setStartDate(start.toISOString().split('T')[0]);
-    setEndDate(end.toISOString().split('T')[0]);
-    
+    setStartDate(start.toISOString().split("T")[0]);
+    setEndDate(end.toISOString().split("T")[0]);
+
     setFlatRate(project.flatRate.toString());
     setTotalHours(project.totalHours.toString());
     setStatus(project.status);
-    
+
     // Determine project type based on services
     // If project has services with hours/rate, it's hourly, otherwise flat-rate
     const hasServices = project.services && project.services.length > 0;
-    const hasHourlyServices = hasServices && project.services.some(s => s.hours > 0 && s.rate > 0);
-    
+    const hasHourlyServices =
+      hasServices && project.services.some((s) => s.hours > 0 && s.rate > 0);
+
     setSelectedType(hasHourlyServices ? "hourly" : "flat-rate");
-    
+
     // Set services - use empty array if no services
     if (project.services && project.services.length > 0) {
       setServices(project.services);
     } else {
       setServices([{ description: "", hours: 0, rate: 0 }]);
     }
-    
+
     // Set client
-    const foundClient = clients.find(c => c.id === project.clientId);
+    const foundClient = clients.find((c) => c.id === project.clientId);
     if (foundClient) {
       setClient(foundClient);
     } else {
-      console.warn(`Client with ID ${project.clientId} not found in clients list`);
+      console.warn(
+        `Client with ID ${project.clientId} not found in clients list`
+      );
     }
-    
+
     // Set team members
     if (project.teamMembers && project.teamMembers.length > 0) {
-      const populatedMembers = project.teamMembers.map(member => {
-        const fullMember = teamMembers.find(tm => tm.memId === member.memId);
-        return {
-          memId: member.memId,
-          name: fullMember?.name || member.name || member.memId,
-          email: fullMember?.email || "",
-          phone: fullMember?.phone || "",
-          department: fullMember?.department || "",
-          role: member.role,
-          isActive: fullMember?.isActive || true
-        };
-      }).filter(member => member); // Remove undefined entries
-      
+      const populatedMembers = project.teamMembers
+        .map((member) => {
+          const fullMember = teamMembers.find(
+            (tm) => tm.memId === member.memId
+          );
+          return {
+            memId: member.memId,
+            name: fullMember?.name || member.name || member.memId,
+            email: fullMember?.email || "",
+            phone: fullMember?.phone || "",
+            department: fullMember?.department || "",
+            role: member.role,
+            isActive: fullMember?.isActive || true,
+          };
+        })
+        .filter((member) => member); // Remove undefined entries
+
       setSelectedTeamMembers(populatedMembers);
     } else {
       setSelectedTeamMembers([]);
@@ -321,8 +332,6 @@ const EditProject: React.FC<EditProjectProps> = ({
     setIsProjectTypeOpen(false);
     // Reset values based on type
     if (type === "flat-rate") {
-      // When switching to flat-rate, keep existing flat rate value
-      // Don't reset to 0.00
     } else {
       // When switching to hourly, calculate total hours from services
       setTotalHours(calculateTotalHours().toString());
@@ -388,14 +397,17 @@ const EditProject: React.FC<EditProjectProps> = ({
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-      const response = await fetch(`${API_URL}/project_pulse/Project/update/${projectId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          accept: "*/*",
-        },
-        body: JSON.stringify(projectData),
-      });
+      const response = await fetch(
+        `${API_URL}/project_pulse/Project/update/${projectId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "*/*",
+          },
+          body: JSON.stringify(projectData),
+        }
+      );
 
       const result = await response.json();
       // console.log('Update response:', result);
@@ -408,7 +420,7 @@ const EditProject: React.FC<EditProjectProps> = ({
       }
     } catch (error) {
       // console.warn("Error updating project:", error);
-      alert("❌ Failed to update project. Please try again. "+error);
+      alert("❌ Failed to update project. Please try again. " + error);
     } finally {
       setIsLoading(false);
     }
@@ -447,11 +459,11 @@ const EditProject: React.FC<EditProjectProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-20 to-white p-8">
+    <div className="min-h-screen bg-gradient-to-b from-blue-20 to-white p-6">
       {/* Header */}
       <div className="flex flex-row justify-between items-center mb-6">
         <div>
-          <h1 className="text-4xl font-bold text-navy-900 flex items-center gap-3">
+          <h1 className="text-xl font-bold text-navy-900 flex items-center gap-3">
             <Edit className="text-blue-600" size={32} />
             Edit Project: {projectId}
           </h1>
@@ -462,7 +474,7 @@ const EditProject: React.FC<EditProjectProps> = ({
         <div className="flex space-x-3">
           <button
             onClick={handleCancel}
-            className="px-6 py-3 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-all duration-200 font-medium text-gray-700"
+            className="px-3 py-2 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-all duration-200 font-medium text-gray-700"
             disabled={isLoading}
           >
             Cancel
@@ -470,11 +482,11 @@ const EditProject: React.FC<EditProjectProps> = ({
           <button
             onClick={handleUpdate}
             disabled={isLoading || !projectName || !client}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-blue-600 text-white text-sm px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <div className="animate-spin text-sm rounded-full h-4 w-4 border-b-2 border-white"></div>
                 Updating...
               </>
             ) : (
@@ -638,7 +650,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 placeholder="Enter project name"
-                className="w-full text-lg font-medium text-gray-900 p-2 border-b border-gray-300 focus:border-blue-500 focus:outline-none"
+                className="w-full text-sm font-medium text-gray-900 p-2 border-b border-gray-300 focus:border-blue-500 focus:outline-none"
               />
             </div>
 
@@ -655,7 +667,7 @@ const EditProject: React.FC<EditProjectProps> = ({
               />
             </div>
 
-            {/* Project Dates & Financials */}
+            {/* Project Dates & Financial */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -670,11 +682,10 @@ const EditProject: React.FC<EditProjectProps> = ({
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
-
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-2">
                   End Date *
@@ -689,7 +700,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     min={startDate}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-3 text-sm py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -701,7 +712,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                   </label>
                   <div className="relative">
                     <DollarSign
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      className="absolute left-3 text-sm top-1/2 transform -translate-y-1/2 text-gray-400"
                       size={18}
                     />
                     <input
@@ -710,7 +721,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                       value={flatRate}
                       onChange={(e) => setFlatRate(e.target.value)}
                       placeholder="0.00"
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -722,7 +733,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                 </label>
                 <div className="relative">
                   <Clock
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 text-sm transform -translate-y-1/2 text-gray-400"
                     size={18}
                   />
                   <input
@@ -734,7 +745,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                     }
                     onChange={(e) => setTotalHours(e.target.value)}
                     readOnly={selectedType === "hourly"}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -761,7 +772,7 @@ const EditProject: React.FC<EditProjectProps> = ({
               <h2 className="text-sm font-semibold text-gray-800">Services</h2>
               <button
                 onClick={addService}
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                className="flex items-center text-sm gap-2 text-blue-600 hover:text-blue-700 font-medium"
               >
                 <Plus size={18} />
                 Add Service
@@ -845,8 +856,8 @@ const EditProject: React.FC<EditProjectProps> = ({
         <div className="w-full lg:w-80">
           {/* Settings Card */}
           <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-2">Settings</h2>
-            <p className="text-gray-500 mb-6">For This Project</p>
+            <h2 className="text-sm font-bold text-gray-900 mb-2">Settings</h2>
+            <p className="text-gray-500 text-sm mb-6">For This Project</p>
 
             {/* Project Type */}
             <div className="mb-6">
@@ -861,10 +872,10 @@ const EditProject: React.FC<EditProjectProps> = ({
                         <Beaker size={20} />
                       </div>
                       <div>
-                        <h3 className="text-gray-900 font-medium">
+                        <h3 className="text-gray-900 font-medium text-sm">
                           Project Type
                         </h3>
-                        <p className="text-blue-600">
+                        <p className="text-blue-600 text-sm">
                           {
                             projectTypes.find(
                               (type) => type.id === selectedType
@@ -874,7 +885,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                       </div>
                     </div>
                     <ChevronRight
-                      className={`text-gray-400 group-hover:text-gray-600 transition-transform ${
+                      className={`text-gray-400 text-sm group-hover:text-gray-600 transition-transform ${
                         isProjectTypeOpen ? "rotate-90" : ""
                       }`}
                     />
@@ -889,7 +900,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                         <button
                           key={type.id}
                           onClick={() => handleSelect(type.id as ProjectType)}
-                          className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b last:border-b-0"
+                          className="w-full flex items-center text-sm justify-between px-4 py-3 hover:bg-gray-50 border-b last:border-b-0"
                         >
                           <div className="flex items-center gap-3">
                             <Icon size={18} className="text-gray-500" />
@@ -916,27 +927,27 @@ const EditProject: React.FC<EditProjectProps> = ({
 
             {/* Project Summary */}
             <div className="border-t pt-6">
-              <h3 className="text-gray-900 font-medium mb-4">
+              <h3 className="text-gray-900 text-md font-medium mb-4">
                 Project Summary
               </h3>
               <div className="space-y-3">
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm ">
                   <span className="text-gray-600">Duration</span>
                   <span className="font-medium">
                     {calculateDuration()} days
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Team Members</span>
                   <span className="font-medium">
                     {selectedTeamMembers.length}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Services</span>
                   <span className="font-medium">{services.length}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Total Hours</span>
                   <span className="font-medium">
                     {selectedType === "hourly"
@@ -945,11 +956,11 @@ const EditProject: React.FC<EditProjectProps> = ({
                   </span>
                 </div>
                 <div className="pt-3 border-t">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center text-md">
                     <span className="text-gray-900 font-medium">
                       Total Cost
                     </span>
-                    <span className="text-lg font-bold text-green-600">
+                    <span className="text-md font-bold text-green-600">
                       {formatCurrency(calculateTotalCost())}
                     </span>
                   </div>
@@ -966,7 +977,7 @@ const EditProject: React.FC<EditProjectProps> = ({
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b">
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-bold text-gray-900">
+                <h2 className="text-sm font-bold text-gray-900">
                   Add Team Members
                 </h2>
                 <button

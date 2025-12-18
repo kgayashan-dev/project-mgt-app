@@ -160,7 +160,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-navy-900">Projects</h1>
+          <h1 className="text-xl font-bold text-navy-900">Projects</h1>
           <p className="text-gray-600 mt-2">
             Manage and track all your projects in one place
           </p>
@@ -743,7 +743,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDetailsModal(false)}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                  className="px-6 py-2 border border-gray-300 text-sm rounded-lg hover:bg-gray-100"
                 >
                   Close
                 </button>
@@ -752,7 +752,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
                     router.push(`/user/projects/${selectedProject.id}`);
                     setShowDetailsModal(false);
                   }}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="px-6 py-2 bg-blue-600 text-sm text-white rounded-lg hover:bg-blue-700"
                 >
                   Edit Project
                 </button>

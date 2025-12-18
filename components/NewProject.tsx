@@ -55,7 +55,7 @@ type ProjectType = "flat-rate" | "hourly";
 const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
   const router = useRouter();
 
-  console.log(teamMembers,"ss")
+  console.log(teamMembers, "ss");
 
   // State management
   const [client, setClient] = useState<Client | null>(null);
@@ -328,7 +328,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
       {/* Header */}
       <div className="flex flex-row justify-between items-center mb-6">
         <div>
-          <h1 className="text-4xl font-bold text-navy-900">New Project</h1>
+          <h1 className="text-xl font-bold text-navy-900">New Project</h1>
           <p className="text-gray-500 mt-2">
             Create a new project with all necessary details
           </p>
@@ -336,7 +336,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
         <div className="flex space-x-3">
           <button
             onClick={handleCancel}
-            className="px-6 py-3 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-all duration-200 font-medium text-gray-700"
+            className="px-4 py-2 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-all duration-200 font-medium text-gray-700"
             disabled={isLoading}
           >
             Cancel
@@ -344,7 +344,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
           <button
             onClick={handleSave}
             disabled={isLoading || !projectName || !client}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-green-600 text-white px-4 py-3 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -443,7 +443,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
               </h2>
               <button
                 onClick={() => setShowTeamMemberModal(true)}
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                className="flex items-center text-sm gap-2 text-blue-600 hover:text-blue-700 font-medium"
               >
                 <UserPlus size={18} />
                 Add Member
@@ -544,7 +544,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-3 text-sm py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -555,7 +555,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                 </label>
                 <div className="relative">
                   <Calendar
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left- top-1/2 transform -translate-y-1/2 text-gray-400"
                     size={18}
                   />
                   <input
@@ -563,7 +563,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     min={startDate}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -584,7 +584,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                       value={flatRate}
                       onChange={(e) => setFlatRate(e.target.value)}
                       placeholder="0.00"
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-10 pr-3 text-sm py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
@@ -596,7 +596,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                 </label>
                 <div className="relative">
                   <Clock
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 text-sm transform -translate-y-1/2 text-gray-400"
                     size={18}
                   />
                   <input
@@ -719,8 +719,8 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
         <div className="w-full lg:w-80">
           {/* Settings Card */}
           <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-2">Settings</h2>
-            <p className="text-gray-500 mb-6">For This Project</p>
+            <h2 className="text-md font-bold text-gray-900 mb-2">Settings</h2>
+            <p className="text-gray-500 text-sm mb-6">For This Project</p>
 
             {/* Project Type */}
             <div className="mb-6">
@@ -735,10 +735,10 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                         <Beaker size={20} />
                       </div>
                       <div>
-                        <h3 className="text-gray-900 font-medium">
+                        <h3 className="text-gray-900 font-medium text-sm">
                           Project Type
                         </h3>
-                        <p className="text-blue-600">
+                        <p className="text-blue-600 text-sm">
                           {
                             projectTypes.find(
                               (type) => type.id === selectedType
@@ -756,7 +756,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                 </div>
 
                 {isProjectTypeOpen && (
-                  <div className="absolute left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                  <div className="absolute left-0  text-sm right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                     {projectTypes.map((type) => {
                       const Icon = type.icon;
                       return (
@@ -790,10 +790,10 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
 
             {/* Project Summary */}
             <div className="border-t pt-6">
-              <h3 className="text-gray-900 font-medium mb-4">
+              <h3 className="text-gray-900 text-sm font-medium mb-4">
                 Project Summary
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Duration</span>
                   <span className="font-medium">
