@@ -231,7 +231,7 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
           },
           body: JSON.stringify({
             id: "",
-            paymentType: "bill_payment",
+            paymentType: "bill_payment", // 0
             referenceId: paymentData.billId,
             paymentDate: new Date(paymentData.paymentDate).toISOString(),
             paymentMethod: paymentData.type,

@@ -74,8 +74,8 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
   paymentsData,
 }) => {
   
-  console.log("Payments data:", paymentsData);
-  console.log("Invoice array:", invoiceArray);
+  // console.log("Payments data:", paymentsData);
+  // console.log("Invoice array:", invoiceArray);
 
   // State
   const [showDetails, setShowDetails] = useState(false);
@@ -220,7 +220,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
           },
           body: JSON.stringify({
             id: "",
-            paymentType: "invoice_payment",
+            paymentType: "invoice_payment", // 1
             referenceId: paymentData.invoiceId,
             paymentDate: new Date(paymentData.paymentDate).toISOString(),
             paymentMethod: paymentData.type,
