@@ -101,7 +101,7 @@ const AllPayments = () => {
       <div className="flex justify-between items-center mb-6">
         {/* Header content remains the same */}
         <div className="flex justify-start items-center gap-4">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-gray-900">
             All  Payments
           </h2>
           <button
@@ -171,28 +171,28 @@ const AllPayments = () => {
               {filteredPayments.map((payment) => (
                 <tr key={payment.id} className="hover:bg-gray-10">
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-xs font-medium text-gray-900">
                       {payment.client}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-xs text-gray-500">
                       {payment.invoiceNumber}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-xs text-gray-500">
                     {new Date(payment.paymentDate).toLocaleDateString("en-GB")}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">{payment.type}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-xs text-gray-900">{payment.type}</div>
+                    <div className="text-xs text-gray-500">
                       {payment.internalNotes}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-xs font-medium text-gray-900">
                       ${payment.amount.toFixed(2)}
                     </div>
                     <div
-                      className={`text-sm ${
+                      className={`text-xs ${
                         payment.status === "Paid"
                           ? "text-green-600"
                           : payment.status === "Pending"
@@ -219,7 +219,7 @@ const AllPayments = () => {
                 <td className="px-6 py-0">
                   <label
                     htmlFor="invoiceNumber"
-                    className="text-sm text-gray-500"
+                    className="text-xs text-gray-500"
                   >
                     Invoice
                   </label>
@@ -229,13 +229,13 @@ const AllPayments = () => {
                     value={newPayment.invoiceNumber}
                     onChange={handleInputChange}
                     placeholder="Invoice"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </td>
                 <td className="px-6 py-4">
                   <label
                     htmlFor="paymentDate"
-                    className="text-sm text-gray-500"
+                    className="text-xs text-gray-500"
                   >
                     Payment Date
                   </label>
@@ -244,18 +244,18 @@ const AllPayments = () => {
                     name="paymentDate"
                     value={newPayment.paymentDate}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </td>
-                <td className="p-6 py-0">
-                  <label htmlFor="type" className="text-sm text-gray-500">
+                <td className="p-4 py-0">
+                  <label htmlFor="type" className="text-xs text-gray-500">
                     Payment Type
                   </label>
                   <select
                     name="type"
                     value={newPayment.type}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Select Payment Type</option>
                     <option value="Cash">Cash</option>
@@ -264,7 +264,7 @@ const AllPayments = () => {
                   </select>
                 </td>
                 <td className="px-6 py-4">
-                  <label htmlFor="amount" className="text-sm text-gray-500">
+                  <label htmlFor="amount" className="text-xs text-gray-500">
                     Amount(LKR)
                   </label>
                   <input
@@ -273,7 +273,7 @@ const AllPayments = () => {
                     value={newPayment.amount}
                     onChange={handleInputChange}
                     placeholder="Amount (LKR)"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </td>
               </tr>
@@ -286,7 +286,7 @@ const AllPayments = () => {
                     onChange={handleInputChange}
                     rows={2}
                     placeholder="Enter notes or details here..."
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </td>
               </tr>

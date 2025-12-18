@@ -224,14 +224,14 @@ const Page = () => {
 
       {/* Favorite Reports Section */}
       {/* <section className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-6">
           Favorite Reports
         </h2>
         <div className="grid grid-cols-6 gap-2">
           {[...Array(6)].map((_, index) => (
             <div
               key={index}
-              className="bg-gray-200 border-2 border-dashed border-gray-200 rounded-lg p-6 flex flex-col items-center justify-center min-h-[200px]"
+              className="bg-gray-200 border-2 border-dashed border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center min-h-[200px]"
             >
               <div className="w-16 h-16 bg-gray-100 rounded-full mb-4"></div>
               <div className="w-3/4 h-4 bg-gray-100 rounded mb-2"></div>
@@ -239,21 +239,21 @@ const Page = () => {
             </div>
           ))}
         </div>
-        <div className="text-blue-600 italic text-sm mt-2">
+        <div className="text-blue-600 italic text-xs mt-2">
           Easy access to your favorite reports
         </div>
       </section> */}
 
       {/* Invoice and Expense Reports */}
       <section className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-6">
           Invoice and Expense Reports
         </h2>
         <div className="grid grid-cols-2 gap-2">
           {invoiceAndExpenseReports.map((report) => (
             <div
               key={report.id}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all relative"
+              className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-all relative"
             >
               <div className="flex gap-4">
                 <div className="text-blue-600">
@@ -288,14 +288,14 @@ const Page = () => {
 
       {/* Payments Reports */}
       <section className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-6">
           Payments Reports
         </h2>
         <div className="grid grid-cols-2 gap-2">
           {paymentReports.map((report) => (
             <div
               key={report.id}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all relative"
+              className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-all relative"
             >
               <div className="flex gap-4">
                 <div className="text-blue-600">
@@ -328,14 +328,14 @@ const Page = () => {
         </div>
       </section>
       <section className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-6">
           Accounting Reports
         </h2>
         <div className="grid grid-cols-2 gap-2">
           {accountingReports.map((report) => (
             <div
               key={report.id}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all relative"
+              className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-all relative"
             >
               <div className="flex gap-4">
                 <div className="text-blue-600">
@@ -370,14 +370,14 @@ const Page = () => {
 
       {/* Time tracking and project reports */}
       <section className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-6">
           Time Tracking and Project Reports
         </h2>
         <div className="grid grid-cols-2 gap-2">
           {timeTrackingProjectReports.map((report) => (
             <div
               key={report.id}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all relative"
+              className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-all relative"
             >
               <div className="flex gap-4">
                 <div className="text-blue-600">
@@ -413,12 +413,12 @@ const Page = () => {
       </section>
       {/* Logs */}
       <section className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Logs</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-6">Logs</h2>
         <div className="grid grid-cols-2 gap-2">
           {logs.map((log) => (
             <div
               key={log.id}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all relative"
+              className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-all relative"
             >
               <div className="flex gap-4">
                 <div className="text-blue-600">
@@ -448,12 +448,12 @@ const Page = () => {
       </section>
       {/* Payroll */}
       <section className="mb-12">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Logs</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-6">Logs</h2>
         <div className="grid grid-cols-2 gap-2">
           {payroll.map((payroll) => (
             <div
               key={payroll.id}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all relative"
+              className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-all relative"
             >
               <div className="flex gap-4">
                 <div className="text-blue-600">

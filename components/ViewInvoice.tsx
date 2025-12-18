@@ -302,7 +302,7 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
         className="max-w-3xl max-h-[150vh] regular-14 p-4 bg-white rounded-lg shadow"
       >
         {/* File Upload and Company Info */}
-        <div className="grid grid-cols-2 gap-6 mb-3">
+        <div className="grid grid-cols-2 gap-4 mb-3">
           <div className="flex justify-between items-start">
             <div className="flex flex-col justify-start mb-4">
               <div

@@ -35,7 +35,7 @@ const JournalEntries = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="max-w-6xl mx-auto p-4 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-navy-900">Journal Entries</h1>
@@ -74,13 +74,13 @@ const JournalEntries = () => {
       )}
 
       {/* Info Section */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-4">
         <div className="flex gap-4 items-start">
           <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
             <span className="text-amber-400 font-bold text-2xl">✓</span>
           </div>
           <div>
-            <h2 className="text-xl font-semibold mb-2">
+            <h2 className="text-lg font-semibold mb-2">
               Ensure your books are up to date with Journal Entries
             </h2>
             <p className="text-gray-600 mb-2">
@@ -98,9 +98,9 @@ const JournalEntries = () => {
 
       {/* Search and Table Section */}
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6">
+        <div className="p-4">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold">Journal Entries</h3>
+            <h3 className="text-lg font-semibold">Journal Entries</h3>
             <div className="relative">
               <Search
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -140,7 +140,7 @@ const JournalEntries = () => {
                   >
                     <td className="py-3 px-4">
                       <div className="font-medium">{entry.name}</div>
-                      <div className="text-gray-500 text-sm">
+                      <div className="text-gray-500 text-xs">
                         {entry.description}
                       </div>
                     </td>

@@ -303,7 +303,7 @@ const ClientForm = () => {
 
   if (loading && isEditMode) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-4">
         <div className="flex justify-center items-center h-64">
           <p>Loading client data...</p>
         </div>
@@ -312,10 +312,10 @@ const ClientForm = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-bold text-navy-900">
+        <h1 className="text-lg font-bold text-navy-900">
           {isEditMode ? "Edit Client" : "New Client"}
         </h1>
         <div className="flex gap-4">
@@ -355,7 +355,7 @@ const ClientForm = () => {
 
       <div className="max-w-4xl grid grid-cols-1 lg:grid-cols-1 gap-8">
         {/* Main Form */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
+        <div className="bg-white rounded-lg p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-6 text-gray-600">
             <Info size={20} />
             <p className="regular-14">

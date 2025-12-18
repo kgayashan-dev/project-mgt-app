@@ -965,7 +965,7 @@
             </ul>
           </nav>
 
-        <div class="d-flex flex-column flex-lg-row width-full flex-justify-end flex-lg-items-center text-center mt-3 mt-lg-0 text-lg-left ml-lg-3">
+        <div class="d-flex flex-column flex-lg-row width-full flex-justify-end flex-lg-items-center text-center mt-3 mt-lg-0 text-sm-left ml-lg-3">
                 
 
 
@@ -1280,7 +1280,7 @@
 </div>    </div>
     <div data-target="query-builder.screenReaderFeedback" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 </query-builder></form>
-          <div class="d-flex flex-row color-fg-muted px-3 text-small color-bg-default search-feedback-prompt">
+          <div class="d-flex flex-row color-fg-muted px-3 text-xsall color-bg-default search-feedback-prompt">
             <a target="_blank" href="https://docs.github.com/search-github/github-code-search/understanding-github-code-search-syntax" data-view-component="true" class="Link color-fg-accent text-normal ml-2">Search syntax tips</a>            <div class="d-flex flex-1"></div>
           </div>
         </div>
@@ -1385,7 +1385,7 @@
               maxlength="500">
           </div>
 
-          <p class="text-small color-fg-muted">
+          <p class="text-xsall color-fg-muted">
             To see all available qualifiers, see our <a class="Link--inTextBlock" href="https://docs.github.com/search-github/github-code-search/understanding-github-code-search-syntax">documentation</a>.
           </p>
 </form>        </div>

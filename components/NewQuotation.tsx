@@ -366,7 +366,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     <div className="flex flex-col m-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold text-navy-900">New Quotation</h1>
+        <h1 className="text-lg font-bold text-navy-900">New Quotation</h1>
         <div className="flex gap-2">
           <Link
             href={"/user/Quotations"}
@@ -609,7 +609,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                   <p className="text-xs text-gray-600 mb-0.5">
                     Amount Due (LKR)
                   </p>
-                  <h1 className="text-xl font-bold text-blue-800">
+                  <h1 className="text-lg font-bold text-blue-800">
                     Rs.{" "}
                     {grandTotal.toLocaleString("en-IN", {
                       minimumFractionDigits: 2,

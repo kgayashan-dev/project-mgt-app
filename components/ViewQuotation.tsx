@@ -197,7 +197,7 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
     <div className="flex flex-col m-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-bold text-navy-900">View Quotation</h1>
+        <h1 className="text-lg font-bold text-navy-900">View Quotation</h1>
         <div className="flex gap-3">
           <Link
             href={"/user/quotations"}
@@ -227,7 +227,7 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
         </div>
 
         {/* File Upload and Company Info */}
-        <div className="grid grid-cols-2 gap-6 mb-3">
+        <div className="grid grid-cols-2 gap-4 mb-3">
           <div className="flex justify-between items-start">
             <div className="flex flex-col justify-start mb-4">
               <div

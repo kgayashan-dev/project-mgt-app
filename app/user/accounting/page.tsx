@@ -26,16 +26,16 @@ const AccountingDashboard = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4">
           {/* Profit and Loss */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
             <Link href={"/user/reports/profit-loss"}>
               <div className="flex gap-4">
                 <div className="text-blue-600">
                   <DollarSign size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">
+                  <h3 className="text-sm font-semibold mb-2">
                     Profit and Loss
                   </h3>
                   <p className="text-gray-600">
@@ -48,13 +48,13 @@ const AccountingDashboard = () => {
           </div>
 
           {/* General Ledger */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
             <div className="flex gap-4">
               <div className="text-blue-600">
                 <FileText size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
                   General Ledger
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
                     UPDATED
@@ -69,13 +69,13 @@ const AccountingDashboard = () => {
           </div>
 
           {/* Balance Sheet */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
             <div className="flex gap-4">
               <div className="text-blue-600">
                 <BarChart2 size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2">Balance Sheet</h3>
+                <h3 className="text-sm font-semibold mb-2">Balance Sheet</h3>
                 <p className="text-gray-600">
                   A snapshot of your company&apos;s assets, liabilities, and
                   equity at any given point in time
@@ -85,13 +85,13 @@ const AccountingDashboard = () => {
           </div>
 
           {/* Trial Balance */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
             <div className="flex gap-4">
               <div className="text-blue-600">
                 <Scale size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2">Trial Balance</h3>
+                <h3 className="text-sm font-semibold mb-2">Trial Balance</h3>
                 <p className="text-gray-600">
                   A quick gut check to make sure your books are balanced
                 </p>
@@ -99,13 +99,13 @@ const AccountingDashboard = () => {
             </div>
           </div>
           {/* Bank reconciliation */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
             <div className="flex gap-4">
               <div className="text-blue-600">
                 <Scale size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2">Trial Balance</h3>
+                <h3 className="text-sm font-semibold mb-2">Trial Balance</h3>
                 <p className="text-gray-600">
                   Helps you see FreshBooks Entries and Bank Transactions that
                   have not been reconciled
@@ -114,13 +114,13 @@ const AccountingDashboard = () => {
             </div>
           </div>
           {/* Sales Tax Summary */}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
             <div className="flex gap-4">
               <div className="text-blue-600">
                 <Scale size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2">
+                <h3 className="text-sm font-semibold mb-2">
                   Sales Tax Summary
                 </h3>
                 <p className="text-gray-600">
@@ -130,13 +130,13 @@ const AccountingDashboard = () => {
             </div>
           </div>
           {/* Cash Flow*/}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
             <div className="flex gap-4">
               <div className="text-blue-600">
                 <Scale size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2">Cash Flow</h3>
+                <h3 className="text-sm font-semibold mb-2">Cash Flow</h3>
                 <p className="text-gray-600">
                   Overview of Cash coming in and going out of your business
                 </p>
@@ -144,13 +144,13 @@ const AccountingDashboard = () => {
             </div>
           </div>
           {/* Journal Entry*/}
-          <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+          <div className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
             <div className="flex gap-4">
               <div className="text-blue-600">
                 <Scale size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2">Journal Entry</h3>
+                <h3 className="text-sm font-semibold mb-2">Journal Entry</h3>
                 <p className="text-gray-600">
                   Helps you see all the Manual Journal Entries and Adjustments
                   made to your books

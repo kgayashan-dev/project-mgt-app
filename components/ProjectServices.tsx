@@ -21,7 +21,7 @@ const ProjectServices = ({ projectID }: { projectID: undefined }) => {
             <input
               type="text"
               placeholder="Search"
-              className="pl-10 pr-4 text-sm py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="pl-10 pr-4 text-xs py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -38,19 +38,19 @@ const ProjectServices = ({ projectID }: { projectID: undefined }) => {
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
               Service
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                 Description
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                 <div className="flex items-center gap-1">
                   Issued Date
                   <ChevronDown className="h-4 w-4 text-gray-500" />
                 </div>
               </th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-900">
                Total Hours
               </th>
             </tr>
@@ -64,17 +64,17 @@ const ProjectServices = ({ projectID }: { projectID: undefined }) => {
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
               </td>
-              <td className="px-4 py-3 text-sm text-gray-900">
+              <td className="px-4 py-3 text-xs text-gray-900">
                 {/* {bill.description} */}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-500">
+              <td className="px-4 py-3 text-xs text-gray-500">
                 {/* {bill.description} */}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-900">
+              <td className="px-4 py-3 text-xs text-gray-900">
                 {/* {bill.issueDate} */}
               </td>
               <td className="px-4 py-3 text-right">
-                <div className="text-sm font-medium text-gray-900">
+                <div className="text-xs font-medium text-gray-900">
                   {/* Rs. {formatCurrency(bill.amount)} */}
                 </div>
                 <span className="inline-flex bg-slate-300 rounded-full px-2 text-xs font-semibold">
@@ -86,7 +86,7 @@ const ProjectServices = ({ projectID }: { projectID: undefined }) => {
           </tbody>
         </table>
         <div className="flex justify-end px-4 py-2  border-t">
-          <div className="text-sm text-gray-700">
+          <div className="text-xs text-gray-700">
             Grand Total: Rs.{" "}
             {/* {formatCurrency(
             table.reduce((total, bill) => total + bill.amount, 0)

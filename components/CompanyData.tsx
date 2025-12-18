@@ -208,7 +208,7 @@ const CompanyData = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Building2 className="h-6 w-6" />
@@ -226,14 +226,14 @@ const CompanyData = () => {
       </div>
 
       {isEditing ? (
-        <div className="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-lg shadow border border-gray-200 p-4 mb-6">
+          <h2 className="text-sm font-semibold text-gray-900 mb-4">
             {editingCompany ? "Edit Company" : "Add New Company"}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Company Name *
               </label>
               <input
@@ -247,7 +247,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Email Address *
               </label>
               <input
@@ -261,7 +261,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Phone Number *
               </label>
               <input
@@ -275,7 +275,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Address
               </label>
               <input
@@ -288,7 +288,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 City
               </label>
               <input
@@ -301,7 +301,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 State/Province
               </label>
               <input
@@ -314,7 +314,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 ZIP/Postal Code
               </label>
               <input
@@ -327,7 +327,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Country
               </label>
               <input
@@ -340,7 +340,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Website
               </label>
               <input
@@ -353,7 +353,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Tax ID
               </label>
               <input
@@ -366,7 +366,7 @@ const CompanyData = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Registration Number
               </label>
               <input
@@ -398,7 +398,7 @@ const CompanyData = () => {
       ) : (
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-sm font-semibold text-gray-900">
               All Companies
             </h2>
           </div>
@@ -413,26 +413,26 @@ const CompanyData = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">
+                        <h3 className="text-xs font-medium text-gray-900">
                           {company.companyName}
                         </h3>
-                        <p className="text-sm text-gray-600">{company.email}</p>
+                        <p className="text-xs text-gray-600">{company.email}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-900">{company.id}</p>
+                        <p className="text-xs text-gray-900">{company.id}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-900">
+                        <p className="text-xs text-gray-900">
                           {company.phoneNumber}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-900">
+                        <p className="text-xs text-gray-900">
                           {company.city || "Not set"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-900">
+                        <p className="text-xs text-gray-900">
                           {company.state || "Not set"}
                         </p>
                       </div>
@@ -461,10 +461,10 @@ const CompanyData = () => {
           ) : (
             <div className="text-center py-12">
               <Building2 className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
+              <h3 className="mt-4 text-sm font-medium text-gray-900">
                 No companies found
               </h3>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-xs text-gray-500">
                 Get started by creating your first company.
               </p>
               <button

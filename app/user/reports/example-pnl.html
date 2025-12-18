@@ -20,13 +20,13 @@ icon: '📢', values: ['-', '-', '-', '-', '-', '-', '-', '1,000.00'], }, { name
         </div>
     </div>
 
-    <div className="flex gap-6">
+    <div className="flex gap-4">
         {/* Main Content */}
-        <div className="flex-1 p-6 bg-white rounded-lg shadow">
+        <div className="flex-1 p-4 bg-white rounded-lg shadow">
             <div className="flex justify-between items-start mb-6">
                 <div>
                     <h2 className="text-2xl font-semibold text-blue-600 mb-2">Profit and Loss</h2>
-                    <div className="text-gray-600 text-sm">
+                    <div className="text-gray-600 text-xs">
                         <p>Gayashan&apos;s Company</p>
                         <p>Income Billed (USD)</p>
                         <p>For Jan 1, 2025 - Dec 31, 2025</p>
@@ -71,9 +71,9 @@ icon: '📢', values: ['-', '-', '-', '-', '-', '-', '-', '1,000.00'], }, { name
 
         {/* Filters Sidebar */}
         <div className="w-80">
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">Filters</h2>
+                    <h2 className="text-sm font-semibold">Filters</h2>
                     <button className="text-blue-600 hover:text-blue-700">
                 Reset all
               </button>
@@ -82,7 +82,7 @@ icon: '📢', values: ['-', '-', '-', '-', '-', '-', '-', '1,000.00'], }, { name
                 <div className="space-y-6">
                     {/* Date Range */}
                     <div>
-                        <label className="block text-sm font-medium mb-2">Date Range</label>
+                        <label className="block text-xs font-medium mb-2">Date Range</label>
                         <button className="w-full px-4 py-2 text-left border rounded-lg flex items-center justify-between hover:bg-gray-50">
                   This Year
                   <ChevronDown className="w-4 h-4" />
@@ -91,7 +91,7 @@ icon: '📢', values: ['-', '-', '-', '-', '-', '-', '-', '1,000.00'], }, { name
 
                     {/* Group By */}
                     <div>
-                        <label className="block text-sm font-medium mb-2">Group By</label>
+                        <label className="block text-xs font-medium mb-2">Group By</label>
                         <div className="space-y-2">
                             <div className="flex items-center">
                                 <input type="radio" name="groupBy" id="month" value="month" defaultChecked className="w-4 h-4 text-blue-600" />
@@ -106,7 +106,7 @@ icon: '📢', values: ['-', '-', '-', '-', '-', '-', '-', '1,000.00'], }, { name
 
                     {/* Accounting Method */}
                     <div>
-                        <label className="block text-sm font-medium mb-2">Accounting Method</label>
+                        <label className="block text-xs font-medium mb-2">Accounting Method</label>
                         <div className="space-y-2">
                             <div className="flex items-center">
                                 <input type="radio" name="accountingMethod" id="billed" value="billed" defaultChecked className="w-4 h-4 text-blue-600" />
@@ -121,7 +121,7 @@ icon: '📢', values: ['-', '-', '-', '-', '-', '-', '-', '1,000.00'], }, { name
 
                     {/* Breakdown */}
                     <div>
-                        <label className="block text-sm font-medium mb-2">Breakdown</label>
+                        <label className="block text-xs font-medium mb-2">Breakdown</label>
                         <div className="space-y-2">
                             <div className="flex items-center">
                                 <input type="radio" name="breakdown" id="transaction" value="transaction" defaultChecked className="w-4 h-4 text-blue-600" />

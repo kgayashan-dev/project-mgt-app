@@ -267,7 +267,7 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
                       >
                         <div className="flex flex-col items-center justify-center">
                           <Search className="h-8 w-8 text-gray-400 mb-2" />
-                          <p className="text-sm">
+                          <p className="text-xs">
                             {searchTerm || statusFilter !== "all" 
                               ? "No invoices match your search criteria" 
                               : "No invoices found"}

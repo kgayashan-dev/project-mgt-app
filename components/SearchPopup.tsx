@@ -88,7 +88,7 @@ const SearchPopup = ({
             ref={inputRef}
             type="text"
             placeholder="Search for anything in FreshBooks"
-            className="flex-1 focus:outline-none text-lg"
+            className="flex-1 focus:outline-none text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -102,7 +102,7 @@ const SearchPopup = ({
 
         {/* Recent Section */}
         <div className="p-4">
-          <h3 className="text-sm text-gray-500 font-medium mb-2">Recent</h3>
+          <h3 className="text-xs text-gray-500 font-medium mb-2">Recent</h3>
           <div className="space-y-2">
             {recentItems.length > 0 ? (
               recentItems.map((item) => (
@@ -122,14 +122,14 @@ const SearchPopup = ({
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-500">No recent items</p>
+              <p className="text-xs text-gray-500">No recent items</p>
             )}
           </div>
         </div>
 
         {/* Pages Section */}
         <div className="p-4">
-          <h3 className="text-sm text-gray-500 font-medium mb-2">Pages</h3>
+          <h3 className="text-xs text-gray-500 font-medium mb-2">Pages</h3>
           <div className="space-y-2">
             {filteredPages.length > 0 ? (
               filteredPages.map((page) => (
@@ -146,7 +146,7 @@ const SearchPopup = ({
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-500">No pages found</p>
+              <p className="text-xs text-gray-500">No pages found</p>
             )}
           </div>
         </div>

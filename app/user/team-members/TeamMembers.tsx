@@ -369,7 +369,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
   const isLoading = loading || apiLoading;
 
   return (
-    <div className="mx-auto p-6">
+    <div className="mx-auto p-4">
       {/* Header with Stats and Refresh Button */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
@@ -483,7 +483,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
       {!isLoading && !error && (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-7 p-4 bg-gray-50 border-b font-medium text-gray-700 text-sm">
+          <div className="grid grid-cols-7 p-4 bg-gray-50 border-b font-medium text-gray-700 text-xs">
             <div className="col-span-1">ID</div>
             <div>Name</div>
             <div>Email</div>
@@ -525,7 +525,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                   >
                     {getInitials(member.name)}
                   </span>
-                  <span className="font-mono text-sm">{member.memId}</span>
+                  <span className="font-mono text-xs">{member.memId}</span>
                 </div>
                 <div className="flex items-center font-medium">
                   {member.name}
@@ -535,14 +535,14 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                     </span>
                   )}
                 </div>
-                <div className="flex items-center text-sm text-gray-600 truncate">
+                <div className="flex items-center text-xs text-gray-600 truncate">
                   {member.email}
                 </div>
                 <div className="flex items-center">
                   {member.department || "-"}
                 </div>
                 <div className="flex items-center">{member.role || "-"}</div>
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-xs text-gray-600">
                   {formatDate2(member.joinDate)}
                 </div>
                 <div className="flex items-center justify-end gap-2">
@@ -584,9 +584,9 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
       {/* Add Team Member Modal */}
       {showAddMemberModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-white p-4 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-lg font-bold text-gray-900">
                 Add Team Member
               </h2>
               <button
@@ -600,13 +600,13 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
 
             {apiError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm">{apiError}</p>
+                <p className="text-red-700 text-xs">{apiError}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Full Name *
                 </label>
                 <input
@@ -620,7 +620,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Email Address *
                 </label>
                 <input
@@ -634,7 +634,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Phone Number
                 </label>
                 <input
@@ -649,7 +649,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Department
                   </label>
                   <input
@@ -663,7 +663,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Role
                   </label>
                   <input
@@ -678,7 +678,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Join Date
                 </label>
                 <input
@@ -699,7 +699,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                   className="h-4 w-4 text-blue-600 rounded disabled:opacity-50"
                   disabled={apiLoading}
                 />
-                <label className="ml-2 text-sm text-gray-700">
+                <label className="ml-2 text-xs text-gray-700">
                   Active Member
                 </label>
               </div>
@@ -735,9 +735,9 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
       {/* Edit Team Member Modal */}
       {showEditMemberModal && selectedMember && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-white p-4 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-lg font-bold text-gray-900">
                 Edit Team Member
               </h2>
               <button
@@ -749,7 +749,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
               </button>
             </div>
             <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-700">
+              <p className="text-xs text-blue-700">
                 Member ID:{" "}
                 <span className="font-mono font-bold">
                   {selectedMember.memId}
@@ -759,13 +759,13 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
 
             {apiError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm">{apiError}</p>
+                <p className="text-red-700 text-xs">{apiError}</p>
               </div>
             )}
 
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Full Name *
                 </label>
                 <input
@@ -779,7 +779,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Email Address *
                 </label>
                 <input
@@ -793,7 +793,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Phone Number
                 </label>
                 <input
@@ -807,7 +807,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Department
                   </label>
                   <input
@@ -820,7 +820,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Role
                   </label>
                   <input
@@ -834,7 +834,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Join Date
                 </label>
                 <input
@@ -855,7 +855,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                   className="h-4 w-4 text-blue-600 rounded disabled:opacity-50"
                   disabled={apiLoading}
                 />
-                <label className="ml-2 text-sm text-gray-700">
+                <label className="ml-2 text-xs text-gray-700">
                   Active Member
                 </label>
               </div>
@@ -891,23 +891,23 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && selectedMember && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+          <div className="bg-white p-4 rounded-lg w-full max-w-md">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
+              <h2 className="text-lg font-bold text-gray-900 mb-2">
                 Delete Team Member
               </h2>
               <p className="text-gray-600">
                 Are you sure you want to delete{" "}
                 <strong>{selectedMember.name}</strong> ({selectedMember.memId})?
               </p>
-              <p className="text-red-600 text-sm mt-2">
+              <p className="text-red-600 text-xs mt-2">
                 This action cannot be undone.
               </p>
             </div>
 
             {apiError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm">{apiError}</p>
+                <p className="text-red-700 text-xs">{apiError}</p>
               </div>
             )}
 
@@ -953,11 +953,11 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
       {/* Inactive Members Table */}
       {showDeletedMembers && (
         <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
             Inactive Team Members
           </h3>
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="grid grid-cols-7 p-4 bg-gray-50 border-b font-medium text-gray-700 text-sm">
+            <div className="grid grid-cols-7 p-4 bg-gray-50 border-b font-medium text-gray-700 text-xs">
               <div className="col-span-1">ID</div>
               <div>Name</div>
               <div>Email</div>
@@ -982,12 +982,12 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-400 text-white text-xs font-medium">
                         {getInitials(member.name)}
                       </span>
-                      <span className="font-mono text-sm">{member.memId}</span>
+                      <span className="font-mono text-xs">{member.memId}</span>
                     </div>
                     <div className="flex items-center font-medium">
                       {member.name}
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-xs text-gray-600">
                       {member.email}
                     </div>
                     <div className="flex items-center">
@@ -996,13 +996,13 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                     <div className="flex items-center">
                       {member.role || "-"}
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
+                    <div className="flex items-center text-xs text-gray-600">
                       {formatDate2(member.joinDate)}
                     </div>
                     <div className="flex items-center justify-end">
                       <button
                         onClick={() => toggleActiveStatus(member)}
-                        className="px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={apiLoading}
                       >
                         Activate

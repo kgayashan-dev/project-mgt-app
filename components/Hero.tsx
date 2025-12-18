@@ -81,7 +81,7 @@ const Hero = () => {
                 className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent"
               />
             </h1>
-            <p className="text-lg text-gray-700 max-w-2xl">
+            <p className="text-sm text-gray-700 max-w-2xl">
               Stay connected to your projects with real-time insights and
               streamlined management for improved efficiency and success.
             </p>

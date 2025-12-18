@@ -59,7 +59,7 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
 
   return (
     <div
-      className={`relative ${className} flex flex-col items-start gap-2 text-sm font-semibold text-gray-700 capitalize`}
+      className={`relative ${className} flex flex-col items-start gap-2 text-xs font-semibold text-gray-700 capitalize`}
       ref={dropdownRef}
     >
       {label && (

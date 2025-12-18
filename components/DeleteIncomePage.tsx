@@ -21,7 +21,7 @@ const DeleteIncomePage = () => {
               All Other Income
             </button>
           </div>
-          <span className="text-xl ">
+          <span className="text-lg ">
             <ChevronRight />
           </span>
           <h1 className="text-2xl font-bold text-navy-900">Deleted</h1>
@@ -33,7 +33,7 @@ const DeleteIncomePage = () => {
       </div>
 
       {/* Column Headers */}
-      <div className="grid grid-cols-4 gap-4 py-3 text-sm text-gray-600">
+      <div className="grid grid-cols-4 gap-4 py-3 text-xs text-gray-600">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
             <Check className="h-4 w-4 text-white" />

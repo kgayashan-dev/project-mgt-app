@@ -126,7 +126,7 @@ export default async function Page({
           <p className="text-gray-600">
             Something went wrong. Please try again later.
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-xs text-gray-500 mt-2">
             Error: {error instanceof Error ? error.message : "Unknown error"}
           </p>
         </div>

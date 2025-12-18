@@ -156,7 +156,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-4">
       {/* Header */}
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
@@ -165,7 +165,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
             className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
-            <span className="text-sm font-medium">Back to Bills</span>
+            <span className="text-xs font-medium">Back to Bills</span>
           </Link>
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -174,14 +174,14 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                 Bill: {billArray.billNumber}
               </h1>
               <div className="flex items-center gap-4 mt-2">
-                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${billStatus.color}`}>
+                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${billStatus.color}`}>
                   <StatusIcon className="w-4 h-4" />
                   {billStatus.status}
                 </span>
-                <span className="text-sm text-gray-600">
+                <span className="text-xs text-gray-600">
                   Issued: {formatDate(billArray.issueDate)}
                 </span>
-                <span className="text-sm text-gray-600">
+                <span className="text-xs text-gray-600">
                   Due: {formatDate(billArray.dueDate)}
                 </span>
               </div>
@@ -193,61 +193,61 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
               >
                 <Printer className="w-4 h-4" />
-                <span className="text-sm font-medium">Print</span>
+                <span className="text-xs font-medium">Print</span>
               </button>
               <button
                 onClick={handleDownload}
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
               >
                 <Download className="w-4 h-4" />
-                <span className="text-sm font-medium">Download</span>
+                <span className="text-xs font-medium">Download</span>
               </button>
               <button
                 onClick={handleSendEmail}
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
               >
                 <Mail className="w-4 h-4" />
-                <span className="text-sm font-medium">Email</span>
+                <span className="text-xs font-medium">Email</span>
               </button>
               <Link
                 href={`/dashboard/bills/${billArray.id}/edit`}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 <PenSquare className="w-4 h-4" />
-                <span className="text-sm font-medium">Edit</span>
+                <span className="text-xs font-medium">Edit</span>
               </Link>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Left Column - Bill Details */}
           <div className="lg:col-span-2 space-y-6">
             {/* Bill Information Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
               <div className="flex justify-between items-start mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">Bill Information</h2>
+                <h2 className="text-sm font-semibold text-gray-900">Bill Information</h2>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-gray-900">
                     {formatCurrency(billArray.grandTotal)}
                   </div>
-                  <div className="text-sm text-gray-600">Total Amount</div>
+                  <div className="text-xs text-gray-600">Total Amount</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">Issue Date</span>
+                    <span className="text-xs text-gray-600">Issue Date</span>
                   </div>
                   <div className="font-medium">{formatDate(billArray.issueDate)}</div>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">Due Date</span>
+                    <span className="text-xs text-gray-600">Due Date</span>
                   </div>
                   <div className={`font-medium ${billStatus.status === 'Overdue' ? 'text-red-600' : ''}`}>
                     {formatDate(billArray.dueDate)}
@@ -256,7 +256,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <FileText className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">Bill Number</span>
+                    <span className="text-xs text-gray-600">Bill Number</span>
                   </div>
                   <div className="font-medium">{billArray.billNumber}</div>
                 </div>
@@ -264,7 +264,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
 
               {/* Payment Progress */}
               <div className="mb-6">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <div className="flex justify-between text-xs text-gray-600 mb-2">
                   <span>Payment Progress</span>
                   <span>{paidPercentage.toFixed(0)}%</span>
                 </div>
@@ -274,7 +274,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                     style={{ width: `${paidPercentage}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-sm mt-2">
+                <div className="flex justify-between text-xs mt-2">
                   <span className="text-gray-600">
                     Paid: {formatCurrency(paidAmount)}
                   </span>
@@ -289,11 +289,11 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Description</th>
-                      <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Category</th>
-                      <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Rate</th>
-                      <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Qty</th>
-                      <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Total</th>
+                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-700">Description</th>
+                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-700">Category</th>
+                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-700">Rate</th>
+                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-700">Qty</th>
+                      <th className="py-3 px-4 text-left text-xs font-medium text-gray-700">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -324,8 +324,8 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
             </div>
 
             {/* Totals Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Amount Details</h3>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Amount Details</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Subtotal</span>
@@ -338,7 +338,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold text-gray-900">Grand Total</span>
-                    <span className="text-xl font-bold text-gray-900">
+                    <span className="text-lg font-bold text-gray-900">
                       {formatCurrency(billArray.grandTotal)}
                     </span>
                   </div>
@@ -350,7 +350,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                   </div>
                   <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200">
                     <span className="font-semibold text-gray-900">Amount Due</span>
-                    <span className={`text-lg font-bold ${billArray.amountDue > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <span className={`text-sm font-bold ${billArray.amountDue > 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {formatCurrency(billArray.amountDue)}
                     </span>
                   </div>
@@ -362,14 +362,14 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
           {/* Right Column - Vendor Info & Payments */}
           <div className="space-y-6">
             {/* Vendor Information Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Vendor Information</h3>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Vendor Information</h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Building className="w-5 h-5 text-gray-400 mt-1" />
                   <div>
                     <div className="font-medium text-gray-900">{billArray.companyName || billArray.vendor}</div>
-                    <div className="text-sm text-gray-600">Company</div>
+                    <div className="text-xs text-gray-600">Company</div>
                   </div>
                 </div>
                 {billArray.vendorId && (
@@ -377,7 +377,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                     <User className="w-5 h-5 text-gray-400" />
                     <div>
                       <div className="font-medium text-gray-900">{billArray.vendorId}</div>
-                      <div className="text-sm text-gray-600">Vendor ID</div>
+                      <div className="text-xs text-gray-600">Vendor ID</div>
                     </div>
                   </div>
                 )}
@@ -386,7 +386,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                     <Phone className="w-5 h-5 text-gray-400" />
                     <div>
                       <div className="font-medium text-gray-900">{billArray.phoneNumber}</div>
-                      <div className="text-sm text-gray-600">Phone</div>
+                      <div className="text-xs text-gray-600">Phone</div>
                     </div>
                   </div>
                 )}
@@ -395,7 +395,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                     <MailIcon className="w-5 h-5 text-gray-400" />
                     <div>
                       <div className="font-medium text-gray-900">{billArray.emailAddress}</div>
-                      <div className="text-sm text-gray-600">Email</div>
+                      <div className="text-xs text-gray-600">Email</div>
                     </div>
                   </div>
                 )}
@@ -404,7 +404,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                     <FileText className="w-5 h-5 text-gray-400 mt-1" />
                     <div>
                       <div className="font-medium text-gray-900">{billArray.clientAddress}</div>
-                      <div className="text-sm text-gray-600">Address</div>
+                      <div className="text-xs text-gray-600">Address</div>
                     </div>
                   </div>
                 )}
@@ -412,12 +412,12 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
             </div>
 
             {/* Payments Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Payment History</h3>
+                <h3 className="text-sm font-semibold text-gray-900">Payment History</h3>
                 <button
                   onClick={() => setIsPaymentModalOpen(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700"
                   disabled={billArray.amountDue === 0}
                 >
                   <span>+ Add Payment</span>
@@ -430,7 +430,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                   <p className="text-gray-600">No payments recorded yet</p>
                   <button
                     onClick={() => setIsPaymentModalOpen(true)}
-                    className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                    className="mt-3 px-4 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700"
                     disabled={billArray.amountDue === 0}
                   >
                     Record First Payment
@@ -442,11 +442,11 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                     <div key={payment.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50">
                       <div>
                         <div className="font-medium text-gray-900">{formatDate(payment.date)}</div>
-                        <div className="text-sm text-gray-600">{payment.type}</div>
+                        <div className="text-xs text-gray-600">{payment.type}</div>
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-gray-900">{formatCurrency(payment.amount)}</div>
-                        <div className="text-sm text-gray-600">{payment.status}</div>
+                        <div className="text-xs text-gray-600">{payment.status}</div>
                       </div>
                     </div>
                   ))}
@@ -456,8 +456,8 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
 
             {/* Remarks Card */}
             {billArray.remarks && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Remarks</h3>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Remarks</h3>
                 <p className="text-gray-700">{billArray.remarks}</p>
               </div>
             )}
@@ -468,9 +468,9 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
       {/* Payment Modal */}
       {isPaymentModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
+          <div className="bg-white rounded-xl max-w-md w-full p-4">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900">Record Payment</h3>
+              <h3 className="text-lg font-bold text-gray-900">Record Payment</h3>
               <button
                 onClick={() => setIsPaymentModalOpen(false)}
                 className="p-1 hover:bg-gray-100 rounded-lg"
@@ -481,13 +481,13 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
 
             <div className="space-y-4">
               <div className="p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
+                <p className="text-xs text-blue-800">
                   Amount due: <span className="font-bold">{formatCurrency(billArray.amountDue)}</span>
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Payment Amount *
                 </label>
                 <input
@@ -502,7 +502,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Payment Date *
                 </label>
                 <input
@@ -514,7 +514,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Payment Method *
                 </label>
                 <select
@@ -532,7 +532,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Notes (Optional)
                 </label>
                 <textarea

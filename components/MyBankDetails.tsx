@@ -165,7 +165,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
   const accountToDelete = bankAccounts.find(account => account.id === deleteId);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">My Bank Accounts</h1>
@@ -187,13 +187,13 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          <div className="bg-white p-4 rounded-lg w-96 shadow-xl">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
               {editId !== null ? "Edit Bank Account" : "Add Bank Account"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Bank Name *
                 </label>
                 <input
@@ -209,7 +209,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Account Name *
                 </label>
                 <input
@@ -225,7 +225,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Account Number *
                 </label>
                 <input
@@ -241,7 +241,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Branch
                 </label>
                 <input
@@ -256,7 +256,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Notes
                 </label>
                 <textarea
@@ -308,22 +308,22 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="p-3 text-left text-sm font-semibold text-gray-700 border-b">
+                <th className="p-3 text-left text-xs font-semibold text-gray-700 border-b">
                   Bank Name
                 </th>
-                <th className="p-3 text-left text-sm font-semibold text-gray-700 border-b">
+                <th className="p-3 text-left text-xs font-semibold text-gray-700 border-b">
                   Account Name
                 </th>
-                <th className="p-3 text-left text-sm font-semibold text-gray-700 border-b">
+                <th className="p-3 text-left text-xs font-semibold text-gray-700 border-b">
                   Account Number
                 </th>
-                <th className="p-3 text-left text-sm font-semibold text-gray-700 border-b">
+                <th className="p-3 text-left text-xs font-semibold text-gray-700 border-b">
                   Branch
                 </th>
-                <th className="p-3 text-left text-sm font-semibold text-gray-700 border-b">
+                <th className="p-3 text-left text-xs font-semibold text-gray-700 border-b">
                   Notes
                 </th>
-                <th className="p-3 text-right text-sm font-semibold text-gray-700 border-b">
+                <th className="p-3 text-right text-xs font-semibold text-gray-700 border-b">
                   Actions
                 </th>
               </tr>
@@ -334,32 +334,32 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
                   key={account.id}
                   className="border-b hover:bg-gray-50 transition-colors duration-150"
                 >
-                  <td className="p-3 text-sm text-gray-800">
+                  <td className="p-3 text-xs text-gray-800">
                     {account.bankName}
                   </td>
-                  <td className="p-3 text-sm text-gray-800">
+                  <td className="p-3 text-xs text-gray-800">
                     {account.accountName}
                   </td>
-                  <td className="p-3 text-sm text-gray-800 font-mono">
+                  <td className="p-3 text-xs text-gray-800 font-mono">
                     {account.accountNumber}
                   </td>
-                  <td className="p-3 text-sm text-gray-600">
+                  <td className="p-3 text-xs text-gray-600">
                     {account.branch || "-"}
                   </td>
-                  <td className="p-3 text-sm text-gray-600 max-w-xs truncate">
+                  <td className="p-3 text-xs text-gray-600 max-w-xs truncate">
                     {account.notes || "-"}
                   </td>
                   <td className="p-3 text-right">
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => handleEdit(account)}
-                        className="text-blue-600 hover:text-blue-800 transition-colors font-medium text-sm"
+                        className="text-blue-600 hover:text-blue-800 transition-colors font-medium text-xs"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => setDeleteId(account.id)}
-                        className="text-red-600 hover:text-red-800 transition-colors font-medium text-sm"
+                        className="text-red-600 hover:text-red-800 transition-colors font-medium text-xs"
                       >
                         Delete
                       </button>
@@ -377,7 +377,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-6 0H5m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8v-4m0 4h4" />
             </svg>
           </div>
-          <p className="text-gray-500 text-lg mb-4">No bank accounts found</p>
+          <p className="text-gray-500 text-sm mb-4">No bank accounts found</p>
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition font-medium"
@@ -390,8 +390,8 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
       {/* Delete Confirmation Modal */}
       {deleteId && accountToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-96 shadow-xl">
-            <h2 className="text-xl font-semibold mb-3 text-gray-800">
+          <div className="bg-white p-4 rounded-lg w-96 shadow-xl">
+            <h2 className="text-lg font-semibold mb-3 text-gray-800">
               Confirm Deletion
             </h2>
             <p className="mb-1 text-gray-700">

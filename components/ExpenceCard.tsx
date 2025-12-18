@@ -33,7 +33,7 @@ const ExpenseCard: React.FC<ExpenseCardProps> = ({ expense }) => {
           <expense.icon className={expense.color} size={20} />
           <span className="text-gray-600 text-xs">{expense.type}</span>
         </div>
-        <div className="text-sm font-normal mb-1">{expense.merchant}</div>
+        <div className="text-xs font-normal mb-1">{expense.merchant}</div>
         <div className="text-gray-500 mb-4 text-xs">{expense.date}</div>
       </div>
       <div className="border-t px-4 py-3 bg-gray-10 flex items-center justify-between">

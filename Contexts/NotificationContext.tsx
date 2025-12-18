@@ -72,7 +72,7 @@ const NotificationContainer = () => {
     useContext(NotificationContext)!;
 
   return (
-    <div className="fixed top-6 right-6 z-50 space-y-3 w-96">
+    <div className="fixed top-4 right-6 z-50 space-y-3 w-96">
       {notifications.map((notification, index) => (
         <NotificationToast
           key={notification.id}
@@ -182,11 +182,11 @@ const NotificationToast: React.FC<{
 
           <div className="flex-1 min-w-0">
             {title && (
-              <div className="font-semibold text-sm mb-1 leading-tight">
+              <div className="font-semibold text-xs mb-1 leading-tight">
                 {title}
               </div>
             )}
-            <div className="text-sm leading-relaxed opacity-90">{message}</div>
+            <div className="text-xs leading-relaxed opacity-90">{message}</div>
             {resNumber && (
               <div className="text-xs font-mono mt-2 px-2 py-1 bg-black/5 rounded-md inline-block">
                 {resNumber}

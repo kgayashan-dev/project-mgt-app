@@ -32,10 +32,10 @@ export default function LoginModal() {
   return (
     <dialog ref={dialogRef} className="bg-transparent" onClose={handleClose}>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div className="relative w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+        <div className="relative w-full max-w-md p-4 bg-white rounded-lg shadow-lg">
           <button
             onClick={handleClose}
-            className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 text-xl"
+            className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 text-lg"
           >
             ×
           </button>
@@ -50,7 +50,7 @@ export default function LoginModal() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label className="block text-xs font-medium mb-1">Email</label>
               <input
                 type="email"
                 value={email}
@@ -61,7 +61,7 @@ export default function LoginModal() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
+              <label className="block text-xs font-medium mb-1">Password</label>
               <input
                 type="password"
                 value={password}
@@ -78,7 +78,7 @@ export default function LoginModal() {
               Sign In
             </button>
 
-            <div className="text-sm text-center">
+            <div className="text-xs text-center">
               <a href="#" className="text-blue-500 hover:underline">
                 Forgot password?
               </a>

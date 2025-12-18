@@ -362,17 +362,17 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Column - Main Form */}
-        <div className="flex-1 bg-white rounded-xl shadow-md p-6">
+        <div className="flex-1 bg-white rounded-xl shadow-md p-4">
           {/* Client Selection - Using SearchableSelect */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">Client</h2>
+              <h2 className="text-sm font-semibold text-gray-800">Client</h2>
               {client && (
                 <button
                   onClick={() => setClient(null)}
-                  className="text-sm text-red-600 hover:text-red-700"
+                  className="text-xs text-red-600 hover:text-red-700"
                 >
                   Remove
                 </button>
@@ -391,21 +391,21 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                         <h3 className="font-medium text-gray-900">
                           {client.name}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-xs text-gray-500">
                           {client.businessType} • {client.location}
                         </p>
                       </div>
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500">Email</p>
-                        <p className="text-sm font-medium">
+                        <p className="text-xs text-gray-500">Email</p>
+                        <p className="text-xs font-medium">
                           {client.contactEmail}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Phone</p>
-                        <p className="text-sm font-medium">
+                        <p className="text-xs text-gray-500">Phone</p>
+                        <p className="text-xs font-medium">
                           {client.phoneNumber}
                         </p>
                       </div>
@@ -438,7 +438,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
           {/* Team Members */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-sm font-semibold text-gray-800">
                 Team Members
               </h2>
               <button
@@ -473,7 +473,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                             onChange={(e) =>
                               updateTeamMemberRole(member.memId, e.target.value)
                             }
-                            className="text-sm text-blue-600 bg-transparent border-none focus:ring-0"
+                            className="text-xs text-blue-600 bg-transparent border-none focus:ring-0"
                           >
                             <option value="Team Member">Team Member</option>
                             <option value="Project Manager">
@@ -504,7 +504,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
           {/* Project Details */}
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
                 Project Name *
               </label>
               <input
@@ -517,7 +517,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
                 Description
               </label>
               <textarea
@@ -530,9 +530,9 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
             </div>
 
             {/* Project Dates & Financials */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-2">
                   Start Date *
                 </label>
                 <div className="relative">
@@ -550,7 +550,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-2">
                   End Date *
                 </label>
                 <div className="relative">
@@ -570,7 +570,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
 
               {selectedType === "flat-rate" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
                     Flat Rate *
                   </label>
                   <div className="relative">
@@ -591,7 +591,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-2">
                   Total Hours
                 </label>
                 <div className="relative">
@@ -616,7 +616,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
 
             {/* Status - Using SearchableSelect */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
                 Status
               </label>
               <SearchableSelect
@@ -632,7 +632,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
           {/* Services Section */}
           <div className="mt-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">Services</h2>
+              <h2 className="text-sm font-semibold text-gray-800">Services</h2>
               <button
                 onClick={addService}
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
@@ -660,7 +660,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                         )
                       }
                       placeholder="Service description"
-                      className="flex-1 text-lg font-medium border-none focus:outline-none focus:ring-0"
+                      className="flex-1 text-sm font-medium border-none focus:outline-none focus:ring-0"
                     />
                     {services.length > 1 && (
                       <button
@@ -674,7 +674,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">
+                      <label className="block text-xs text-gray-600 mb-1">
                         Hours
                       </label>
                       <input
@@ -688,7 +688,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">
+                      <label className="block text-xs text-gray-600 mb-1">
                         Rate ($)
                       </label>
                       <input
@@ -705,7 +705,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                   </div>
 
                   {service.hours > 0 && service.rate > 0 && (
-                    <div className="mt-3 text-right text-sm text-gray-600">
+                    <div className="mt-3 text-right text-xs text-gray-600">
                       Total: {formatCurrency(service.hours * service.rate)}
                     </div>
                   )}
@@ -718,8 +718,8 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
         {/* Right Column - Settings & Summary */}
         <div className="w-full lg:w-80">
           {/* Settings Card */}
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Settings</h2>
+          <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-2">Settings</h2>
             <p className="text-gray-500 mb-6">For This Project</p>
 
             {/* Project Type */}
@@ -838,7 +838,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
       {showTeamMemberModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b">
+            <div className="p-4 border-b">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900">
                   Add Team Members
@@ -869,7 +869,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
               </div>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
               {filteredTeamMembers.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   No team members found
@@ -882,17 +882,17 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-medium text-lg">
+                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-medium text-sm">
                           {member.name.charAt(0)}
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-900">
                             {member.name}
                           </h4>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs text-gray-600">
                             {member.role} • {member.department}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs text-gray-500">
                             {member.email}
                           </p>
                         </div>
@@ -902,7 +902,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                         <select
                           value={newMemberRole}
                           onChange={(e) => setNewMemberRole(e.target.value)}
-                          className="px-3 py-1 border border-gray-300 rounded text-sm"
+                          className="px-3 py-1 border border-gray-300 rounded text-xs"
                         >
                           <option value="Team Member">Team Member</option>
                           <option value="Project Manager">
@@ -940,7 +940,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
               )}
             </div>
 
-            <div className="p-6 border-t bg-gray-50">
+            <div className="p-4 border-t bg-gray-50">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-gray-600">

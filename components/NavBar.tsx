@@ -15,7 +15,7 @@ const NavBar = () => {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <RiPulseAiLine className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+              <span className="ml-2 text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                 ProjectPulse
               </span>
             </Link>
@@ -25,7 +25,7 @@ const NavBar = () => {
           <div className="flex space-x-8">
             <Link
               href="/"
-              className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 ease-in-out
+              className={`inline-flex items-center px-3 py-2 text-xs font-medium transition-all duration-200 ease-in-out
                 ${
                   pathname === "/"
                     ? "text-blue-600 border-b-2 border-blue-600"
@@ -37,7 +37,7 @@ const NavBar = () => {
 
             <Link
               href="/user/dashboard"
-              className={`inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 ease-in-out
+              className={`inline-flex items-center px-3 py-2 text-xs font-medium transition-all duration-200 ease-in-out
                 ${
                   pathname === "/user/dashboard"
                     ? "text-blue-600 border-b-2 border-blue-600"
@@ -48,7 +48,7 @@ const NavBar = () => {
             </Link>
             <Link
               href="/login"
-              className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ease-in-out
+              className={`inline-flex items-center px-4 py-2 text-xs font-medium rounded-full transition-all duration-200 ease-in-out
                 ${
                   pathname === "/login"
                     ? "bg-blue-600 text-white shadow-md"

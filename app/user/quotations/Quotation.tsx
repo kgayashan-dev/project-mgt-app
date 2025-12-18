@@ -79,7 +79,7 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
   
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Quotations</h1>
@@ -108,7 +108,7 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
 
       {/* Search and Advanced Search */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
-        <h2 className="text-xl font-bold">Quotation Details</h2>
+        <h2 className="text-lg font-bold">Quotation Details</h2>
         <div className="flex regular-14 flex-col sm:flex-row gap-4 items-start sm:items-center w-full md:w-auto">
           <div className="relative w-full sm:w-64">
             <input
@@ -155,13 +155,13 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
             {isAdvancedSearchOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
                 <div className="py-1">
-                  <button className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                  <button className="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 w-full text-left">
                     Filter by Date
                   </button>
-                  <button className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                  <button className="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 w-full text-left">
                     Filter by Status
                   </button>
-                  <button className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                  <button className="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 w-full text-left">
                     Filter by Amount
                   </button>
                 </div>
@@ -172,7 +172,7 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
       </div>
 
       {/* Quotations Count */}
-      <div className="mb-4 text-sm text-gray-600">
+      <div className="mb-4 text-xs text-gray-600">
         Showing {quotations.length} of {quotations.length} quotations
       </div>
 
@@ -200,10 +200,10 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                     <div className="font-medium text-gray-900">{quotation.clientId}</div>
                     
                   </td>
-                  <td className="p-4 font-mono text-sm">{quotation.quotationNumber}</td>
-                  <td className="p-4 text-sm">{formatDate(quotation.quotationDate)}</td>
+                  <td className="p-4 font-mono text-xs">{quotation.quotationNumber}</td>
+                  <td className="p-4 text-xs">{formatDate(quotation.quotationDate)}</td>
                   <td className="p-4 font-semibold">{formatCurrency(quotation.grandTotal)}</td>
-                  <td className="p-4 text-sm text-gray-600">
+                  <td className="p-4 text-xs text-gray-600">
                     {quotation.qItems.length} items
                   </td>
                 </tr>
@@ -217,7 +217,7 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                     </svg>
                     No quotations found.
                     {searchQuery && (
-                      <div className="text-sm mt-1">Try adjusting your search terms</div>
+                      <div className="text-xs mt-1">Try adjusting your search terms</div>
                     )}
                   </div>
                 </td>

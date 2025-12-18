@@ -103,7 +103,7 @@ const OtherIncomeForm: React.FC<ClientsProps> = ({ clientArray }) => {
       {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex justify-start items-center gap-4">
-          <h2 className="text-xl font-bold text-gray-900">Other Income</h2>
+          <h2 className="text-lg font-bold text-gray-900">Other Income</h2>
           <button
             className="bg-green-600 p-1 rounded-lg hover:bg-green-700 transition-colors"
             onClick={() => {

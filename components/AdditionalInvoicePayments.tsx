@@ -107,7 +107,7 @@ const AdditionalInvoicePayment = ({
   return (
     <div className="max-w-4xl px-8 regular-14">
       <div className="flex flex-col md:flex-row justify-normal space-x-4 items-start md:items-center mb-6 space-y-4 md:space-y-0">
-        <h2 className="text-xl font-bold">
+        <h2 className="text-lg font-bold">
           All Payments For Invoice {invoiceId}
         </h2>
         <button
@@ -153,13 +153,13 @@ const AdditionalInvoicePayment = ({
             {payments.map((payment) => (
               <tr key={payment.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">{payment.date}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">
+                <td className="px-6 py-4 text-xs text-gray-500">
                   {payment.type}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
+                <td className="px-6 py-4 text-xs text-gray-500">
                   {payment.notes}
                 </td>
-                <td className="px-6 py-4 text-right text-sm text-gray-900">
+                <td className="px-6 py-4 text-right text-xs text-gray-900">
                   Rs. 
                   {payment.amount.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
@@ -174,9 +174,9 @@ const AdditionalInvoicePayment = ({
 
       {isPaymentModalOpen && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50  flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full regular-12">
+          <div className="bg-white rounded-lg p-4 max-w-md w-full regular-12">
             <div className="flex justify-between items-center mb-4 ">
-              <h3 className="text-lg font-bold">Add a Payment</h3>
+              <h3 className="text-sm font-bold">Add a Payment</h3>
               <button
                 onClick={() => setIsPaymentModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -190,10 +190,10 @@ const AdditionalInvoicePayment = ({
               </div>
             )}
             <div className="space-y-4">
-              <p className="text-sm">Amount due: Rs. {amountDue}</p>
+              <p className="text-xs">Amount due: Rs. {amountDue}</p>
 
               <div>
-                <label className="block text-sm mb-1">Payment Amount</label>
+                <label className="block text-xs mb-1">Payment Amount</label>
                 <input
                   type="number"
                   name="amount"
@@ -204,7 +204,7 @@ const AdditionalInvoicePayment = ({
               </div>
 
               <div>
-                <label className="block text-sm mb-1">Payment Date</label>
+                <label className="block text-xs mb-1">Payment Date</label>
                 <div className="relative">
                   <input
                     type="date"
@@ -217,7 +217,7 @@ const AdditionalInvoicePayment = ({
               </div>
 
               <div>
-                <label className="block text-sm mb-1">Payment Method</label>
+                <label className="block text-xs mb-1">Payment Method</label>
                 <select
                   name="method"
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -234,7 +234,7 @@ const AdditionalInvoicePayment = ({
               </div>
 
               <div>
-                <label className="block text-sm mb-1">
+                <label className="block text-xs mb-1">
                   Payment Notes (Optional)
                 </label>
                 <input

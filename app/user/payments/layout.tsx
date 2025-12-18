@@ -9,7 +9,7 @@ export default function PaymentLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="p-6">
+    <div className="p-4">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-12">
         <h1 className="text-3xl font-bold text-navy-900">Payments</h1>

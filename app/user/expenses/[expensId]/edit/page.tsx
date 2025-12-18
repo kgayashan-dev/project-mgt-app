@@ -227,10 +227,10 @@ const ExpenseEditPage = ({ params }: ExpenseEditPageProps) => {
 
         <div
           id="expense-content"
-          className="max-w-2xl bg-white rounded-lg shadow p-6"
+          className="max-w-2xl bg-white rounded-lg shadow p-4"
         >
           {/* Main form content */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <input
@@ -258,7 +258,7 @@ const ExpenseEditPage = ({ params }: ExpenseEditPageProps) => {
                 value={merchant}
                 onChange={(e) => setMerchant(e.target.value)}
                 placeholder="Merchant"
-                className="w-full p-2 text-xl border-b border-gray-200 focus:outline-none focus:border-blue-500"
+                className="w-full p-2 text-lg border-b border-gray-200 focus:outline-none focus:border-blue-500"
                 required
               />
             </div>

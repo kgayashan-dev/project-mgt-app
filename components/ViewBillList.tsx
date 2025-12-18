@@ -187,7 +187,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
   };
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-4 md:p-4">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
@@ -211,11 +211,11 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                 className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 transition-colors"
               >
                 <FileText className="w-4 h-4" />
-                <span className="text-sm font-medium">Create Bill</span>
+                <span className="text-xs font-medium">Create Bill</span>
               </button>
               <button className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 transition-colors">
                 <Upload className="w-4 h-4" />
-                <span className="text-sm font-medium">Upload Bill</span>
+                <span className="text-xs font-medium">Upload Bill</span>
               </button>
             </div>
           )}
@@ -227,8 +227,8 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Overdue</p>
-              <p className="text-xl font-bold text-red-600 mt-1">
+              <p className="text-xs text-gray-600">Overdue</p>
+              <p className="text-lg font-bold text-red-600 mt-1">
                 {formatCurrency(overdueAmount)}
               </p>
             </div>
@@ -241,8 +241,8 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Outstanding</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">
+              <p className="text-xs text-gray-600">Total Outstanding</p>
+              <p className="text-lg font-bold text-gray-900 mt-1">
                 {formatCurrency(totalOutstanding)}
               </p>
             </div>
@@ -257,29 +257,29 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
       <div className="bg-white rounded-lg shadow mb-6 p-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-gray-900">All Bills</h2>
+            <h2 className="text-sm font-semibold text-gray-900">All Bills</h2>
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedStatus("all")}
-                className={`px-3 py-1.5 text-sm rounded-full ${selectedStatus === "all" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === "all" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
                 All
               </button>
               <button
                 onClick={() => setSelectedStatus("Pending")}
-                className={`px-3 py-1.5 text-sm rounded-full ${selectedStatus === "Pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === "Pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
                 Pending
               </button>
               <button
                 onClick={() => setSelectedStatus("Overdue")}
-                className={`px-3 py-1.5 text-sm rounded-full ${selectedStatus === "Overdue" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === "Overdue" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
                 Overdue
               </button>
               <button
                 onClick={() => setSelectedStatus("Paid")}
-                className={`px-3 py-1.5 text-sm rounded-full ${selectedStatus === "Paid" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === "Paid" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
                 Paid
               </button>
@@ -306,7 +306,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <FileText className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No bills found</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">No bills found</h3>
             <p className="text-gray-600 mb-4">
               {searchQuery || selectedStatus !== "all" 
                 ? "Try adjusting your search or filter" 
@@ -382,11 +382,11 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                         <div className="space-y-1">
                           <div>
                             <span className="text-xs text-gray-500">Issued:</span>
-                            <div className="text-sm font-medium">{formatDate(bill.issueDate)}</div>
+                            <div className="text-xs font-medium">{formatDate(bill.issueDate)}</div>
                           </div>
                           <div>
                             <span className="text-xs text-gray-500">Due:</span>
-                            <div className={`text-sm font-medium ${status === "Overdue" ? "text-red-600" : ""}`}>
+                            <div className={`text-xs font-medium ${status === "Overdue" ? "text-red-600" : ""}`}>
                               {formatDate(bill.dueDate)}
                             </div>
                           </div>
@@ -395,7 +395,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                       
                       <td className="px-6 py-4">
                         <div className="space-y-1">
-                          <div className="text-sm font-semibold text-gray-900">
+                          <div className="text-xs font-semibold text-gray-900">
                             {formatCurrency(bill.grandTotal)}
                           </div>
                           <div className="text-xs text-gray-600">
@@ -456,7 +456,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
 
       {/* Summary Footer */}
       {filteredBills.length > 0 && (
-        <div className="mt-4 text-sm text-gray-600">
+        <div className="mt-4 text-xs text-gray-600">
           Showing {filteredBills.length} of {bills.length} bills
         </div>
       )}

@@ -113,7 +113,7 @@ const EstimateForm = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow">
+    <div className="max-w-5xl mx-auto p-4 bg-white rounded-lg shadow">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-navy-900">New Estimate</h1>
@@ -151,7 +151,7 @@ const EstimateForm = () => {
                 alt={file.name}
                 className="w-24 h-24 object-cover mx-auto rounded"
               />
-              <p className="text-sm mt-2 text-gray-600">{file.name}</p>
+              <p className="text-xs mt-2 text-gray-600">{file.name}</p>
             </div>
           )}
         </div>
@@ -160,14 +160,14 @@ const EstimateForm = () => {
           <h2 className="font-medium">Gayashan&apos;s Company</h2>
           <p className="text-gray-600">0705889612</p>
           <p className="text-gray-600">United States</p>
-          <button className="text-blue-600 hover:underline text-sm">
+          <button className="text-blue-600 hover:underline text-xs">
             Edit Business Information
           </button>
         </div>
       </div>
 
       {/* Form Grid */}
-      <div className="grid grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-2 gap-4 mb-8">
         <div>
           <label className="block text-gray-600 mb-2">Prepared For</label>
           <select
@@ -179,7 +179,7 @@ const EstimateForm = () => {
             <option value="Client A">Client A</option>
             <option value="Client B">Client B</option>
           </select>
-          <button className="text-blue-600 hover:underline text-sm mt-2">
+          <button className="text-blue-600 hover:underline text-xs mt-2">
             + Create a Client
           </button>
         </div>

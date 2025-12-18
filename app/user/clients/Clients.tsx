@@ -52,10 +52,10 @@ const ClientComponent = ({ clientDataResponse }: ClientComponentProps) => {
   const totalDraft = 0; // You can add this field to your API if needed
 
   return (
-    <div className="p-6 min-h-screen my-4">
+    <div className="p-4 min-h-screen my-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-semibold text-gray-800">Clients</h1>
+        <h1 className="text-lg font-semibold text-gray-800">Clients</h1>
         <div className="flex items-center gap-4">
           <button
             onClick={handleNextPage}
@@ -67,23 +67,23 @@ const ClientComponent = ({ clientDataResponse }: ClientComponentProps) => {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-          <p className="text-xl font-medium text-gray-700">Rs{totalOverdue}</p>
+          <p className="text-lg font-medium text-gray-700">Rs{totalOverdue}</p>
           <p className="text-gray-500 regular-14">overdue</p>
         </div>
         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-          <p className="text-xl font-medium text-gray-700">Rs{totalOutstanding}</p>
+          <p className="text-lg font-medium text-gray-700">Rs{totalOutstanding}</p>
           <p className="text-gray-500 regular-14">total outstanding</p>
         </div>
         <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-          <p className="text-xl font-medium text-gray-700">Rs{totalDraft}</p>
+          <p className="text-lg font-medium text-gray-700">Rs{totalDraft}</p>
           <p className="text-gray-500 regular-14">in draft</p>
         </div>
       </div>
 
       {/* Recently Active */}
-      <div className="p-6 min-h-screen">
+      <div className="p-4 min-h-screen">
         {/* Tabs Navigation */}
         <div className="flex border-b border-gray-300 mb-6">
           <button className="px-4 py-2 text-blue-600 font-semibold border-b-2 border-blue-600">

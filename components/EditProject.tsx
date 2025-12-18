@@ -69,13 +69,18 @@ interface EditProjectProps {
   clients: Client[];
   teamMembers: TeamMember[];
   projectId: string;
+  initialProjectData?: ProjectData; // Add this prop
 }
 
 type ProjectType = "flat-rate" | "hourly";
 
-const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, projectId }) => {
+const EditProject: React.FC<EditProjectProps> = ({ 
+  clients, 
+  teamMembers, 
+  projectId,
+  initialProjectData 
+}) => {
   const router = useRouter();
-  const params = useParams();
 
   // State management
   const [client, setClient] = useState<Client | null>(null);
@@ -93,7 +98,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
     { description: "", hours: 0, rate: 0 },
   ]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
+  const [isFetching, setIsFetching] = useState(!initialProjectData); // Only fetch if no initial data
   const [showTeamMemberModal, setShowTeamMemberModal] = useState(false);
   const [searchTeamMember, setSearchTeamMember] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("Team Member");
@@ -119,43 +124,52 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
     label: status,
   }));
 
-  // Fetch project data on mount
+  // Use initial data if provided
   useEffect(() => {
-    const fetchProjectData = async () => {
-      if (!projectId) return;
+    if (initialProjectData) {
+      populateForm(initialProjectData);
+      setIsFetching(false);
+    } else {
+      // Fallback to fetching data if initial data is not provided
+      fetchProjectData();
+    }
+  }, [initialProjectData]);
+
+  // Fallback function to fetch project data
+  const fetchProjectData = async () => {
+    if (!projectId) return;
+    
+    try {
+      setIsFetching(true);
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const response = await fetch(`${API_URL}/project_pulse/Project/${projectId}`);
       
-      try {
-        setIsFetching(true);
-        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-        const response = await fetch(`${API_URL}/project_pulse/Project/${projectId}`);
-        
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            const project = result.data;
-            populateForm(project);
-          } else {
-            alert("Failed to fetch project data");
-            router.back();
-          }
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const project = result.data;
+          populateForm(project);
         } else {
-          alert("Project not found");
+          alert("Failed to fetch project data");
           router.back();
         }
-      } catch (error) {
-        console.error("Error fetching project:", error);
-        alert("Error loading project data");
+      } else {
+        alert("Project not found");
         router.back();
-      } finally {
-        setIsFetching(false);
       }
-    };
-
-    fetchProjectData();
-  }, [projectId, router]);
+    } catch (error) {
+      console.error("Error fetching project:", error);
+      alert("Error loading project data");
+      router.back();
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   // Populate form with existing data
   const populateForm = (project: ProjectData) => {
+    console.log('Populating form with:', project);
+    
     setProjectName(project.projectName);
     setDescription(project.description || "");
     
@@ -169,19 +183,26 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
     setTotalHours(project.totalHours.toString());
     setStatus(project.status);
     
-    // Determine project type
-    const isHourly = project.services && project.services.length > 0;
-    setSelectedType(isHourly ? "hourly" : "flat-rate");
+    // Determine project type based on services
+    // If project has services with hours/rate, it's hourly, otherwise flat-rate
+    const hasServices = project.services && project.services.length > 0;
+    const hasHourlyServices = hasServices && project.services.some(s => s.hours > 0 && s.rate > 0);
     
-    // Set services
+    setSelectedType(hasHourlyServices ? "hourly" : "flat-rate");
+    
+    // Set services - use empty array if no services
     if (project.services && project.services.length > 0) {
       setServices(project.services);
+    } else {
+      setServices([{ description: "", hours: 0, rate: 0 }]);
     }
     
     // Set client
     const foundClient = clients.find(c => c.id === project.clientId);
     if (foundClient) {
       setClient(foundClient);
+    } else {
+      console.warn(`Client with ID ${project.clientId} not found in clients list`);
     }
     
     // Set team members
@@ -190,7 +211,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
         const fullMember = teamMembers.find(tm => tm.memId === member.memId);
         return {
           memId: member.memId,
-          name: fullMember?.name || member.memId,
+          name: fullMember?.name || member.name || member.memId,
           email: fullMember?.email || "",
           phone: fullMember?.phone || "",
           department: fullMember?.department || "",
@@ -200,6 +221,8 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
       }).filter(member => member); // Remove undefined entries
       
       setSelectedTeamMembers(populatedMembers);
+    } else {
+      setSelectedTeamMembers([]);
     }
   };
 
@@ -299,9 +322,10 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
     setIsProjectTypeOpen(false);
     // Reset values based on type
     if (type === "flat-rate") {
-      setFlatRate("0.00");
+      // When switching to flat-rate, keep existing flat rate value
+      // Don't reset to 0.00
     } else {
-      setFlatRate("0.00");
+      // When switching to hourly, calculate total hours from services
       setTotalHours(calculateTotalHours().toString());
     }
   };
@@ -361,6 +385,8 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
       })),
     };
 
+    console.log('Sending update data:', projectData);
+
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
       const response = await fetch(`${API_URL}/project_pulse/Project/update/${projectId}`, {
@@ -373,11 +399,11 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
       });
 
       const result = await response.json();
-      console.log(result);
+      console.log('Update response:', result);
 
       if (response.ok) {
         alert(`✅ ${result.message}!`);
-        router.push(`/projects/${projectId}`); // Redirect to project detail page
+        router.push(`/user/projects`); // Redirect to project detail page
       } else {
         alert(`❌ Error: ${result.message}\n Msg: ${result.error}`);
       }
@@ -463,17 +489,17 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Column - Main Form */}
-        <div className="flex-1 bg-white rounded-xl shadow-md p-6">
+        <div className="flex-1 bg-white rounded-xl shadow-md p-4">
           {/* Client Selection - Using SearchableSelect */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">Client</h2>
+              <h2 className="text-sm font-semibold text-gray-800">Client</h2>
               {client && (
                 <button
                   onClick={() => setClient(null)}
-                  className="text-sm text-red-600 hover:text-red-700"
+                  className="text-xs text-red-600 hover:text-red-700"
                 >
                   Remove
                 </button>
@@ -492,21 +518,21 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
                         <h3 className="font-medium text-gray-900">
                           {client.name}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-xs text-gray-500">
                           {client.businessType} • {client.location}
                         </p>
                       </div>
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500">Email</p>
-                        <p className="text-sm font-medium">
+                        <p className="text-xs text-gray-500">Email</p>
+                        <p className="text-xs font-medium">
                           {client.contactEmail}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Phone</p>
-                        <p className="text-sm font-medium">
+                        <p className="text-xs text-gray-500">Phone</p>
+                        <p className="text-xs font-medium">
                           {client.phoneNumber}
                         </p>
                       </div>
@@ -539,7 +565,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
           {/* Team Members */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-sm font-semibold text-gray-800">
                 Team Members
               </h2>
               <button
@@ -574,7 +600,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
                             onChange={(e) =>
                               updateTeamMemberRole(member.memId, e.target.value)
                             }
-                            className="text-sm text-blue-600 bg-transparent border-none focus:ring-0"
+                            className="text-xs text-blue-600 bg-transparent border-none focus:ring-0"
                           >
                             <option value="Team Member">Team Member</option>
                             <option value="Project Manager">
@@ -605,7 +631,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
           {/* Project Details */}
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
                 Project Name *
               </label>
               <input
@@ -618,7 +644,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
                 Description
               </label>
               <textarea
@@ -631,9 +657,9 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
             </div>
 
             {/* Project Dates & Financials */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-2">
                   Start Date *
                 </label>
                 <div className="relative">
@@ -651,7 +677,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-2">
                   End Date *
                 </label>
                 <div className="relative">
@@ -671,7 +697,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
 
               {selectedType === "flat-rate" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
                     Flat Rate *
                   </label>
                   <div className="relative">
@@ -692,7 +718,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-700 mb-2">
                   Total Hours
                 </label>
                 <div className="relative">
@@ -717,7 +743,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
 
             {/* Status - Using SearchableSelect */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
                 Status
               </label>
               <SearchableSelect
@@ -733,7 +759,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
           {/* Services Section */}
           <div className="mt-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">Services</h2>
+              <h2 className="text-sm font-semibold text-gray-800">Services</h2>
               <button
                 onClick={addService}
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
@@ -761,7 +787,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
                         )
                       }
                       placeholder="Service description"
-                      className="flex-1 text-lg font-medium border-none focus:outline-none focus:ring-0"
+                      className="flex-1 text-sm font-medium border-none focus:outline-none focus:ring-0"
                     />
                     {services.length > 1 && (
                       <button
@@ -775,7 +801,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">
+                      <label className="block text-xs text-gray-600 mb-1">
                         Hours
                       </label>
                       <input
@@ -789,7 +815,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">
+                      <label className="block text-xs text-gray-600 mb-1">
                         Rate ($)
                       </label>
                       <input
@@ -806,7 +832,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
                   </div>
 
                   {service.hours > 0 && service.rate > 0 && (
-                    <div className="mt-3 text-right text-sm text-gray-600">
+                    <div className="mt-3 text-right text-xs text-gray-600">
                       Total: {formatCurrency(service.hours * service.rate)}
                     </div>
                   )}
@@ -819,8 +845,8 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
         {/* Right Column - Settings & Summary */}
         <div className="w-full lg:w-80">
           {/* Settings Card */}
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Settings</h2>
+          <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-2">Settings</h2>
             <p className="text-gray-500 mb-6">For This Project</p>
 
             {/* Project Type */}
@@ -939,7 +965,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
       {showTeamMemberModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b">
+            <div className="p-4 border-b">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900">
                   Add Team Members
@@ -970,7 +996,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
               </div>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
               {filteredTeamMembers.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   No team members found
@@ -983,17 +1009,17 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-medium text-lg">
+                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-medium text-sm">
                           {member.name.charAt(0)}
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-900">
                             {member.name}
                           </h4>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs text-gray-600">
                             {member.role} • {member.department}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs text-gray-500">
                             {member.email}
                           </p>
                         </div>
@@ -1003,7 +1029,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
                         <select
                           value={newMemberRole}
                           onChange={(e) => setNewMemberRole(e.target.value)}
-                          className="px-3 py-1 border border-gray-300 rounded text-sm"
+                          className="px-3 py-1 border border-gray-300 rounded text-xs"
                         >
                           <option value="Team Member">Team Member</option>
                           <option value="Project Manager">
@@ -1041,7 +1067,7 @@ const EditProject: React.FC<EditProjectProps> = ({ clients, teamMembers, project
               )}
             </div>
 
-            <div className="p-6 border-t bg-gray-50">
+            <div className="p-4 border-t bg-gray-50">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-gray-600">

@@ -69,7 +69,7 @@ const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
 
         <div className="bg-white max-w-3xl rounded-lg shadow">
           {/* Form */}
-          <div className="p-6">
+          <div className="p-4">
             {/* Info Message */}
             <div className="flex items-center gap-2 text-gray-600 mb-6 bg-gray-10 p-4 rounded">
               <svg
@@ -96,7 +96,7 @@ const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
               <div>
                 <label
                   htmlFor="companyName"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-xs font-medium text-gray-700"
                 >
                   Company Name
                 </label>
@@ -110,11 +110,11 @@ const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
                     htmlFor="firstName"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-xs font-medium text-gray-700"
                   >
                     First Name
                   </label>
@@ -130,7 +130,7 @@ const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
                 <div>
                   <label
                     htmlFor="lastName"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-xs font-medium text-gray-700"
                   >
                     Last Name
                   </label>
@@ -148,7 +148,7 @@ const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
               <div>
                 <label
                   htmlFor="accountNumber"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-xs font-medium text-gray-700"
                 >
                   Account Number
                 </label>
@@ -165,7 +165,7 @@ const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-xs font-medium text-gray-700"
                 >
                   Email Address
                 </label>
@@ -182,7 +182,7 @@ const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
               <div>
                 <label
                   htmlFor="website"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-xs font-medium text-gray-700"
                 >
                   Website
                 </label>
@@ -199,7 +199,7 @@ const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
               <div>
                 <label
                   htmlFor="phoneNumber"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-xs font-medium text-gray-700"
                 >
                   Phone Number
                 </label>
@@ -215,7 +215,7 @@ const NewVendorForm = ({ onSubmit }: NewVendorFormProps) => {
               <div>
                 <label
                   htmlFor="phoneNumber"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-xs font-medium text-gray-700"
                 >
                   Address
                 </label>

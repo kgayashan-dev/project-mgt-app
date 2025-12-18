@@ -253,7 +253,7 @@ const EditInvoiceData: React.FC<EditInvoiceProps> = ({ initialData }) => {
                     );
                     setClient(selectedClient || null); // Set the selected client
                   }}
-                  className={`text-md rounded  text-[13px] p-2 focus:ring-2 focus:ring-blue-500 border-[0.5px]`}
+                  className={`text-sm rounded  text-[13px] p-2 focus:ring-2 focus:ring-blue-500 border-[0.5px]`}
                 >
                   <option value="">Select a Client</option>
                   {initialData.map((clientOption) => (
@@ -384,7 +384,7 @@ const EditInvoiceData: React.FC<EditInvoiceProps> = ({ initialData }) => {
           </div>
           <div className="flex justify-end items-start">
             <div>
-              <p className="text-sm text-gray-60">Amount Due (LKR)</p>
+              <p className="text-xs text-gray-60">Amount Due (LKR)</p>
               <h1 className="text-3xl text-right">Rs.{grandTotal}</h1>
             </div>
           </div>
@@ -394,7 +394,7 @@ const EditInvoiceData: React.FC<EditInvoiceProps> = ({ initialData }) => {
         <div className="mb-2">
           <table className="w-full  text-[12px] mb- border border-gray-300 border-collapse">
             <thead>
-              <tr className=" border-gray-300 font-semibold text-sm">
+              <tr className=" border-gray-300 font-semibold text-xs">
                 <th className="text-left border  p-2">Item</th>
                 <th className="text-left border w-96 p-2">Description</th>
                 <th className="text-left border p-2">Unit</th>

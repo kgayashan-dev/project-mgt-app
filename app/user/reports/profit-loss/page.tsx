@@ -112,9 +112,9 @@ const ProfitAndLoss = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex gap-6">
+      <div className="flex gap-4">
         {/* Statement Card */}
-        <div className="bg-white rounded-lg shadow flex-1 p-6 max-w-5xl">
+        <div className="bg-white rounded-lg shadow flex-1 p-4 max-w-5xl">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-2xl font-semibold text-blue-600 mb-2">
@@ -143,7 +143,7 @@ const ProfitAndLoss = () => {
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto text-sm">
+          <div className="overflow-x-auto text-xs">
             <table className="w-full">
               <thead>
                 <tr className="border-b">

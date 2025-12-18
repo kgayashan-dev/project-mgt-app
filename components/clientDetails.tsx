@@ -96,7 +96,7 @@ function MetricCard({ icon, value, label }: MetricCardProps) {
   return (
     <div>
       {icon}
-      <span className="text-xl font-bold">{value}</span>
+      <span className="text-lg font-bold">{value}</span>
       <p className="text-gray-600">{label}</p>
     </div>
   );
@@ -146,7 +146,7 @@ function InvoiceCard({ invoice }: { invoice: Invoice }) {
           
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
-              <h3 className="text-sm font-semibold text-gray-800">{invoice.invoiceNo}</h3>
+              <h3 className="text-xs font-semibold text-gray-800">{invoice.invoiceNo}</h3>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(invoice.status)}`}>
                 {invoice.status}
               </span>
@@ -165,7 +165,7 @@ function InvoiceCard({ invoice }: { invoice: Invoice }) {
         </div>
 
         <div className="text-right mr-4">
-          <div className="text-sm font-bold text-gray-900">
+          <div className="text-xs font-bold text-gray-900">
             {formatCurrency(invoice.invoiceTotal)}
           </div>
           <div className="text-xs text-gray-500">
@@ -261,7 +261,7 @@ export default function ClientDetailsUI({
   ];
 
   return (
-    <div className="max-w-full mx-auto p-6">
+    <div className="max-w-full mx-auto p-4">
       {/* Header - same as before */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
@@ -336,17 +336,17 @@ export default function ClientDetailsUI({
           />
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-12 gap-4">
           {/* Client Info Card - same as before */}
-          <div className="col-span-4 bg-white rounded-lg shadow-sm p-6">
+          <div className="col-span-4 bg-white rounded-lg shadow-sm p-4">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-purple-600 text-xl font-semibold">
+                <span className="text-purple-600 text-lg font-semibold">
                   {initialData.initials}
                 </span>
               </div>
               <div>
-                <h3 className="text-sm font-semibold">{initialData.name}</h3>
+                <h3 className="text-xs font-semibold">{initialData.name}</h3>
                 <p className="text-gray-600 flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-gray-400"></span>
                   {initialData.location}
@@ -380,9 +380,9 @@ export default function ClientDetailsUI({
           </div>
 
           {/* Revenue Card - updated with real data */}
-          <div className="col-span-8 bg-white rounded-lg shadow-sm p-6">
+          <div className="col-span-8 bg-white rounded-lg shadow-sm p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold">Outstanding Revenue</h3>
+              <h3 className="text-xs font-semibold">Outstanding Revenue</h3>
               <span className="text-2xl font-bold">
                 ${financialData.outstandingRevenue.toFixed(2)}
               </span>
@@ -439,7 +439,7 @@ export default function ClientDetailsUI({
       {/* Content Section based on active sub tab */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">
+          <h2 className="text-lg font-bold">
             {activeSubTab.charAt(0).toUpperCase() + activeSubTab.slice(1)} for {initialData.name}
           </h2>
           <button 
@@ -456,7 +456,7 @@ export default function ClientDetailsUI({
             {invoices.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-sm font-semibold text-gray-600 mb-2">No invoices found</h3>
+                <h3 className="text-xs font-semibold text-gray-600 mb-2">No invoices found</h3>
                 <p className="text-gray-500">Create your first invoice for this client</p>
               </div>
             ) : (

@@ -58,7 +58,7 @@ export default async function Page() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">
               No projects found
             </h3>
             <p className="text-gray-600 mb-4">

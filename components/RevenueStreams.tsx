@@ -54,9 +54,9 @@ const RevenueStreams: React.FC<RevenueStreamsProps> = ({ data }) => {
   });
 
   return (
-    <div className="w-full  p-6 bg-white rounded-lg">
+    <div className="w-full  p-4 bg-white rounded-lg">
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-slate-900">Revenue Streams</h2>
+        <h2 className="text-lg font-bold text-slate-900">Revenue Streams</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -76,7 +76,7 @@ const RevenueStreams: React.FC<RevenueStreamsProps> = ({ data }) => {
 
         {/* Legend & Details Section */}
         <div className="space-y-6">
-          <p className="text-sm text-blue-600 font-medium">
+          <p className="text-xs text-blue-600 font-medium">
             See where your money&pos;s coming from
           </p>
           <div className="space-y-4">
@@ -87,7 +87,7 @@ const RevenueStreams: React.FC<RevenueStreamsProps> = ({ data }) => {
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />
-                  <span className="text-sm text-slate-600">{item.name}</span>
+                  <span className="text-xs text-slate-600">{item.name}</span>
                 </div>
                 <span className="font-medium text-slate-900">
                   ${item.value.toLocaleString()}

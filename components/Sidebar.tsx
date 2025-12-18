@@ -93,7 +93,7 @@ const Sidebar: React.FC = () => {
   return (
     <div className="flex">
       <div
-        className={`fixed top-0 left-0 z-20 h-full bg-blue-800 text-white w-64 p-6 transition-transform duration-300 ${
+        className={`fixed top-0 left-0 z-20 h-full bg-blue-800 text-white w-64 p-4 transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "-translate-x-64"
         } md:translate-x-0`}
       >
@@ -111,7 +111,7 @@ const Sidebar: React.FC = () => {
               ProjectPulse
             </span>
           </Link>
-          <p className="text-sm font-medium mt-1">Owner</p>
+          <p className="text-xs font-medium mt-1">Owner</p>
         </h1>
 
         <nav>

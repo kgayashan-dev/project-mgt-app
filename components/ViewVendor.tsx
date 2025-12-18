@@ -131,18 +131,18 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-8 regular-12">
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-4">
           {/* Vendor Info Card */}
           <div className="col-span-1">
-            <div className="bg-white rounded-lg p-6">
+            <div className="bg-white rounded-lg p-4">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-800 text-xl font-semibold">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-800 text-lg font-semibold">
                     {initials}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-sm font-semibold text-gray-900">
                     {vendorArray.firstName}
                   </h2>
                   <p className="text-gray-500">{fullName}</p>
@@ -171,10 +171,10 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
 
           {/* Outstanding Amount Card */}
           <div className="col-span-2">
-            <div className="bg-white rounded-lg p-6">
+            <div className="bg-white rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  <h2 className="text-xl font-semibold">Total Outstanding</h2>
+                  <h2 className="text-lg font-semibold">Total Outstanding</h2>
                   <button className="flex items-center space-x-1 text-gray-500 hover:text-gray-700">
                     <span>LKR</span>
                   </button>
@@ -189,7 +189,7 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
               </div>
 
               <div className="relative pt-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <div className="flex justify-between text-xs text-gray-600 mb-2">
                   <span>0</span>
                   <span>2k</span>
                   <span>4k</span>
@@ -217,7 +217,7 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
 
         {/* Search Bar & Bills Section */}
         <div className="space-y-4">
-          <div className="max-w-7xl mx-auto p-6">
+          <div className="max-w-7xl mx-auto p-4">
             <div className="mb-6 flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <h1 className="text-2xl font-semibold text-gray-900">Bills</h1>
@@ -237,7 +237,7 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
                     value={searchQuery}
                     onChange={handleSearchChange}
                     placeholder="Search(INV001, 7800, Partial...)"
-                    className="pl-10 pr-4 text-sm py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="pl-10 pr-4 text-xs py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -257,19 +257,19 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                     Client / Invoice Number
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                     Description
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                     <div className="flex items-center gap-1">
                       Issued Date
                       <ChevronDown className="h-4 w-4 text-gray-500" />
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-900">
                     Amount / Status
                   </th>
                 </tr>
@@ -305,7 +305,7 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
                         <div className="text-gray-900">{bill.issueDate}</div>
                       </td>
                       <td className="px-4 py-1 text-right">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-xs font-medium text-gray-900">
                           Rs. {formatCurrency(bill.amount)}
                         </div>
                         <span
@@ -320,7 +320,7 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
               </tbody>
             </table>
             <div className="flex justify-end px-4 py-2 bg-gray-100 border-t rounded-b-md border-gray-200">
-              <div className="text-sm text-gray-700">
+              <div className="text-xs text-gray-700">
                 Grand Total: Rs.{" "}
                 {formatCurrency(
                   table.reduce((total, bill) => total + bill.amount, 0)

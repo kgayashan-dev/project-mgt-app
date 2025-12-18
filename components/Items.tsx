@@ -336,10 +336,10 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
   const displayItems = searchTerm ? filteredItems : items;
 
   return (
-    <div className="p-6 min-h-screen my-4">
+    <div className="p-4 min-h-screen my-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-semibold text-gray-800">
+        <h1 className="text-lg font-semibold text-gray-800">
           Items ({items.length})
         </h1>
         <div className="flex items-center gap-4">
@@ -425,7 +425,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
               key={item.id}
               className="grid grid-cols-7 items-center px-4 py-1 hover:bg-gray-50 border-b"
             >
-              <div className="font-mono text-sm">{item.id}</div>
+              <div className="font-mono text-xs">{item.id}</div>
               <div className="font-medium">{item.name}</div>
               <div>
                 {categories.find((cat) => cat.categoryId === item.category)
@@ -468,14 +468,14 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
       {/* Modal for New Item or Editing Existing Item */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-4">
+          <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h2 className="text-sm font-semibold mb-4">
               {isEditing ? "Edit Item" : "Add New Item"}
             </h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-xs font-medium text-gray-700"
                   htmlFor="name"
                 >
                   Item Name *
@@ -494,7 +494,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
 
               <div className="mb-4">
                 <label
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-xs font-medium text-gray-700"
                   htmlFor="description"
                 >
                   Description
@@ -511,7 +511,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Category
                 </label>
                 <SearchableSelect
@@ -520,7 +520,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
                   onChange={handleCategoryChange}
                   placeholder="Search and select category..."
                   label=""
-                  className="w-full text-sm"
+                  className="w-full text-xs"
                   disabled={loading}
                 />
               </div>
@@ -528,7 +528,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-xs font-medium text-gray-700"
                     htmlFor="price"
                   >
                     Price *
@@ -548,7 +548,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
                 </div>
                 <div>
                   <label
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-xs font-medium text-gray-700"
                     htmlFor="qty"
                   >
                     Quantity *
@@ -570,7 +570,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-xs font-medium text-gray-700"
                     htmlFor="rate"
                   >
                     Rate
@@ -588,7 +588,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-xs font-medium text-gray-700">
                     Total
                   </label>
                   <div className="mt-1 block w-full border border-gray-300 bg-gray-100 rounded-md p-2">

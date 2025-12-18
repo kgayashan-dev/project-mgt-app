@@ -148,7 +148,7 @@ const EditBillPage = () => {
 
       <div
         id="estimate-content"
-        className="max-w-2xl max-h-[150vh] regular-12 p-6 bg-white rounded-lg shadow"
+        className="max-w-2xl max-h-[150vh] regular-12 p-4 bg-white rounded-lg shadow"
       >
         <div className="flex justify-between spacy">
           <div className="w-full flex flex-col justify-start space-y-6">

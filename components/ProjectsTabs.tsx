@@ -48,7 +48,7 @@ const ProjectTabs = ({ projectId }: { projectId: string }) => {
             <input
               type="text"
               placeholder="Search"
-              className="pl-10 pr-4 text-sm py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="pl-10 pr-4 text-xs py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -62,7 +62,7 @@ const ProjectTabs = ({ projectId }: { projectId: string }) => {
               key={tab.id}
               href={tab.href}
               className={`
-                px-6 py-3 text-sm font-medium rounded-t-lg
+                px-6 py-3 text-xs font-medium rounded-t-lg
                 ${
                   pathname.includes(tab.id)
                     ? "bg-white text-blue-600 border border-gray-200 border-b-white"

@@ -383,12 +383,12 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
         </div>
       )}
 
-      <div className="max-w-2xl max-h-[150vh] regular-12 p-6 bg-white rounded-lg shadow">
+      <div className="max-w-2xl max-h-[150vh] regular-12 p-4 bg-white rounded-lg shadow">
         <div className="flex justify-between space-y-6">
           <div className="w-full flex flex-col justify-start space-y-6">
             {/* Vendor Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Select Vendor *
               </label>
               <select
@@ -402,7 +402,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
                 className="rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 bg-white shadow-sm hover:border-blue-300 transition duration-300 ease-in-out"
                 required
               >
-                <option value="" className="text-gray-500 text-md">
+                <option value="" className="text-gray-500 text-sm">
                   Select a Vendor
                 </option>
                 {vendorArray.map((vendorOption) => (
@@ -420,7 +420,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
 
             {/* Vendor Details (if selected) */}
             {vendor && (
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+              <div className="grid grid-cols-2 gap-4 text-xs text-gray-600">
                 <div>
                   <span className="font-medium">Company:</span>{" "}
                   {vendor.companyName}
@@ -440,7 +440,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
             {/* Date Fields */}
             <div className="flex flex-row justify-start items-center gap-4 regular-12">
               <div className="flex flex-col">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Issue Date *
                 </label>
                 <input
@@ -452,7 +452,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
                 />
               </div>
               <div className="flex flex-col">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Due Date *
                 </label>
                 <input
@@ -464,7 +464,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
                 />
               </div>
               <div className="flex flex-col">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   Bill Number *
                 </label>
                 <input
@@ -479,7 +479,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
 
             {/* Remarks */}
             <div className="flex flex-col">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Remarks
               </label>
               <textarea
@@ -516,7 +516,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
                       d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-2 text-xs text-gray-500">
                     {isDragActive
                       ? "Drop the file here..."
                       : "Upload receipt or image"}
@@ -542,10 +542,10 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
         {/* Items Table */}
         <div className="my-8">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Items</h3>
+            <h3 className="text-sm font-semibold">Items</h3>
             <button
               onClick={addRow}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               + Add Item
             </button>
@@ -554,19 +554,19 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
           <table className="w-full mb-4">
             <thead>
               <tr className="border-b bg-gray-100">
-                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                <th className="text-left p-3 text-xs font-medium text-gray-700">
                   Description
                 </th>
-                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                <th className="text-left p-3 text-xs font-medium text-gray-700">
                   Category
                 </th>
-                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                <th className="text-left p-3 text-xs font-medium text-gray-700">
                   Rate
                 </th>
-                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                <th className="text-left p-3 text-xs font-medium text-gray-700">
                   Qty
                 </th>
-                <th className="text-left p-3 text-sm font-medium text-gray-700">
+                <th className="text-left p-3 text-xs font-medium text-gray-700">
                   Total
                 </th>
                 <th className="w-8"></th>
@@ -651,7 +651,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
 
         {/* Totals Section */}
         <div className="flex justify-end mb-8">
-          <div className="w-80 bg-gray-100 p-6 rounded-lg">
+          <div className="w-80 bg-gray-100 p-4 rounded-lg">
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
@@ -674,11 +674,11 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
                 <span className="font-medium">Rs.{totalTax.toFixed(2)}</span>
               </div>
               <div className="border-t pt-3">
-                <div className="flex justify-between text-lg font-semibold">
+                <div className="flex justify-between text-sm font-semibold">
                   <span>Grand Total</span>
                   <span>Rs.{grandTotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between mt-2 text-sm text-gray-600">
+                <div className="flex justify-between mt-2 text-xs text-gray-600">
                   <span>Amount Due</span>
                   <span>Rs.{amountDue.toFixed(2)}</span>
                 </div>

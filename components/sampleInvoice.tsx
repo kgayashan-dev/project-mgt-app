@@ -138,7 +138,7 @@ const InvoiceForm: React.FC<InvoiceDetailPageProps> = ({ initialData }) => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Invoice Details</h1>
 
       {/* Client Information */}
@@ -183,7 +183,7 @@ const InvoiceForm: React.FC<InvoiceDetailPageProps> = ({ initialData }) => {
       </div>
 
       {/* Table of Items */}
-      <h2 className="text-xl font-bold mt-6 mb-2">Items</h2>
+      <h2 className="text-lg font-bold mt-6 mb-2">Items</h2>
       <table className="min-w-full border-collapse border border-gray-300">
         <thead>
           <tr>
@@ -262,21 +262,21 @@ const InvoiceForm: React.FC<InvoiceDetailPageProps> = ({ initialData }) => {
       {/* Notes and Terms */}
       {invoiceNotes && (
         <>
-          <h3 className="text-lg font-semibold mt-4">Notes</h3>
+          <h3 className="text-sm font-semibold mt-4">Notes</h3>
           <p>{invoiceNotes}</p>
         </>
       )}
 
       {invoiceTerms && (
         <>
-          <h3 className="text-lg font-semibold mt-4">Terms</h3>
+          <h3 className="text-sm font-semibold mt-4">Terms</h3>
           <p>{invoiceTerms}</p>
         </>
       )}
 
       {additionalInfoField && (
         <>
-          <h3 className="text-lg font-semibold mt-4">Additional Information</h3>
+          <h3 className="text-sm font-semibold mt-4">Additional Information</h3>
           <p>{additionalInfoField}</p>
         </>
       )}

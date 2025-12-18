@@ -79,7 +79,7 @@ const ExpensePage = () => {
                     defaultValue={expense.category}
                   />
                 </div>
-                <div className="text-sm text-gray-500 mt-2">
+                <div className="text-xs text-gray-500 mt-2">
                   {expense.submittedBy}
                 </div>
               </div>
@@ -164,7 +164,7 @@ const ExpensePage = () => {
                 <div className="font-medium">
                   {expense.merchant || "No Merchant"}
                 </div>
-                <div className="text-sm text-gray-500">{expense.category}</div>
+                <div className="text-xs text-gray-500">{expense.category}</div>
               </div>
             </div>
             <div className="flex items-center gap-8">
@@ -174,7 +174,7 @@ const ExpensePage = () => {
                   Rs.{expense.totalAmount.toFixed(2)} LKR
                 </div>
                 {expense.isDuplicate && (
-                  <div className="text-sm text-blue-600">
+                  <div className="text-xs text-blue-600">
                     Potential Duplicate
                   </div>
                 )}
@@ -187,9 +187,9 @@ const ExpensePage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <div className="flex justify-between items-center mb-8 mt-6">
-        <h1 className="text-xl font-bold">Expenses</h1>
+        <h1 className="text-lg font-bold">Expenses</h1>
         <div className="flex gap-2">
           <button className="px-4 py-2 text-gray-600 hover:text-gray-800">
             More Actions
@@ -205,7 +205,7 @@ const ExpensePage = () => {
 
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">All Expenses</h2>
+          <h2 className="text-lg font-bold">All Expenses</h2>
           <div className="flex gap-4">
             <input
               type="text"

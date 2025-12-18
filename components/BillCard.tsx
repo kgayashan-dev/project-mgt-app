@@ -35,15 +35,15 @@ const BillCard: React.FC<BillCardProps> = ({ bill }) => {
     >
       <div className="p-4 flex flex-col h-full">
         {/* Top section with ID */}
-        <div className="text-gray-600 text-sm mb-2">{bill.id}</div>
+        <div className="text-gray-600 text-xs mb-2">{bill.id}</div>
 
         {/* vendor name */}
-        <div className="text-gray-900 text-sm font-medium mb-1">
+        <div className="text-gray-900 text-xs font-medium mb-1">
           {bill.vendor}
         </div>
 
         {/* Date */}
-        <div className="text-gray-500 text-sm">{bill.issueDate}</div>
+        <div className="text-gray-500 text-xs">{bill.issueDate}</div>
 
         {/* Spacer */}
         <div className="mt-16" />
@@ -52,7 +52,7 @@ const BillCard: React.FC<BillCardProps> = ({ bill }) => {
 
         <div className="border-t border-gray-200 text-right flex justify-end items-end texte w-full">
           <div>
-            <div className=" text-sm font-semibold">Rs. {bill.amount}</div>
+            <div className=" text-xs font-semibold">Rs. {bill.amount}</div>
             <div className=" text-xs font-semibold">
               {" "}
               Paid Rs. {bill.paidAmount}

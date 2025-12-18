@@ -77,7 +77,7 @@ const ChartOfAccounts = () => {
       <div className="mb-6 bg-blue-50 border-blue-100">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center flex-shrink-0">
-            <span className="text-pink-500 text-lg">✨</span>
+            <span className="text-pink-500 text-sm">✨</span>
           </div>
           <div className="flex-1">
             <span className="font-semibold">Pro Tip:</span> Turn on{" "}
@@ -116,7 +116,7 @@ const ChartOfAccounts = () => {
 
         {/* Table Header */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">All Accounts</h2>
+          <h2 className="text-lg font-bold text-gray-900">All Accounts</h2>
           <button className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-gray-50">
             <Filter size={20} />
             Filters
@@ -149,7 +149,7 @@ const ChartOfAccounts = () => {
                       <div>
                         <div className="font-medium">{account.name}</div>
                         {account.subLabel && (
-                          <div className="text-sm text-gray-500">
+                          <div className="text-xs text-gray-500">
                             {account.subLabel}
                           </div>
                         )}
@@ -160,7 +160,7 @@ const ChartOfAccounts = () => {
                   <td className="py-3 px-4">
                     <div>
                       <div>{account.type}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-xs text-gray-500">
                         {account.subType}
                       </div>
                     </div>

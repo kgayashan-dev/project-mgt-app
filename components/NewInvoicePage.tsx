@@ -495,7 +495,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
     <div className="flex flex-col m-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold text-navy-900">New Invoice</h1>
+        <h1 className="text-lg font-bold text-navy-900">New Invoice</h1>
         <div className="flex gap-2">
           <Link
             href={"/user/Invoices"}
@@ -786,7 +786,7 @@ const InvoiceForm: React.FC<NewInvoiceProps> = ({
         <div className="flex justify-end mb-4">
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
             <p className="text-xs text-gray-600 mb-0.5">Invoice Total (LKR)</p>
-            <h1 className="text-xl font-bold text-blue-800">
+            <h1 className="text-lg font-bold text-blue-800">
               Rs.{" "}
               {grandTotal.toLocaleString("en-IN", {
                 minimumFractionDigits: 2,

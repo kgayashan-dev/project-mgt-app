@@ -37,7 +37,7 @@ const CalendarMonthView = () => {
             isToday ? "bg-blue-100 border-blue-500 border" : "bg-white"
           }`}
         >
-          <div className="text-sm font-semibold">{day.date()}</div>
+          <div className="text-xs font-semibold">{day.date()}</div>
           {isCurrentMonth && (
             <button
               className="text-blue-500 hover:bg-blue-100 rounded-full p-1"
@@ -68,20 +68,20 @@ const CalendarMonthView = () => {
        
 
           <button
-                      className="text-gray-600 hover:text-blue-600 text-xl font-semibold"
+                      className="text-gray-600 hover:text-blue-600 text-lg font-semibold"
                       onClick={handlePrevMonth}
                     >
                       <IoIosArrowBack />
                     </button>
         
                     <button
-                      className="text-gray-600 hover:text-blue-600 text-xl font-semibold"
+                      className="text-gray-600 hover:text-blue-600 text-lg font-semibold"
                       onClick={handleNextMonth}
                     >
                       <IoIosArrowForward />
                     </button>
           
-                    <span className="mx-2 text-lg font-semibold">
+                    <span className="mx-2 text-sm font-semibold">
             {currentDate.format("MMMM YYYY")}
           </span>
         </div>

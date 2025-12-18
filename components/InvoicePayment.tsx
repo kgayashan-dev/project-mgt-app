@@ -492,7 +492,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-gray-900">Invoice Payments</h2>
+          <h2 className="text-sm font-bold text-gray-900">Invoice Payments</h2>
           <button
             onClick={() => {
               setShowDetails(!showDetails);
@@ -524,7 +524,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search payments..."
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <svg
             className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3.5 h-3.5"
@@ -594,7 +594,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       {/* Payment Form */}
       {showDetails && (
         <div className="mb-3 bg-white rounded shadow p-3">
-          <h3 className="text-md font-semibold mb-3">
+          <h3 className="text-sm font-semibold mb-3">
             {selectedPayment ? "Edit Payment" : "Add New Payment"}
           </h3>
 
@@ -608,7 +608,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                 <select
                   value={newPayment.invoiceId}
                   onChange={handleInvoiceChange}
-                  className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
                   disabled={!!selectedPayment}
                 >
@@ -640,7 +640,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                   name="paymentDate"
                   value={newPayment.paymentDate}
                   onChange={handleInputChange}
-                  className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
                 />
               </div>
@@ -654,7 +654,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                   name="type"
                   value={newPayment.type}
                   onChange={handleInputChange}
-                  className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
                 >
                   <option value="">Select Type</option>
@@ -676,7 +676,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                   name="amount"
                   value={newPayment.amount}
                   onChange={handleInputChange}
-                  className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
                   min="0"
                   step="0.01"
@@ -732,7 +732,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                 value={newPayment.internalNotes}
                 onChange={handleInputChange}
                 rows={2}
-                className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="Payment notes (optional)..."
               />
             </div>
@@ -747,7 +747,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                   resetForm();
                   setError(null);
                 }}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded text-gray-700 hover:bg-gray-500"
+                className="px-3 py-1.5 text-xs border border-gray-300 rounded text-gray-700 hover:bg-gray-500"
                 disabled={loading}
               >
                 Cancel
@@ -755,7 +755,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {loading ? (
                   <>
@@ -819,7 +819,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-3 py-4 text-center text-gray-500 text-sm"
+                    className="px-3 py-4 text-center text-gray-500 text-xs"
                   >
                     <div className="flex flex-col items-center py-4">
                       <svg
@@ -835,7 +835,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
                       </svg>
-                      <p className="text-sm">No payments found</p>
+                      <p className="text-xs">No payments found</p>
                     </div>
                   </td>
                 </tr>

@@ -64,7 +64,7 @@ const LogOutModal: React.FC<LogOutModalProps> = ({ onClose }) => {
       className="absolute top-16 right-12 w-64 bg-white shadow-lg rounded-lg p-4 z-50"
     >
       <div className="flex items-center gap-4 pb-4 border-b">
-        <div className="w-10 h-10 bg-gray-200 rounded-full flex justify-center items-center text-lg font-bold text-gray-600">
+        <div className="w-10 h-10 bg-gray-200 rounded-full flex justify-center items-center text-sm font-bold text-gray-600">
           A
         </div>
         <div>

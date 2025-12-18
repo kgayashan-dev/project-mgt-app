@@ -161,10 +161,10 @@ const NewExpensePage = () => {
 
       <div
         id="expense-content"
-        className="max-w-2xl h-[90vh] bg-white rounded-lg shadow p-6 regular-14"
+        className="max-w-2xl h-[90vh] bg-white rounded-lg shadow p-4 regular-14"
       >
         {/* Form content remains the same */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <span className="text-red-500">category</span>
@@ -191,7 +191,7 @@ const NewExpensePage = () => {
               value={merchant}
               onChange={(e) => setMerchant(e.target.value)}
               placeholder="Add merchant"
-              className="w-full p-2 text-xl border-b border-gray-200 focus:outline-none focus:border-blue-500"
+              className="w-full p-2 text-lg border-b border-gray-200 focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -255,7 +255,7 @@ const NewExpensePage = () => {
                 </span>
                 <button
                   onClick={() => handleRemoveTax(index)}
-                  className="text-gray-400 hover:text-red-500 text-sm flex items-center"
+                  className="text-gray-400 hover:text-red-500 text-xs flex items-center"
                   aria-label={`Remove tax ${tax.name}`}
                 >
                   <Trash2 className="h-4 w-4" />{" "}

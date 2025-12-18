@@ -16,7 +16,7 @@ const CheckoutLinks = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8 mt-6">
+    <div className="max-w-6xl mx-auto p-4 space-y-8 mt-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-navy-900">Checkout Links</h1>
@@ -44,7 +44,7 @@ const CheckoutLinks = () => {
               <div className="w-24 h-24 bg-pink-100 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <Clock className="w-12 h-12 text-blue-600" />
               </div>
-              <h3 className="text-lg font-medium text-navy-900 mb-2">
+              <h3 className="text-sm font-medium text-navy-900 mb-2">
                 Quick Setup
               </h3>
               <p className="text-gray-600">
@@ -56,7 +56,7 @@ const CheckoutLinks = () => {
               <div className="w-24 h-24 bg-blue-50 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <Share2 className="w-12 h-12 text-blue-600" />
               </div>
-              <h3 className="text-lg font-medium text-navy-900 mb-2">
+              <h3 className="text-sm font-medium text-navy-900 mb-2">
                 Expand Reach
               </h3>
               <p className="text-gray-600">
@@ -71,7 +71,7 @@ const CheckoutLinks = () => {
               <div className="w-24 h-24 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <Receipt className="w-12 h-12 text-blue-600" />
               </div>
-              <h3 className="text-lg font-medium text-navy-900 mb-2">
+              <h3 className="text-sm font-medium text-navy-900 mb-2">
                 Automated Receipts
               </h3>
               <p className="text-gray-600">
@@ -85,7 +85,7 @@ const CheckoutLinks = () => {
       {/* Links Section */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-bold text-navy-900">
+          <h2 className="text-lg font-bold text-navy-900">
             All Checkout Links
           </h2>
           <button className="text-gray-90 p-1 rounded-md hover:bg-green-500 bg-green-600">

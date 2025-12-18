@@ -101,12 +101,19 @@ CREATE OR ALTER PROCEDURE [dbo].[sp_UpdateProject]
     @EndDate DATETIME2,
     @FlatRate DECIMAL(18,2),
     @TotalHours INT,
-    @Status NVARCHAR(20)
+    @Status NVARCHAR(20),
+    @Services dbo.ProjectServiceDetailsType READONLY,
+    @TeamMembers dbo.ProjectTeamMemberType READONLY
 AS
 BEGIN
     SET NOCOUNT ON;
-    
+    SET XACT_ABORT ON;
+
+    DECLARE @ErrorMessage NVARCHAR(4000);
+
     BEGIN TRY
+        BEGIN TRANSACTION;
+
         -- Validate Project exists
         IF NOT EXISTS (SELECT 1 FROM Projects WHERE Id = @Id AND IsActive = 1)
         BEGIN
@@ -117,6 +124,19 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM Clients WHERE Id = @ClientId)
         BEGIN
             ;THROW 50002, 'Client does not exist.', 1;
+        END
+
+        -- Validate team members exist (only if team members provided)
+        DECLARE @TeamMemberCount INT;
+        SELECT @TeamMemberCount = COUNT(*) FROM @TeamMembers;
+        
+        IF @TeamMemberCount > 0
+        BEGIN
+            IF EXISTS (SELECT 1 FROM @TeamMembers tm 
+                       WHERE NOT EXISTS (SELECT 1 FROM TeamMembers WHERE MemId = tm.MemId AND IsActive = 1))
+            BEGIN
+                ;THROW 50003, 'One or more team members do not exist or are inactive.', 1;
+            END
         END
 
         -- Update project
@@ -132,12 +152,39 @@ BEGIN
             Status = @Status,
             UpdatedAt = GETDATE()
         WHERE Id = @Id;
+
+        -- Update Project Services (Replace existing services)
+        DELETE FROM ProjectServices WHERE ProjectId = @Id;
+        
+        DECLARE @ServiceCount INT;
+        SELECT @ServiceCount = COUNT(*) FROM @Services;
+        
+        IF @ServiceCount > 0
+        BEGIN
+            INSERT INTO ProjectServices (ProjectId, Description, Hours, Rate)
+            SELECT @Id, Description, Hours, Rate
+            FROM @Services;
+        END
+
+        -- Update Project Team Members (Replace existing team members)
+        DELETE FROM ProjectTeamMembers WHERE ProjectId = @Id;
+        
+        IF @TeamMemberCount > 0
+        BEGIN
+            INSERT INTO ProjectTeamMembers (ProjectId, MemId, Role, AssignmentDate)
+            SELECT @Id, MemId, Role, GETDATE()
+            FROM @TeamMembers;
+        END
+
+        COMMIT TRANSACTION;
         
         SELECT 'Project updated successfully.' AS Message;
         
     END TRY
     BEGIN CATCH
-        DECLARE @ErrorMessage NVARCHAR(4000);
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        
         SELECT @ErrorMessage = ERROR_MESSAGE();
         ;THROW 50000, @ErrorMessage, 1;
     END CATCH

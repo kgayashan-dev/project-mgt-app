@@ -26,7 +26,7 @@ const ArchivedIncome = () => {
               All Other Income
             </button>
           </div>
-          <span className="text-xl ">
+          <span className="text-lg ">
             <ChevronRight />
           </span>
           <h1 className="text-2xl font-bold text-navy-900">Archived</h1>
@@ -41,7 +41,7 @@ const ArchivedIncome = () => {
       </div>
 
       {/* Column Headers */}
-      <div className="grid grid-cols-4 gap-4 py-3 text-sm text-gray-600">
+      <div className="grid grid-cols-4 gap-4 py-3 text-xs text-gray-600">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
             <Check className="h-4 w-4 text-white" />
@@ -55,7 +55,7 @@ const ArchivedIncome = () => {
 
       {isFilterOpen && (
         <div className="absolute right-6 top-[38vh] bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-90 z-10">
-          <h2 className="text-sm font-semibold mb-4">Filters</h2>
+          <h2 className="text-xs font-semibold mb-4">Filters</h2>
 
           <form action="">
             <div className="flex gap-4 mb-4">
@@ -82,7 +82,7 @@ const ArchivedIncome = () => {
               </select>
             </div>
 
-            <div className="flex flex-row justify-center items-center gap-2 text-sm">
+            <div className="flex flex-row justify-center items-center gap-2 text-xs">
               <button
                 type="reset"
                 className="w-full border-2 border-green-600 text-black py-2 px-4 rounded-lg hover:bg-green-600"

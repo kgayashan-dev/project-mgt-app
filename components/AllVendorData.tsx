@@ -119,7 +119,7 @@ const VendorsDashboard = ({ vendorArray }: VendorsDashboardProps) => {
                 </th>
                 <th className="px-4 py-3 text-left">
                   <button
-                    className="flex items-center text-sm font-medium text-gray-900"
+                    className="flex items-center text-xs font-medium text-gray-900"
                     onClick={toggleSort}
                     // aria-sort={sortDirection}
                   >
@@ -134,13 +134,13 @@ const VendorsDashboard = ({ vendorArray }: VendorsDashboardProps) => {
                     )}
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                   Email Address
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-900">
                   Account Number
                 </th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-900">
                   Total Outstanding
                 </th>
               </tr>
@@ -162,22 +162,22 @@ const VendorsDashboard = ({ vendorArray }: VendorsDashboardProps) => {
                     />
                   </td>
                   <td className="px-4 py-4">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-xs font-medium text-gray-900">
                       {vendor.companyName}
                     </div>
                     {(vendor.firstName || vendor.lastName) && (
-                      <div className="text-sm text-gray-500">
+                      <div className="text-xs text-gray-500">
                         {`${vendor.firstName || ""} ${vendor.lastName || ""}`}
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">
+                  <td className="px-4 py-4 text-xs text-gray-500">
                     {vendor.emailAddress}
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">
+                  <td className="px-4 py-4 text-xs text-gray-500">
                     {vendor.accountNumber}
                   </td>
-                  <td className="px-4 py-4 text-right text-sm font-medium">
+                  <td className="px-4 py-4 text-right text-xs font-medium">
                     Rs. {vendor.totalOutstanding.toFixed(2)} LKR
                   </td>
                 </tr>
@@ -187,12 +187,12 @@ const VendorsDashboard = ({ vendorArray }: VendorsDashboardProps) => {
         </div>
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
           <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-700">
+            <div className="text-xs text-gray-700">
               {filteredVendors.length
                 ? `1–${filteredVendors.length} of ${vendorArray.length}`
                 : "No results found"}
             </div>
-            <div className="text-sm text-gray-700">
+            <div className="text-xs text-gray-700">
               Total Outstanding:{" "}
               <span className="font-medium">
                 Rs. {calculateTotalOutstanding().toFixed(2)} LKR
