@@ -168,7 +168,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
     <div className="p-4 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">My Bank Accounts</h1>
+        <h1 className="text-lg font-bold text-gray-800">My Bank Accounts</h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition transform hover:scale-105 font-medium"

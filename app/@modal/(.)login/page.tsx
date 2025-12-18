@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect, useRef, FormEvent } from "react";
@@ -18,7 +19,7 @@ export default function LoginModal() {
     e.preventDefault();
     setError("");
     try {
-      console.log("Login attempt:", { email, password });
+      // console.log("Login attempt:", { email, password });
     } catch (err) {
       setError("Invalid credentials");
     }
@@ -40,7 +41,7 @@ export default function LoginModal() {
             ×
           </button>
 
-          <h2 className="text-2xl font-bold mb-6">Login</h2>
+          <h2 className="text-lg font-bold mb-6">Login</h2>
 
           {error && (
             <div className="mb-4 p-2 bg-red-100 text-red-600 rounded">

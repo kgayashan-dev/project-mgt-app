@@ -533,7 +533,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
             <div className="p-4 border-b">
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-lg font-bold text-gray-900">
                     {selectedProject.projectName}
                   </h2>
                   <div className="flex items-center gap-4 mt-2">
@@ -660,7 +660,7 @@ export default function ProjectsPage({ initialData }: ProjectsPageProps) {
                           <span className="text-gray-900 font-semibold">
                             Total Value
                           </span>
-                          <span className="text-2xl font-bold text-green-600">
+                          <span className="text-lg font-bold text-green-600">
                             ${selectedProject.flatRate.toLocaleString()}
                           </span>
                         </div>

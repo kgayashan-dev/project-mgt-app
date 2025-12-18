@@ -22,7 +22,7 @@ async function getQuotationData(id: string) {
     if (!quotation) {
       return null;
     }
-    // Transform the API response to match your ViewQuotation component's expected format
+    // Transform the  to match your ViewQuotation component's expected format
     return {
       id: quotation.id,
       quotationNumber: quotation.quotationNumber,
@@ -65,7 +65,7 @@ export default async function Page({
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Quotation Not Found</h1>
+          <h1 className="text-lg font-bold text-gray-900 mb-4">Quotation Not Found</h1>
           <p className="text-gray-600">The quotation with ID {quotationId} was not found.</p>
         </div>
       </div>

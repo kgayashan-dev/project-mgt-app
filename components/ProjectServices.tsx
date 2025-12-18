@@ -9,7 +9,7 @@ const ProjectServices = ({ projectID }: { projectID: undefined }) => {
     <div className=""> 
       <div className="mb-6 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Services {projectID}</h1>
+          <h1 className="text-lg font-semibold text-gray-900">Services {projectID}</h1>
           <button  className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors">
             <Plus className="h-5 w-5" />
           </button>

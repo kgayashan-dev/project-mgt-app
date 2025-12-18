@@ -40,7 +40,7 @@ export default function ProfilePage() {
       {/* Profile Photo Section */}
       <div className="flex items-center space-x-4">
         <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border-2 border-gray-200">
-          <span className="text-2xl text-gray-600">GM</span>
+          <span className="text-lg text-gray-600">GM</span>
         </div>
         <button className="text-blue-500 hover:text-blue-600">
           Upload Photo
@@ -133,7 +133,7 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        <h2 className="text-2xl font-bold text-navy-900 pt-4">Preferences</h2>
+        <h2 className="text-lg font-bold text-navy-900 pt-4">Preferences</h2>
 
         {/* Time Zone */}
         <div>

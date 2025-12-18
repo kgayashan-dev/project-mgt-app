@@ -35,7 +35,7 @@ const CheckoutLinks = () => {
             <X size={20} />
           </button>
 
-          <h2 className="text-2xl text-center text-blue-600 font-medium mb-12">
+          <h2 className="text-lg text-center text-blue-600 font-medium mb-12">
             Sell Anywhere and Get Paid Upfront
           </h2>
 

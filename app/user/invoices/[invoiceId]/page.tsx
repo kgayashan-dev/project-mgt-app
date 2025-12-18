@@ -7,7 +7,7 @@ import { getInvoiceById } from "@/utils/getdata";
 async function getInvoiceData(id: string) {
   try {
     const response = await getInvoiceById(id);
-    console.log(response,"response")
+    // console.log(response,"response")
     return response;
   } catch (error) {
     // console.error("Error fetching invoice data:", error);
@@ -30,14 +30,14 @@ export default async function Page({
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Invoice not found</h1>
+          <h1 className="text-lg font-bold text-gray-800 mb-2">Invoice not found</h1>
           <p className="text-gray-600">The invoice youre looking for doesnt exist.</p>
         </div>
       </div>
     );
   }
 
-  // Transform the API response to match the ViewInvoice component's expected format
+  // Transform the  to match the ViewInvoice component's expected format
   const transformedInvoice = {
     id: invoiceData.id,
     invoiceNumber: invoiceData.invoiceNo,

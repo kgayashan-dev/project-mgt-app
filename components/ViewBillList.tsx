@@ -191,7 +191,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Bills</h1>
+          <h1 className="text-lg font-bold text-gray-900">Bills</h1>
           <p className="text-gray-600 mt-1">Manage and track your bills</p>
         </div>
         

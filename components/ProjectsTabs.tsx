@@ -34,7 +34,7 @@ const ProjectTabs = ({ projectId }: { projectId: string }) => {
       {/* Header with Search and Add Button */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold text-gray-900">
+          <h1 className="text-lg font-semibold text-gray-900">
             {tabs.find((tab) => tab.id === currentTab)?.label}
           </h1>
           <button className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors">

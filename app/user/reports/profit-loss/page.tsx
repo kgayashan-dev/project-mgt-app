@@ -97,7 +97,7 @@ const ProfitAndLoss = () => {
               <ChevronLeft className="w-4 h-4" />
               Reports
             </Link>
-            <h1 className="text-2xl font-bold text-navy-900">Profit and Loss</h1>
+            <h1 className="text-lg font-bold text-navy-900">Profit and Loss</h1>
           </div>
           <div className="flex items-center gap-3">
             <button className="text-gray-600 hover:text-gray-800 px-4 py-2 rounded-lg border border-gray-300 flex items-center gap-2">
@@ -117,7 +117,7 @@ const ProfitAndLoss = () => {
         <div className="bg-white rounded-lg shadow flex-1 p-4 max-w-5xl">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-2xl font-semibold text-blue-600 mb-2">
+              <h2 className="text-lg font-semibold text-blue-600 mb-2">
                 Profit and Loss
               </h2>
               <div className="text-gray-600">

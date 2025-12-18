@@ -197,7 +197,7 @@ const ExpenseEditPage = ({ params }: ExpenseEditPageProps) => {
             >
               <ChevronLeft className="h-6 w-6" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Expense</h1>
+            <h1 className="text-lg font-bold text-gray-900">Edit Expense</h1>
           </div>
 
           <div className="flex gap-3">
@@ -376,7 +376,7 @@ const ExpenseEditPage = ({ params }: ExpenseEditPageProps) => {
                 type="number"
                 value={grandTotal}
                 onChange={(e) => setGrandTotal(Number(e.target.value))}
-                className="text-2xl font-medium text-right w-32 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="text-lg font-medium text-right w-32 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 required
               />
             </div>

@@ -139,7 +139,7 @@ const InvoiceForm: React.FC<InvoiceDetailPageProps> = ({ initialData }) => {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Invoice Details</h1>
+      <h1 className="text-lg font-bold mb-4">Invoice Details</h1>
 
       {/* Client Information */}
       <div className="mb-4">

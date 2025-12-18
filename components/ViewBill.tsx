@@ -170,7 +170,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              <h1 className="text-lg md:text-3xl font-bold text-gray-900">
                 Bill: {billArray.billNumber}
               </h1>
               <div className="flex items-center gap-4 mt-2">
@@ -229,7 +229,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
               <div className="flex justify-between items-start mb-6">
                 <h2 className="text-sm font-semibold text-gray-900">Bill Information</h2>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-lg font-bold text-gray-900">
                     {formatCurrency(billArray.grandTotal)}
                   </div>
                   <div className="text-xs text-gray-600">Total Amount</div>

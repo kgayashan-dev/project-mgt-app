@@ -38,7 +38,7 @@ const JournalEntries = () => {
     <div className="max-w-6xl mx-auto p-4 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-navy-900">Journal Entries</h1>
+        <h1 className="text-lg font-bold text-navy-900">Journal Entries</h1>
         <button className="text-blue-600 hover:text-blue-800">
           View Report
         </button>
@@ -77,7 +77,7 @@ const JournalEntries = () => {
       <div className="bg-white rounded-lg shadow p-4">
         <div className="flex gap-4 items-start">
           <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-            <span className="text-amber-400 font-bold text-2xl">✓</span>
+            <span className="text-amber-400 font-bold text-lg">✓</span>
           </div>
           <div>
             <h2 className="text-lg font-semibold mb-2">

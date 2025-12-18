@@ -95,7 +95,7 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
 
         <div className="flex justify-between  items-center px-8">
           <div>
-            <h1 className="text-2xl font-bold">{vendorArray.firstName}</h1>
+            <h1 className="text-lg font-bold">{vendorArray.firstName}</h1>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -183,7 +183,7 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
                     <ChevronDown className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-lg font-bold text-blue-600">
                   Rs. {formatCurrency(vendorArray.totalOutstanding)}
                 </div>
               </div>
@@ -220,7 +220,7 @@ const ViewvendorArray = ({ vendorArray }: ViewvendorArrayProps) => {
           <div className="max-w-7xl mx-auto p-4">
             <div className="mb-6 flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <h1 className="text-2xl font-semibold text-gray-900">Bills</h1>
+                <h1 className="text-lg font-semibold text-gray-900">Bills</h1>
                 <button
                   onClick={() => router.push("/user/invoices/new")}
                   className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors"

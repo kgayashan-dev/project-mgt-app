@@ -21,7 +21,7 @@ const ArchivedIncome = () => {
           <div className="flex justify-start items-center">
             <button
               onClick={back}
-              className="text-2xl font-bold text-navy-900 text-blue-500 cur"
+              className="text-lg font-bold text-navy-900 text-blue-500 cur"
             >
               All Other Income
             </button>
@@ -29,7 +29,7 @@ const ArchivedIncome = () => {
           <span className="text-lg ">
             <ChevronRight />
           </span>
-          <h1 className="text-2xl font-bold text-navy-900">Archived</h1>
+          <h1 className="text-lg font-bold text-navy-900">Archived</h1>
         </div>
         <button
           onClick={toggleFilter}

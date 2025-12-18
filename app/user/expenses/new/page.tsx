@@ -110,7 +110,7 @@ const NewExpensePage = () => {
       .from(element)
       .set(opt)
       .save()
-      .then(() => console.log("PDF generated successfully!"))
+      .then(() => "PDF generated successfully")
       .catch((error) => console.error("Error generating PDF:", error));
   };
 
@@ -126,7 +126,7 @@ const NewExpensePage = () => {
     };
 
     // Logic to save the new expense...
-    console.log(newExpense);
+    // console.log(newExpense);
 
     // Reset the expense ID for the next entry
     setExpenseId(generateExpenseId());

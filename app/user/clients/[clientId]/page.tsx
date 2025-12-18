@@ -40,7 +40,7 @@ export default async function Page({
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Client not found</h1>
+          <h1 className="text-lg font-bold text-gray-800 mb-2">Client not found</h1>
         </div>
       </div>
     );

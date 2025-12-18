@@ -70,7 +70,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
       } else if (result.success && Array.isArray(result.data)) {
         setItems(result.data);
       } else {
-        console.error("Unexpected API response format:", result);
+        console.error("Unexpected  format:", result);
         setItems([]);
       }
     } catch (error) {
@@ -105,7 +105,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
       } else if (result.success && Array.isArray(result.data)) {
         setCategories(result.data);
       } else {
-        console.error("Unexpected categories API response format:", result);
+        console.error("Unexpected categories  format:", result);
         setCategories([]);
       }
     } catch (error) {
@@ -193,7 +193,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
         );
       }
 
-      console.log("API Response:", result);
+      console.log(":", result);
 
       // Handle different success response formats
       if (result.message) {

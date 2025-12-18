@@ -72,7 +72,7 @@ const Retainers = () => {
         {/* Retainers List Section */}
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold">All Retainers</h2>
+            <h2 className="text-lg font-bold">All Retainers</h2>
             <div className="relative">
               <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <input

@@ -9,7 +9,7 @@ const ProjectExpences = ({ projectID }: { projectID: undefined }) => {
     <div className="">
       <div className="mb-6 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold text-gray-900">
+          <h1 className="text-lg font-semibold text-gray-900">
             Expences {projectID}
           </h1>
           <button

@@ -30,7 +30,7 @@ const ExpenseDetailPage = ({ expensData }: ViewExpensArrayProps) => {
         </Link>
 
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-navy-900">
+          <h1 className="text-lg font-bold text-navy-900">
             Expense from {expensData.expensMerchant}
           </h1>
           <div className="flex gap-3">
@@ -60,7 +60,7 @@ const ExpenseDetailPage = ({ expensData }: ViewExpensArrayProps) => {
         {/* Date and Merchant */}
         <div className="mb-16">
           <div className="text-gray-900">{expensData.dexpensDate}</div>
-          <div className="text-2xl font-semibold mt-2">
+          <div className="text-lg font-semibold mt-2">
             {expensData.expensMerchant}
           </div>
         </div>
@@ -83,7 +83,7 @@ const ExpenseDetailPage = ({ expensData }: ViewExpensArrayProps) => {
             <span className="text-gray-900 font-medium">
               Grand Total (USD):
             </span>
-            <span className="text-2xl font-semibold">
+            <span className="text-lg font-semibold">
               Rs. {expensData.expensTotal.toFixed(2)}
             </span>
           </div>

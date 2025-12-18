@@ -155,7 +155,7 @@ const EditBillPage = () => {
             <input
               type="text"
               placeholder="Add Vendor."
-              className="p-2 text-2xl"
+              className="p-2 text-lg"
             />
             <div className="flex flex-row justify-start items-center gap-4 regular-12">
               <div className="flex flex-col">

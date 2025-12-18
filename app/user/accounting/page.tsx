@@ -18,7 +18,7 @@ const AccountingDashboard = () => {
       {/* Accounting Reports Section */}
       <section>
         <div className="flex items-center gap-2 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-gray-900">
             Accounting Reports
           </h2>
           <span className="text-blue-600 italic">

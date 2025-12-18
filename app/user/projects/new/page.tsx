@@ -38,7 +38,7 @@ export default async function NewProjectPage() {
     console.warn("Error fetching data:", error);
   }
 
-  console.log(activeTeamMembersData)
+  // console.log(activeTeamMembersData)
 
   // Pass teamMembersData (not teamMembersData.data) to NewProject
   return (

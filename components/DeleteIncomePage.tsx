@@ -16,7 +16,7 @@ const DeleteIncomePage = () => {
           <div className="flex justify-start items-center">
             <button
               // onClick={back}
-              className="text-2xl font-bold text-navy-900 text-blue-500 cur"
+              className="text-lg font-bold text-navy-900 text-blue-500 cur"
             >
               All Other Income
             </button>
@@ -24,7 +24,7 @@ const DeleteIncomePage = () => {
           <span className="text-lg ">
             <ChevronRight />
           </span>
-          <h1 className="text-2xl font-bold text-navy-900">Deleted</h1>
+          <h1 className="text-lg font-bold text-navy-900">Deleted</h1>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-10">
           <Filter className="h-4 w-4" />

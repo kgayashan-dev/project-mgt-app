@@ -155,7 +155,7 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
         <div className=" mx-auto p-2">
           <div className="mb-6 flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-semibold text-gray-900">
+              <h1 className="text-lg font-semibold text-gray-900">
                 All Invoices ({filteredInvoices.length})
                 {searchTerm || statusFilter !== "all" ? ` of ${invoiceArray.length}` : ''}
               </h1>

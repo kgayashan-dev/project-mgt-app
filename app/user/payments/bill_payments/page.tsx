@@ -25,14 +25,14 @@ export default async function Page({
   try {
     const response = await getAllBills();
 
-    // console.log("API Response:", response);
+    // console.log(":", response);
 
     // Check if the response is successful and has data
     if (!response || !response.success || !Array.isArray(response.data)) {
       return (
         <div className="pt-8 flex justify-center items-center min-h-96">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            <h1 className="text-lg font-bold text-gray-800 mb-2">
               No bills found
             </h1>
             <p className="text-gray-600">Unable to load bills at this time.</p>
@@ -80,7 +80,7 @@ export default async function Page({
       paymentsData = paymentsResponse;
       // console.log("Payments data:", paymentsData);
 
-      // console.log("Payments API response:", paymentsResponse);
+      // console.log("Payments :", paymentsResponse);
     } catch (paymentError) {
       console.error("Error fetching payments:", paymentError);
       // Continue without payments data
@@ -93,7 +93,7 @@ export default async function Page({
       return (
         <div className="pt-8 flex justify-center items-center min-h-96">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            <h1 className="text-lg font-bold text-gray-800 mb-2">
               No bills available
             </h1>
             <p className="text-gray-600">No bill data could be processed.</p>
@@ -120,7 +120,7 @@ export default async function Page({
     return (
       <div className="pt-8 flex justify-center items-center min-h-96">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h1 className="text-lg font-bold text-gray-800 mb-2">
             Error Loading Page
           </h1>
           <p className="text-gray-600">

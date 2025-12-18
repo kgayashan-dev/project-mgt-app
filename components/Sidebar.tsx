@@ -104,7 +104,7 @@ const Sidebar: React.FC = () => {
           <IoMdClose />
         </button>
 
-        <h1 className="text-2xl font-bold mb-6">
+        <h1 className="text-lg font-bold mb-6">
           <Link href="/" className="text-white" prefetch={true}>
             <span className="flex items-center gap-2">
               <RiPulseAiLine />

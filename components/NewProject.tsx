@@ -512,7 +512,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 placeholder="Enter project name"
-                className="w-full text-2xl font-medium text-gray-900 p-2 border-b border-gray-300 focus:border-blue-500 focus:outline-none"
+                className="w-full text-lg font-medium text-gray-900 p-2 border-b border-gray-300 focus:border-blue-500 focus:outline-none"
               />
             </div>
 
@@ -823,7 +823,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                     <span className="text-gray-900 font-medium">
                       Total Cost
                     </span>
-                    <span className="text-2xl font-bold text-green-600">
+                    <span className="text-lg font-bold text-green-600">
                       {formatCurrency(calculateTotalCost())}
                     </span>
                   </div>
@@ -840,7 +840,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   Add Team Members
                 </h2>
                 <button

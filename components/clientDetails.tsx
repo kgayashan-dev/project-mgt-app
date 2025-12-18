@@ -314,7 +314,7 @@ export default function ClientDetailsUI({
       {/* Main Content - same as before */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-lg font-bold flex items-center gap-2">
             {clientId} , {initialData.name} 
             <button className="text-gray-400 hover:text-gray-600 transition-colors">
               <MoreHorizontal size={20} />
@@ -383,7 +383,7 @@ export default function ClientDetailsUI({
           <div className="col-span-8 bg-white rounded-lg shadow-sm p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-semibold">Outstanding Revenue</h3>
-              <span className="text-2xl font-bold">
+              <span className="text-lg font-bold">
                 ${financialData.outstandingRevenue.toFixed(2)}
               </span>
             </div>

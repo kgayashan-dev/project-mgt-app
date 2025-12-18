@@ -15,7 +15,7 @@ import {
   Clock,
   Edit,
 } from "lucide-react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import SearchableSelect from "@/components/SearchableSelect";
 
 // Types (same as before)
@@ -113,7 +113,7 @@ const EditProject: React.FC<EditProjectProps> = ({
   ];
 
   // Convert clients to SearchableSelect format
-  const clientOptions = clients.map((client) => ({
+  const clientOptions = clients.map((client : Client) => ({
     value: client.id,
     label: `${client.name} (${client.id}) - ${client.businessType}`,
   }));
@@ -159,7 +159,6 @@ const EditProject: React.FC<EditProjectProps> = ({
       }
     } catch (error) {
       console.error("Error fetching project:", error);
-      alert("Error loading project data");
       router.back();
     } finally {
       setIsFetching(false);
@@ -385,7 +384,7 @@ const EditProject: React.FC<EditProjectProps> = ({
       })),
     };
 
-    console.log('Sending update data:', projectData);
+    // console.log('Sending update data:', projectData);
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -399,7 +398,7 @@ const EditProject: React.FC<EditProjectProps> = ({
       });
 
       const result = await response.json();
-      console.log('Update response:', result);
+      // console.log('Update response:', result);
 
       if (response.ok) {
         alert(`✅ ${result.message}!`);
@@ -408,8 +407,8 @@ const EditProject: React.FC<EditProjectProps> = ({
         alert(`❌ Error: ${result.message}\n Msg: ${result.error}`);
       }
     } catch (error) {
-      console.warn("Error updating project:", error);
-      alert("❌ Failed to update project. Please try again.");
+      // console.warn("Error updating project:", error);
+      alert("❌ Failed to update project. Please try again. "+error);
     } finally {
       setIsLoading(false);
     }
@@ -549,7 +548,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                   <div className="flex-1">
                     <SearchableSelect
                       options={clientOptions}
-                      value={client?.id || ""}
+                      value={client !== null ? client.id : ""}
                       onChange={handleClientSelect}
                       placeholder="Select a client..."
                       label="Assign Client"
@@ -639,7 +638,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 placeholder="Enter project name"
-                className="w-full text-2xl font-medium text-gray-900 p-2 border-b border-gray-300 focus:border-blue-500 focus:outline-none"
+                className="w-full text-lg font-medium text-gray-900 p-2 border-b border-gray-300 focus:border-blue-500 focus:outline-none"
               />
             </div>
 
@@ -950,7 +949,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                     <span className="text-gray-900 font-medium">
                       Total Cost
                     </span>
-                    <span className="text-2xl font-bold text-green-600">
+                    <span className="text-lg font-bold text-green-600">
                       {formatCurrency(calculateTotalCost())}
                     </span>
                   </div>
@@ -967,7 +966,7 @@ const EditProject: React.FC<EditProjectProps> = ({
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   Add Team Members
                 </h2>
                 <button
