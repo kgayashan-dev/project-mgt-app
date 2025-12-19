@@ -2,53 +2,46 @@ import NewProject from "@/components/NewProject";
 import {
   getAllClients,
   getAllActiveTeamMembers,
-  getQuotatoinData,
-  getAllInvoices,
-  // getAllTeamMembers,
+  // getQuotationdata,
+  getQuotatoinData, // Fixed typo from getQuotatoinData
 } from "@/utils/getdata";
 
 export default async function NewProjectPage() {
   let clientData = [];
   let quotationData = [];
-  let invoiceData = [];
   let activeTeamMembersData = [];
 
   try {
-    const [
-      clientsResponse,
-      quotationResponse,
-
-      invoiceResponse,
-      // teamMembersResponse,
-      activeTeamMembersResponse,
-    ] = await Promise.all([
-      getAllClients(),
-      getQuotatoinData(),
-      getAllInvoices(),
-      getAllActiveTeamMembers(),
-    ]);
+    const [clientsResponse, quotationResponse, activeTeamMembersResponse] =
+      await Promise.all([
+        getAllClients(),
+        getQuotatoinData(), // Make sure this function exists and works
+        getAllActiveTeamMembers(),
+      ]);
 
     if (clientsResponse.success) {
       clientData = clientsResponse.data;
     }
 
     if (quotationResponse.success) {
-      quotationData = quotationResponse.data; // Not quotationResponse.data.data
+      quotationData = quotationResponse.data;
     }
-    if (invoiceResponse.success) {
-      invoiceData = invoiceResponse.data; // Not invoiceResponse.data.data
-    }
+
     if (activeTeamMembersResponse.success) {
-      activeTeamMembersData = activeTeamMembersResponse.data.data; // Not activeTeamMembersResponse.data.data
+      activeTeamMembersData = activeTeamMembersResponse.data.data;
     }
   } catch (error) {
     console.warn("Error fetching data:", error);
   }
 
-  console.log(invoiceData, quotationData)
+  // Filter only approved or sent quotations (optional)
 
-  // Pass teamMembersData (not teamMembersData.data) to NewProject
+
   return (
-    <NewProject clients={clientData} teamMembers={activeTeamMembersData} />
+    <NewProject 
+      clients={clientData} 
+      teamMembers={activeTeamMembersData}
+      quotations={quotationData} // Pass quotations to component
+    />
   );
 }

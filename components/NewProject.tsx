@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
 import {
@@ -13,9 +14,11 @@ import {
   Clock4,
   Save,
   Clock,
+  FileText,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import SearchableSelect from "@/components/SearchableSelect"; // Import the component
+import SearchableSelect from "@/components/SearchableSelect";
+import QuotationSelectionModal from "@/components/QuotationSelectModel";
 
 // Types
 interface Service {
@@ -45,17 +48,44 @@ interface Client {
   businessType: string;
 }
 
+interface Quotation {
+  id: string;
+  quotationNumber: string;
+  quotationDate: string;
+  clientId: string;
+  companyID?: string;
+  discountPercentage: number;
+  discountAmount: number;
+  subtotal: number;
+  totalTax: number;
+  terms?: string;
+  grandTotal: number;
+  qItems?: {
+    id: number;
+    description: string;
+    quotationId: string;
+    unit: string;
+    qty: number;
+    rate: number;
+  }[];
+  ClientName?: string;
+  Items?: any[];
+}
+
 interface NewProjectProps {
   clients: Client[];
   teamMembers: TeamMember[];
+  quotations: Quotation[];
 }
 
 type ProjectType = "flat-rate" | "hourly";
 
-const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
+const NewProject: React.FC<NewProjectProps> = ({
+  clients,
+  teamMembers,
+  quotations,
+}) => {
   const router = useRouter();
-
-  console.log(teamMembers, "ss");
 
   // State management
   const [client, setClient] = useState<Client | null>(null);
@@ -78,9 +108,13 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
   const [showTeamMemberModal, setShowTeamMemberModal] = useState(false);
   const [searchTeamMember, setSearchTeamMember] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("Team Member");
-
-  // Status options
-  const statusOptions = ["Active", "On Hold", "Completed", "Cancelled"];
+  const [showQuotationModal, setShowQuotationModal] = useState(false);
+  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(
+    null
+  );
+  const [searchQuotation, setSearchQuotation] = useState("");
+  const [filteredQuotations, setFilteredQuotations] =
+    useState<Quotation[]>(quotations);
 
   // Project types
   const projectTypes = [
@@ -95,7 +129,12 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
   }));
 
   // Convert status options to SearchableSelect format
-  const statusSelectOptions = statusOptions.map((status) => ({
+  const statusSelectOptions = [
+    "Active",
+    "On Hold",
+    "Completed",
+    "Cancelled",
+  ].map((status) => ({
     value: status,
     label: status,
   }));
@@ -109,11 +148,27 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
     futureDate.setDate(futureDate.getDate() + 30);
     setEndDate(futureDate.toISOString().split("T")[0]);
 
-    // Set first client by default if available
     if (clients.length > 0) {
       setClient(clients[0]);
     }
   }, [clients]);
+
+  // Filter quotations based on search
+  useEffect(() => {
+    if (!searchQuotation.trim()) {
+      setFilteredQuotations(quotations);
+    } else {
+      const searchLower = searchQuotation.toLowerCase();
+      const filtered = quotations.filter(
+        (q) =>
+          q.quotationNumber.toLowerCase().includes(searchLower) ||
+          (q.ClientName && q.ClientName.toLowerCase().includes(searchLower)) ||
+          q.clientId.toLowerCase().includes(searchLower) ||
+          (q.terms && q.terms.toLowerCase().includes(searchLower))
+      );
+      setFilteredQuotations(filtered);
+    }
+  }, [searchQuotation, quotations]);
 
   // Filter team members based on search
   const filteredTeamMembers = teamMembers.filter(
@@ -127,6 +182,64 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
   const handleClientSelect = (clientId: string) => {
     const selectedClient = clients.find((client) => client.id === clientId);
     setClient(selectedClient || null);
+  };
+
+  // Handle quotation selection
+  const handleSelectQuotation = (quotation: Quotation) => {
+    setSelectedQuotation(quotation);
+
+    const selectedClient = clients.find((c) => c.id === quotation.clientId);
+    if (selectedClient) {
+      setClient(selectedClient);
+    }
+
+    setProjectName(`Project from ${quotation.quotationNumber}`);
+    setDescription(
+      `Project created from quotation ${quotation.quotationNumber}${
+        quotation.terms ? ` - Terms: ${quotation.terms}` : ""
+      }`
+    );
+
+    const items = quotation.qItems || [];
+    if (items && items.length > 0) {
+      const newServices = items.map((item) => ({
+        description: item.description || "",
+        hours: item.qty || 1,
+        rate: item.rate,
+      }));
+      setServices(newServices);
+
+      const totalHrs = newServices.reduce(
+        (total, service) => total + service.hours,
+        0
+      );
+      setTotalHours(totalHrs.toString());
+    } else {
+      const newServices = [
+        {
+          description: `Services from quotation ${quotation.quotationNumber}`,
+          hours: 1,
+          rate: quotation.grandTotal || 0,
+        },
+      ];
+      setServices(newServices);
+      setTotalHours("1");
+    }
+
+    setFlatRate(quotation.grandTotal.toFixed(2));
+
+    if (quotation.quotationDate) {
+      const date = new Date(quotation.quotationDate);
+      setStartDate(date.toISOString().split("T")[0]);
+
+      const endDate = new Date(date);
+      endDate.setDate(endDate.getDate() + 30);
+      setEndDate(endDate.toISOString().split("T")[0]);
+    }
+
+    setTimeout(() => {
+      setShowQuotationModal(false);
+    }, 500);
   };
 
   // Calculate total hours for hourly projects
@@ -163,7 +276,6 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
     }
     setServices(updatedServices);
 
-    // Update total hours for hourly projects
     if (selectedType === "hourly") {
       setTotalHours(calculateTotalHours().toString());
     }
@@ -209,7 +321,6 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
   const handleSelect = (type: ProjectType) => {
     setSelectedType(type);
     setIsProjectTypeOpen(false);
-    // Reset values based on type
     if (type === "flat-rate") {
       setFlatRate("0.00");
     } else {
@@ -227,9 +338,23 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
     }).format(amount);
   };
 
+  // Format date
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   // Handle save project
   const handleSave = async () => {
-    // Validation
     if (!projectName.trim()) {
       alert("Please enter a project name");
       return;
@@ -267,13 +392,15 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
           hours: service.hours,
           rate: service.rate,
         }))
-        .filter((service) => service.description.trim() !== ""), // Filter out empty services
+        .filter((service) => service.description.trim() !== ""),
       teamMembers: selectedTeamMembers.map((member) => ({
         memId: member.memId,
         role: member.role,
       })),
+      quotationId: selectedQuotation?.id || "",
+      // quotationNumber: selectedQuotation?.quotationNumber || "",
     };
-    // console.log(projectData)
+
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
       const response = await fetch(`${API_URL}/project_pulse/Project/create`, {
@@ -286,15 +413,12 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
       });
 
       const result = await response.json();
-      console.log(result);
 
       if (response.ok) {
         alert(`✅ ${result.message}!\nProject ID: ${result.id}`);
-        // console.log(result);
-        // router.push('/projects');
+        router.push("/user/projects");
       } else {
-        // console.log(result);
-        alert(`❌ Error: ${result.message}\n Msg: ${result.error}`);
+        alert(`❌ Error: ${result.message}\nMsg: ${result.error}`);
       }
     } catch (error) {
       console.warn("Error creating project:", error);
@@ -303,6 +427,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
       setIsLoading(false);
     }
   };
+
   // Calculate project duration in days
   const calculateDuration = () => {
     if (!startDate || !endDate) return 0;
@@ -361,11 +486,47 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
         </div>
       </div>
 
+      {/* Quotation Selection Button */}
+      <div className="mb-6">
+        <button
+          onClick={() => setShowQuotationModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium"
+        >
+          <FileText size={18} />
+          Select from Quotation
+        </button>
+
+        {selectedQuotation && (
+          <div className="mt-3 inline-flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <FileText className="text-blue-600" size={20} />
+            <div>
+              <p className="font-medium text-gray-900">
+                Selected: {selectedQuotation.quotationNumber}
+              </p>
+              <p className="text-sm text-gray-600">
+                Client:{" "}
+                {selectedQuotation.ClientName || selectedQuotation.clientId} •
+                Amount: {formatCurrency(selectedQuotation.grandTotal)}
+              </p>
+              <p className="text-xs text-gray-500">
+                Date: {formatDate(selectedQuotation.quotationDate)}
+              </p>
+            </div>
+            <button
+              onClick={() => setSelectedQuotation(null)}
+              className="text-red-600 hover:text-red-700"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Column - Main Form */}
         <div className="flex-1 bg-white rounded-xl shadow-md p-4">
-          {/* Client Selection - Using SearchableSelect */}
+          {/* Client Selection */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-sm font-semibold text-gray-800">Client</h2>
@@ -555,7 +716,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                 </label>
                 <div className="relative">
                   <Calendar
-                    className="absolute left- top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     size={18}
                   />
                   <input
@@ -614,7 +775,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
               </div>
             </div>
 
-            {/* Status - Using SearchableSelect */}
+            {/* Status */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-2">
                 Status
@@ -739,11 +900,8 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                           Project Type
                         </h3>
                         <p className="text-blue-600 text-sm">
-                          {
-                            projectTypes.find(
-                              (type) => type.id === selectedType
-                            )?.label
-                          }
+                          {projectTypes.find((type) => type.id === selectedType)
+                            ?.label || "Select Type"}
                         </p>
                       </div>
                     </div>
@@ -756,7 +914,7 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                 </div>
 
                 {isProjectTypeOpen && (
-                  <div className="absolute left-0  text-sm right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                  <div className="absolute left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                     {projectTypes.map((type) => {
                       const Icon = type.icon;
                       return (
@@ -818,6 +976,14 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
                       : totalHours}
                   </span>
                 </div>
+                {selectedQuotation && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Source Quotation</span>
+                    <span className="font-medium text-blue-600">
+                      {selectedQuotation.quotationNumber}
+                    </span>
+                  </div>
+                )}
                 <div className="pt-3 border-t">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-900 font-medium">
@@ -833,6 +999,19 @@ const NewProject: React.FC<NewProjectProps> = ({ clients, teamMembers }) => {
           </div>
         </div>
       </div>
+
+      {/* Quotation Selection Modal */}
+      <QuotationSelectionModal
+        showModal={showQuotationModal}
+        onClose={() => setShowQuotationModal(false)}
+        quotations={filteredQuotations}
+        selectedQuotation={selectedQuotation}
+        onSelectQuotation={handleSelectQuotation}
+        isLoading={false}
+        searchValue={searchQuotation}
+        onSearchChange={setSearchQuotation}
+        onSearchSubmit={() => {}}
+      />
 
       {/* Team Member Modal */}
       {showTeamMemberModal && (

@@ -18,6 +18,10 @@ WHERE TABLE_NAME = 'Clients';
 GO
 
 
+
+
+
+
 CREATE or alter PROCEDURE [dbo].[sp_GetDashboardData]
 AS
 BEGIN
@@ -26,8 +30,7 @@ BEGIN
     -- Total Active Clients Count
     DECLARE @TotalClients INT;
     SELECT @TotalClients = COUNT(*) 
-    FROM Clients 
-    WHERE IsActive = 1;
+    FROM Clients;
 
     -- Outstanding Invoices Count and Total Amount
     DECLARE @OutstandingInvoicesCount INT;
@@ -56,9 +59,7 @@ BEGIN
 
     DECLARE @PaidInvoices INT;
     SELECT @PaidInvoices = COUNT(*)
-    FROM Invoices WHERE Status = 'Paid'
-
-
+    FROM Invoices WHERE Status = 'Paid';
 
     -- Return all in one row
     SELECT 
@@ -69,5 +70,5 @@ BEGIN
         ISNULL(@RecentInvoices, 0) AS RecentInvoices,
         ISNULL(@PaidInvoices, 0) AS PaidInvoices;
 END
+-- REMOVE THIS LINE: EXEC sp_GetDashboardData
 
-EXEC sp_GetDashboardData

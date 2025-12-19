@@ -1,4 +1,9 @@
 -- 1. CREATE PROJECT Procedure (already exists, so create OR ALTER)
+
+
+ -- later added that q id as well then make sure to add it 
+
+
 CREATE OR ALTER PROCEDURE [dbo].[sp_CreateProject]
     @Id NVARCHAR(50) = NULL,
     @ProjectName NVARCHAR(100),
@@ -767,3 +772,5 @@ GO
 
 
 SELECT * from PaymentType
+
+

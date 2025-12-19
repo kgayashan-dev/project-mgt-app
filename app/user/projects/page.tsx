@@ -29,7 +29,7 @@ async function getAllProjectData() {
       throw new Error(result.message || "Failed to fetch projects");
     }
   } catch (error) {
-    console.error("Error fetching project data:", error);
+    console.log("Error fetching project data:", error);
     return null;
   }
 }
@@ -64,12 +64,12 @@ export default async function Page() {
             <p className="text-gray-600 mb-4">
               Unable to load projects from the server
             </p>
-            <button
+            {/* <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Retry
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
