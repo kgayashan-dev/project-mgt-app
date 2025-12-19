@@ -95,8 +95,16 @@ export const getAllVendors = () =>
   fetchData("/project_pulse/Vendor/getAllVendors", "vendors data");
 export const getAllBills = () =>
   fetchData("/project_pulse/Bill/getAllBills", "bill data");
-// export const getAllBillByBillType = () =>
-//   fetchData("/project_pulse/Bill/getAllBills", "bill data");
+
+
+
+export const getDashboardData = () =>
+  fetchData("/project_pulse/Dashboard/getData", "dashboard data");
+
+
+
+
+
 
 // utils/getdata.ts (add this function)
 export async function getInvoicesByClientId(clientId: string) {
