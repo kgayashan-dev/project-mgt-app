@@ -306,7 +306,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
       {bankAccounts.length > 0 ? (
         <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
           <table className="min-w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-100 ">
               <tr>
                 <th className="p-3 text-left text-xs font-semibold text-gray-700 border-b">
                   Bank Name
@@ -332,7 +332,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
               {bankAccounts.map((account) => (
                 <tr
                   key={account.id}
-                  className="border-b hover:bg-gray-50 transition-colors duration-150"
+                  className="border-b hover:bg-gray-100  transition-colors duration-150"
                 >
                   <td className="p-3 text-xs text-gray-800">
                     {account.bankName}
@@ -371,7 +371,7 @@ const BankDetailsManager: React.FC<BankDetailsManagerProps> = ({ initialData = [
           </table>
         </div>
       ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+        <div className="text-center py-12 bg-gray-100  rounded-lg border-2 border-dashed border-gray-200">
           <div className="text-gray-400 mb-3">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-6 0H5m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8v-4m0 4h4" />

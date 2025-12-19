@@ -163,7 +163,7 @@ const QuotationSelectionModal = ({
         <div className="overflow-auto max-h-[calc(85vh-120px)]">
           {quotations.length > 0 ? (
             <table className="w-full">
-              <thead className="bg-gray-50 sticky top-0 z-10">
+              <thead className="bg-gray-100  sticky top-0 z-10">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200">
                     Action

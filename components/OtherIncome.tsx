@@ -115,7 +115,7 @@ const OtherIncomeForm: React.FC<ClientsProps> = ({ clientArray }) => {
             <PlusCircle className="h-6 w-6 text-white" />
           </button>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-50">
+        <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 ">
           <Filter className="h-4 w-4" />
           <span>Filters</span>
         </button>

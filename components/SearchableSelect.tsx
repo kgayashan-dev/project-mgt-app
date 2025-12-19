@@ -113,7 +113,7 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
                 filteredOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`p-3 hover:bg-gray-50 cursor-pointer transition-colors ${
+                    className={`p-3 hover:bg-gray-100  cursor-pointer transition-colors ${
                       value === option.value ? "bg-blue-50 text-blue-600" : ""
                     }`}
                     onClick={() => {

@@ -390,7 +390,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
           onClick={() => {
             setSearchTerm("");
           }}
-          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-gray-100 0 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
           disabled={loading}
         >
           Clear
@@ -423,7 +423,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
           displayItems.map((item) => (
             <div
               key={item.id}
-              className="grid grid-cols-7 items-center px-4 py-1 hover:bg-gray-50 border-b"
+              className="grid grid-cols-7 items-center px-4 py-1 hover:bg-gray-100  border-b"
             >
               <div className="font-mono text-xs">{item.id}</div>
               <div className="font-medium">{item.name}</div>
@@ -605,7 +605,7 @@ const ItemsPage: React.FC<ItemsPageProps> = ({ itemData, categoryData }) => {
                     setIsModalOpen(false);
                     resetNewItem();
                   }}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-gray-100 0 text-white rounded-md hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={loading}
                 >
                   Cancel

@@ -72,7 +72,7 @@ export default async function Page({
     phoneNumber: 0, // You might need to fetch client phone
   };
 
-  console.log(transformedInvoice)
+  // console.log(transformedInvoice)
 
   return <ViewInvoice invoiceArray={transformedInvoice} />;
 }

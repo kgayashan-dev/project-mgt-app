@@ -483,7 +483,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
       {!isLoading && !error && (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-7 p-4 bg-gray-50 border-b font-medium text-gray-700 text-xs">
+          <div className="grid grid-cols-7 p-4 bg-gray-100  border-b font-medium text-gray-700 text-xs">
             <div className="col-span-1">ID</div>
             <div>Name</div>
             <div>Email</div>
@@ -513,7 +513,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
             filteredMembers.map((member) => (
               <div
                 key={member.memId}
-                className={`grid grid-cols-7 p-4 border-b hover:bg-gray-50 transition-colors ${
+                className={`grid grid-cols-7 p-4 border-b hover:bg-gray-100  transition-colors ${
                   !member.isActive ? "bg-gray-100 opacity-75" : ""
                 }`}
               >
@@ -942,7 +942,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
       <div className="flex justify-center mt-6">
         <button
           onClick={() => setShowDeletedMembers(!showDeletedMembers)}
-          className="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+          className="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-100  transition-colors flex items-center gap-2 disabled:opacity-50"
           disabled={isLoading}
         >
           {showDeletedMembers ? "Hide" : "Show"} Inactive Members
@@ -957,7 +957,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
             Inactive Team Members
           </h3>
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="grid grid-cols-7 p-4 bg-gray-50 border-b font-medium text-gray-700 text-xs">
+            <div className="grid grid-cols-7 p-4 bg-gray-100  border-b font-medium text-gray-700 text-xs">
               <div className="col-span-1">ID</div>
               <div>Name</div>
               <div>Email</div>
@@ -976,7 +976,7 @@ const TeamMembers: React.FC<TeamMembersProps> = ({
                 .map((member) => (
                   <div
                     key={member.memId}
-                    className="grid grid-cols-7 p-4 border-b hover:bg-gray-50 transition-colors"
+                    className="grid grid-cols-7 p-4 border-b hover:bg-gray-100  transition-colors"
                   >
                     <div className="col-span-1 flex items-center gap-3">
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-400 text-white text-xs font-medium">

@@ -344,7 +344,7 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
                 </tbody>
               </table>
               {filteredInvoices.length > 0 && (
-                <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-t border-gray-200">
+                <div className="flex justify-between items-center px-4 py-3 bg-gray-100  border-t border-gray-200">
                   <div className="text-xs text-gray-700">
                     {selectedInvoices.size > 0 && (
                       <span>

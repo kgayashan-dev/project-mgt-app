@@ -156,7 +156,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-4">
+    <div className="min-h-screen bg-gray-100  p-4 md:p-4">
       {/* Header */}
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
@@ -190,21 +190,21 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100  text-gray-700"
               >
                 <Printer className="w-4 h-4" />
                 <span className="text-xs font-medium">Print</span>
               </button>
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100  text-gray-700"
               >
                 <Download className="w-4 h-4" />
                 <span className="text-xs font-medium">Download</span>
               </button>
               <button
                 onClick={handleSendEmail}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100  text-gray-700"
               >
                 <Mail className="w-4 h-4" />
                 <span className="text-xs font-medium">Email</span>
@@ -298,7 +298,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {billArray.table.map((item, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
+                      <tr key={index} className="hover:bg-gray-100 ">
                         <td className="py-3 px-4">
                           <div className="font-medium text-gray-900">{item.description}</div>
                         </td>
@@ -439,7 +439,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
               ) : (
                 <div className="space-y-3">
                   {payments.map((payment) => (
-                    <div key={payment.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50">
+                    <div key={payment.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-100 ">
                       <div>
                         <div className="font-medium text-gray-900">{formatDate(payment.date)}</div>
                         <div className="text-xs text-gray-600">{payment.type}</div>
@@ -547,7 +547,7 @@ const BillDetailsPage: React.FC<BillDetailsProps> = ({ billArray }) => {
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   onClick={() => setIsPaymentModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 "
                 >
                   Cancel
                 </button>

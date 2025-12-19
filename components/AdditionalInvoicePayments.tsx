@@ -151,7 +151,7 @@ const AdditionalInvoicePayment = ({
 
           <tbody className="bg-white divide-y divide-gray-200">
             {payments.map((payment) => (
-              <tr key={payment.id} className="hover:bg-gray-50">
+              <tr key={payment.id} className="hover:bg-gray-100 ">
                 <td className="px-6 py-4">{payment.date}</td>
                 <td className="px-6 py-4 text-xs text-gray-500">
                   {payment.type}
@@ -249,7 +249,7 @@ const AdditionalInvoicePayment = ({
               <div className="flex justify-end gap-2 mt-6">
                 <button
                   onClick={() => setIsPaymentModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 "
                 >
                   Cancel
                 </button>

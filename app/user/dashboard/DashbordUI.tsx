@@ -9,6 +9,7 @@ import {
   FaFileInvoice,
   FaMoneyBillWave,
   FaCheckCircle,
+  FaGithubAlt,
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { FiTrendingUp, FiTrendingDown } from "react-icons/fi";
@@ -139,6 +140,17 @@ const Dashboard: React.FC<DashboardProps> = ({
       ptag: "Manage your company information and settings in one place.",
       bgColor: "bg-gradient-to-br from-amber-50 to-amber-100",
       iconColor: "text-amber-600",
+    },
+    {
+      icon: <FaGithubAlt />,
+      title: "Category Update",
+      url: "category",
+      value: "Category Details",
+      img: "/Company.png",
+      htag: "Category ",
+      ptag: "Manage your Category information and settings in one place.",
+      bgColor: "bg-gradient-to-br from-indigo-50 to-indigo-100",
+      iconColor: "text-indigo-600",
     },
   ];
 
@@ -396,7 +408,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               ].map((invoice, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-3 hover:bg-gray-100  rounded-lg"
                 >
                   <div className="flex items-center">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
@@ -546,7 +558,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
     <p className="text-gray-600 text-xs mb-4 line-clamp-2">{ptag}</p>
     <button
       onClick={() => router.push(`/user/${url}`)}
-      className="w-full py-2 bg-white text-gray-800 font-medium rounded-lg hover:bg-gray-50 transition border border-gray-300 text-sm"
+      className="w-full py-2 bg-white text-gray-800 font-medium rounded-lg hover:bg-gray-100  transition border border-gray-300 text-sm"
     >
       {value}
     </button>

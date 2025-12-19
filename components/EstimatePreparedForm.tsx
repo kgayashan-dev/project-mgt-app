@@ -200,7 +200,7 @@ const EstimateForm = () => {
               type="text"
               value={estimateNumber}
               onChange={(e) => setEstimateNumber(e.target.value)}
-              className="w-full p-2 border rounded bg-gray-50"
+              className="w-full p-2 border rounded bg-gray-100 "
             />
           </div>
         </div>

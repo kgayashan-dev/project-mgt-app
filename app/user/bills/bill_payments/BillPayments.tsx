@@ -790,7 +790,7 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                   resetForm();
                   setError(null);
                 }}
-                className="px-3 py-1.5 text-xs border border-gray-300 rounded text-gray-700 hover:bg-gray-500"
+                className="px-3 py-1.5 text-xs border border-gray-300 rounded text-gray-700 hover:bg-gray-100 0"
                 disabled={loading}
               >
                 Cancel
@@ -838,7 +838,7 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
       <div className="bg-white rounded shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-500">
+            <thead className="bg-gray-100 0">
               <tr>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Vendor / Bill
@@ -894,7 +894,7 @@ const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
                     : 0;
 
                   return (
-                    <tr key={payment.id} className="hover:bg-gray-500">
+                    <tr key={payment.id} className="hover:bg-gray-100 0">
                       <td className="px-2 py-1">
                         <div className="text-xs font-medium text-gray-900">
                           {payment.vendor}

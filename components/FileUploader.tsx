@@ -184,7 +184,7 @@ const EstimateForm = () => {
                 type="text"
                 value={estimateNumber}
                 onChange={(e) => setEstimateNumber(e.target.value)}
-                className="w-full p-2 border rounded bg-gray-50"
+                className="w-full p-2 border rounded bg-gray-100 "
               />
             </div>
           </div>
@@ -347,7 +347,7 @@ className="w-full  border-gray-300 p-2 rounded-md"
             <h2 className="text-sm font-semibold mb-1">Settings</h2>
             <p className="text-gray-600 text-xs mb-6">For This Estimate</p>
 
-            <button className="w-full flex items-center justify-between p-4 border rounded hover:bg-gray-50">
+            <button className="w-full flex items-center justify-between p-4 border rounded hover:bg-gray-100 ">
               <div>
                 <h3 className="font-medium">Customize Estimate Style</h3>
                 <p className="text-xs text-gray-600">

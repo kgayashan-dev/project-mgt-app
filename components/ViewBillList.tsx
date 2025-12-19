@@ -208,12 +208,12 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10 border border-gray-200 py-2">
               <button
                 onClick={redirectToNewBill}
-                className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                className="w-full px-4 py-2.5 text-left hover:bg-gray-100  flex items-center gap-2 transition-colors"
               >
                 <FileText className="w-4 h-4" />
                 <span className="text-xs font-medium">Create Bill</span>
               </button>
-              <button className="w-full px-4 py-2.5 text-left hover:bg-gray-50 flex items-center gap-2 transition-colors">
+              <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100  flex items-center gap-2 transition-colors">
                 <Upload className="w-4 h-4" />
                 <span className="text-xs font-medium">Upload Bill</span>
               </button>
@@ -324,7 +324,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-100 ">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Vendor / Bill Details
@@ -351,7 +351,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                   return (
                     <tr 
                       key={bill.id} 
-                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="hover:bg-gray-100  transition-colors cursor-pointer"
                       onClick={() => handleViewBill(bill.id)}
                     >
                       <td className="px-6 py-4">

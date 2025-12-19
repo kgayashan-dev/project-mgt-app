@@ -117,7 +117,7 @@ const ChartOfAccounts = () => {
         {/* Table Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-gray-900">All Accounts</h2>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-gray-50">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-gray-100 ">
             <Filter size={20} />
             Filters
           </button>
@@ -142,7 +142,7 @@ const ChartOfAccounts = () => {
             </thead>
             <tbody>
               {accounts.map((account) => (
-                <tr key={account.id} className="border-b hover:bg-gray-50">
+                <tr key={account.id} className="border-b hover:bg-gray-100 ">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
                       <DollarSign size={20} className="text-purple-600" />

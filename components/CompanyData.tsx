@@ -389,7 +389,7 @@ const CompanyData = () => {
             </button>
             <button
               onClick={handleCancel}
-              className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
+              className="bg-gray-100 0 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
             >
               Cancel
             </button>
@@ -397,7 +397,7 @@ const CompanyData = () => {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-          <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+          <div className="border-b border-gray-200 bg-gray-100  px-6 py-4">
             <h2 className="text-sm font-semibold text-gray-900">
               All Companies
             </h2>
@@ -408,7 +408,7 @@ const CompanyData = () => {
               {companies.map((company, i) => (
                 <div
                   key={i}
-                  className="px-6 py-4 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-4 hover:bg-gray-100  transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4">

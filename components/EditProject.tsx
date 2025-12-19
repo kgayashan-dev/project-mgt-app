@@ -709,7 +709,7 @@ const EditProject: React.FC<EditProjectProps> = ({
         <div className="flex space-x-3">
           <button
             onClick={handleCancel}
-            className="px-3 py-2 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-all duration-200 font-medium text-gray-700"
+            className="px-3 py-2 border border-gray-300 rounded-lg flex items-center gap-2 hover:bg-gray-100  transition-all duration-200 font-medium text-gray-700"
             disabled={isLoading}
           >
             Cancel
@@ -1182,7 +1182,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                         <button
                           key={type.id}
                           onClick={() => handleSelect(type.id as ProjectType)}
-                          className="w-full flex items-center text-sm justify-between px-4 py-3 hover:bg-gray-50 border-b last:border-b-0"
+                          className="w-full flex items-center text-sm justify-between px-4 py-3 hover:bg-gray-100  border-b last:border-b-0"
                         >
                           <div className="flex items-center gap-3">
                             <Icon size={18} className="text-gray-500" />
@@ -1381,7 +1381,7 @@ const EditProject: React.FC<EditProjectProps> = ({
               )}
             </div>
 
-            <div className="p-4 border-t bg-gray-50">
+            <div className="p-4 border-t bg-gray-100 ">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-gray-600">
