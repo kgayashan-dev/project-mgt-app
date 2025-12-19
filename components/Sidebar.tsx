@@ -31,6 +31,13 @@ const Sidebar: React.FC = () => {
 
   // Check if a link is active (including dropdown items)
   const isLinkActive = (path: string, dropdownPaths?: { path: string }[]) => {
+    if (!pathName) return false;
+
+    // Special case for Payments since it has multiple sub-pages
+    if (path === "/user/payments") {
+      return pathName.startsWith("/user/payments");
+    }
+
     if (pathName === path) return true;
     if (dropdownPaths) {
       return dropdownPaths.some((item) => pathName === item.path);
@@ -48,13 +55,13 @@ const Sidebar: React.FC = () => {
       title: "Invoices",
       icon: <TbFileInvoice />,
       icon2: <IoIosArrowDown />,
-      dropdown: [
-        { path: "/user/recurring-templates", title: "Recurring Templates" },
-        { path: "/user/retainers", title: "Retainers" },
-      ],
+      // dropdown: [
+      //   { path: "/user/recurring-templates", title: "Recurring Templates" },
+      //   { path: "/user/retainers", title: "Retainers" },
+      // ],
     },
     {
-      path: "/user/payments",
+      path: "/user/payments/invoice_payment", // FIXED: Changed from "/user/payments/invoice_payment"
       title: "Payments",
       icon: <FaMoneyBillWave />,
       icon2: <IoIosArrowDown />,
@@ -67,12 +74,12 @@ const Sidebar: React.FC = () => {
       icon2: <IoIosArrowDown />,
       dropdown: [
         { path: "/user/bills", title: "Bills" },
+        { path: "/user/bills/bill_payments", title: "Bill Payment" },
         { path: "/user/vendors", title: "Vendors" },
         { path: "/user/uploads", title: "Uploads" },
       ],
     },
     { path: "/user/projects", title: "Projects", icon: <FaClipboardList /> },
-
     {
       path: "/user/accounting",
       title: "Accounting",

@@ -2,7 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ArchivedIncome from "@/components/ArchivedIncome";
 import InvoicePaymentsInterface from "@/components/InvoicePayment";
-import { getAllInvoices, getPaymentByTypeBill, getPaymentsByTypeInv } from "@/utils/getdata";
+import {
+  getAllInvoices,
+  getPaymentByTypeBill,
+  getPaymentsByTypeInv,
+} from "@/utils/getdata";
 
 // Helper function to map API status to component status
 
@@ -55,20 +59,23 @@ export default async function Page({
 
     // Fetch payments data if needed
     let paymentsData = [];
-       try {
-         const paymentsResponse = await getPaymentsByTypeInv();
-   
-         paymentsData = paymentsResponse;
-         // console.log("Payments data:", paymentsData);
-   
-         // console.log("Payments :", paymentsResponse);
-       } catch (paymentError) {
-         console.error("Error fetching payments:", paymentError);
-         // Continue without payments data
-       }
-   
+    try {
+      const paymentsResponse = await getPaymentsByTypeInv();
+
+      paymentsData = paymentsResponse;
+      // console.log("Payments data:", paymentsData);
+
+      // console.log("Payments :", paymentsResponse);
+    } catch (paymentError) {
+      console.error("Error fetching payments:", paymentError);
+      // Continue without payments data
+    }
+
     return (
       <div className="pt-8">
+        <div className="mb-4 pl-3    ">
+          <h1 className="font-bold text-xl">Bill Payment Settlement</h1>
+        </div>
         {isArchived ? (
           <ArchivedIncome />
         ) : (

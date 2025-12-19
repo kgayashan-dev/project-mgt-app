@@ -1,31 +1,34 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useEffect, useState } from "react";
 
 // Types
 interface Payment {
   id: string;
-  client: string;
-  invoiceNumber: string;
+  vendor: string;
+  billNumber: string;
   paymentDate: string;
   type: string;
   internalNotes: string;
   amount: number;
   status: string;
-  invoiceId: string;
+  billId: string;
 }
 
-interface Invoice {
+interface Bill {
   id: string;
-  clientID: string;
-  invoiceNumber: string;
+  vendorID: string;
+  billNumber: string;
   description?: string;
-  invoiceDate: string;
-  invoiceDueDate?: string;
-  client: string;
+  billDate: string;
+  billDueDate?: string;
+  vendor: string;
   amount: number;
-  invoiceStatus: string;
+  billStatus: string;
   grandTotal: number;
   status: string;
+  totalOutstanding: number;
+  amountDue: number;
 }
 
 interface ApiPayment {
@@ -41,20 +44,20 @@ interface ApiPayment {
   createdAt: string;
 }
 
-interface InvoicePaymentsInterfaceProps {
-  invoiceArray: Invoice[];
+interface BillPaymentsInterfaceProps {
+  BillArray: Bill[];
   paymentsData: ApiPayment[];
 }
 
 interface NewPaymentForm {
-  invoiceNumber: string;
+  billNumber: string;
   paymentDate: string;
   type: string;
   amount: number;
   internalNotes: string;
   status: string;
-  client: string;
-  invoiceId: string;
+  vendor: string;
+  billId: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -69,13 +72,11 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
-  invoiceArray,
+const BillPaymentsInterface: React.FC<BillPaymentsInterfaceProps> = ({
+  BillArray,
   paymentsData,
 }) => {
-  
-  // console.log("Payments data:", paymentsData);
-  // console.log("Invoice array:", invoiceArray);
+  console.log("Bill array data:", BillArray);
 
   // State
   const [showDetails, setShowDetails] = useState(false);
@@ -86,38 +87,55 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
 
   // Form state for new payment
   const [newPayment, setNewPayment] = useState<NewPaymentForm>({
-    invoiceNumber: "",
+    billNumber: "",
     paymentDate: new Date().toISOString().split("T")[0],
     type: "",
     amount: 0,
     internalNotes: "",
     status: "Pending",
-    client: "",
-    invoiceId: "",
+    vendor: "",
+    billId: "",
   });
 
-  // Convert API payments to component payments - FIXED VERSION
+  // Debug effect to track calculations
+  useEffect(() => {
+    if (newPayment.billId) {
+      const bill = BillArray.find((b) => b.id === newPayment.billId);
+      const paid = getTotalPaidForBill(newPayment.billId, selectedPayment?.id);
+      console.log(`Debug Bill ${newPayment.billId}:`, {
+        billNumber: bill?.billNumber,
+        grandTotal: bill?.grandTotal,
+        amountDueFromDB: bill?.amountDue,
+        calculatedPaid: paid,
+        remainingByGrandTotal: bill ? bill.grandTotal - paid : 0,
+        remainingByAmountDue: bill ? bill.amountDue - paid : 0,
+        selectedPaymentId: selectedPayment?.id,
+        selectedPaymentAmount: selectedPayment?.amount,
+      });
+    }
+  }, [newPayment.billId, BillArray, selectedPayment]);
+
+  // Convert API payments to component payments
   const convertApiPaymentsToComponentPayments = (
     apiPayments: ApiPayment[]
   ): Payment[] => {
     return apiPayments
-      .filter((apiPayment) => apiPayment.paymentType === "invoice_payment")
+      .filter((apiPayment) => apiPayment.paymentType === "bill_payment")
       .map((apiPayment) => {
-        const relatedInvoice = invoiceArray.find(
-          (inv) => inv.id === apiPayment.referenceId
+        const relatedBill = BillArray.find(
+          (bill) => bill.id === apiPayment.referenceId
         );
 
         return {
           id: apiPayment.id,
-          client: relatedInvoice?.client || "Unknown Client", // Changed from clientID to client
-          invoiceNumber:
-            relatedInvoice?.invoiceNumber || apiPayment.referenceId,
+          vendor: relatedBill?.vendor || "Unknown Vendor",
+          billNumber: relatedBill?.billNumber || apiPayment.referenceId,
           paymentDate: apiPayment.paymentDate,
           type: apiPayment.paymentMethod,
           internalNotes: apiPayment.notes,
           amount: apiPayment.amount,
           status: apiPayment.status, // Use backend status directly
-          invoiceId: apiPayment.referenceId,
+          billId: apiPayment.referenceId,
         };
       });
   };
@@ -132,42 +150,41 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
     setPayments(convertApiPaymentsToComponentPayments(paymentsData));
   }, [paymentsData]);
 
-  // Debug effect to track calculations
-  useEffect(() => {
-    if (newPayment.invoiceId) {
-      const invoice = invoiceArray.find(inv => inv.id === newPayment.invoiceId);
-      const paid = getTotalPaidForInvoice(newPayment.invoiceId, selectedPayment?.id);
-      console.log(`Debug Invoice ${newPayment.invoiceId}:`, {
-        invoiceNumber: invoice?.invoiceNumber,
-        grandTotal: invoice?.grandTotal,
-        client: invoice?.client,
-        calculatedPaid: paid,
-        remainingBalance: invoice ? invoice.grandTotal - paid : 0,
-        selectedPaymentId: selectedPayment?.id,
-        selectedPaymentAmount: selectedPayment?.amount
-      });
-    }
-  }, [newPayment.invoiceId, invoiceArray, selectedPayment]);
-
-  // Calculate total paid for an invoice - FIXED VERSION
-  const getTotalPaidForInvoice = (invoiceId: string, excludePaymentId?: string): number => {
+  // Calculate total paid for a bill - FIXED VERSION
+  const getTotalPaidForBill = (
+    billId: string,
+    excludePaymentId?: string
+  ): number => {
     return payments
       .filter(
         (payment) =>
-          payment.invoiceId === invoiceId && 
+          payment.billId === billId &&
           payment.status === "Completed" &&
           (excludePaymentId ? payment.id !== excludePaymentId : true)
       )
       .reduce((sum, payment) => sum + payment.amount, 0);
   };
 
-  // Calculate remaining balance for an invoice - FIXED VERSION
-  const getRemainingBalance = (invoiceId: string, excludePaymentId?: string): number => {
-    const invoice = invoiceArray.find((inv) => inv.id === invoiceId);
-    if (!invoice) return 0;
+  // Calculate remaining balance for a bill - FIXED VERSION
+  const getRemainingBalance = (
+    billId: string,
+    excludePaymentId?: string
+  ): number => {
+    const bill = BillArray.find((bill) => bill.id === billId);
+    if (!bill) return 0;
 
-    const totalPaid = getTotalPaidForInvoice(invoiceId, excludePaymentId);
-    return invoice.grandTotal - totalPaid;
+    const totalPaid = getTotalPaidForBill(billId, excludePaymentId);
+    // Always use grandTotal for calculations (original bill amount)
+    return bill.grandTotal - totalPaid;
+  };
+
+  // Calculate amount already paid from database perspective
+  const getAlreadyPaidFromDB = (billId: string): number => {
+    const bill = BillArray.find((bill) => bill.id === billId);
+    if (!bill) return 0;
+
+    // This is what's already been paid according to the database
+    return bill.grandTotal - (bill.amountDue || bill.grandTotal);
   };
 
   // Handle form input changes
@@ -183,27 +200,26 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
     }));
   };
 
-  // Handle invoice selection - FIXED VERSION
-  const handleInvoiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedInvoiceId = e.target.value;
-    const selectedInvoice = invoiceArray.find(
-      (inv) => inv.id === selectedInvoiceId
-    );
+  // Handle bill selection - FIXED VERSION
+  const handleBillChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedBillId = e.target.value;
+    const selectedBill = BillArray.find((bill) => bill.id === selectedBillId);
 
-    if (selectedInvoice) {
+    if (selectedBill) {
       const remainingBalance = getRemainingBalance(
-        selectedInvoiceId,
+        selectedBillId,
         selectedPayment?.id
       );
 
       setNewPayment((prev) => ({
         ...prev,
-        invoiceId: selectedInvoice.id,
-        invoiceNumber: selectedInvoice.invoiceNumber,
-        client: selectedInvoice.client, // Use client instead of clientID
-        amount: selectedPayment 
+        billId: selectedBill.id,
+        billNumber: selectedBill.billNumber,
+        vendor: selectedBill.vendor,
+        // Use remaining balance or current amount
+        amount: selectedPayment
           ? prev.amount // Keep existing payment amount when editing
-          : Math.max(0, Math.min(remainingBalance, selectedInvoice.grandTotal)), // Don't go below 0 or above grandTotal
+          : Math.max(0, Math.min(remainingBalance, selectedBill.grandTotal)), // Don't go below 0 or above grandTotal
       }));
     }
   };
@@ -220,13 +236,13 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
           },
           body: JSON.stringify({
             id: "",
-            paymentType: "invoice_payment", // 1
-            referenceId: paymentData.invoiceId,
+            paymentType: "bill_payment", // 0
+            referenceId: paymentData.billId,
             paymentDate: new Date(paymentData.paymentDate).toISOString(),
             paymentMethod: paymentData.type,
             notes: paymentData.internalNotes,
             amount: paymentData.amount,
-            status: "Completed", // New payments default to Completed
+            status: "Completed",
             transactionReference: `TXN-${Date.now()}`,
             createdAt: new Date().toISOString(),
           }),
@@ -234,8 +250,6 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       );
 
       const responseText = await response.text();
-      console.log("Raw response:", responseText);
-
       let responseData;
 
       try {
@@ -289,8 +303,8 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
           },
           body: JSON.stringify({
             id: paymentId,
-            paymentType: "invoice_payment",
-            referenceId: paymentData.invoiceId,
+            paymentType: "bill_payment",
+            referenceId: paymentData.billId,
             paymentDate: new Date(paymentData.paymentDate).toISOString(),
             paymentMethod: paymentData.type,
             notes: paymentData.internalNotes,
@@ -303,8 +317,6 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       );
 
       const responseText = await response.text();
-      console.log("Raw update response:", responseText);
-
       let responseData;
 
       try {
@@ -344,13 +356,13 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
     }
   };
 
-  // Handle form submission - FIXED VERSION
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!newPayment.invoiceId) {
-      setError("Please select an invoice");
+    if (!newPayment.billId) {
+      setError("Please select a bill");
       return;
     }
 
@@ -360,12 +372,15 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
     }
 
     // Validate amount doesn't exceed remaining balance
-    const remainingBalance = getRemainingBalance(newPayment.invoiceId, selectedPayment?.id);
+    const remainingBalance = getRemainingBalance(
+      newPayment.billId,
+      selectedPayment?.id
+    );
     if (newPayment.amount > remainingBalance) {
       setError(
-        `Payment amount (${formatCurrency(newPayment.amount)}) exceeds remaining balance of ${formatCurrency(
-          remainingBalance
-        )}`
+        `Payment amount (${formatCurrency(
+          newPayment.amount
+        )}) exceeds remaining balance (${formatCurrency(remainingBalance)})`
       );
       return;
     }
@@ -389,7 +404,6 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
         setPayments(updatedPayments);
       } else {
         const result = await createPayment(newPayment);
-        console.log("Create payment result:", result);
 
         const newPaymentObj: Payment = {
           id: result.GeneratedPaymentId || result.id || `PAY${Date.now()}`,
@@ -412,8 +426,6 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       } else {
         setError(errorMessage);
       }
-
-      console.error("Payment submission error:", error);
     } finally {
       setLoading(false);
     }
@@ -422,14 +434,14 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
   // Reset form
   const resetForm = () => {
     setNewPayment({
-      invoiceNumber: "",
+      billNumber: "",
       paymentDate: new Date().toISOString().split("T")[0],
       type: "",
       amount: 0,
       internalNotes: "",
       status: "Pending",
-      client: "",
-      invoiceId: "",
+      vendor: "",
+      billId: "",
     });
   };
 
@@ -437,14 +449,14 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
   const handleEdit = (payment: Payment) => {
     setSelectedPayment(payment);
     setNewPayment({
-      invoiceNumber: payment.invoiceNumber,
+      billNumber: payment.billNumber,
       paymentDate: payment.paymentDate.split("T")[0],
       type: payment.type,
       amount: payment.amount,
       internalNotes: payment.internalNotes,
       status: payment.status,
-      client: payment.client,
-      invoiceId: payment.invoiceId,
+      vendor: payment.vendor,
+      billId: payment.billId,
     });
     setShowDetails(true);
   };
@@ -452,14 +464,14 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
   // Filter payments based on search query
   const filteredPayments = payments.filter(
     (payment) =>
-      payment.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      payment.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      payment.billNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       payment.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Get selected invoice details
-  const selectedInvoiceDetails = newPayment.invoiceId
-    ? invoiceArray.find((inv) => inv.id === newPayment.invoiceId)
+  // Get selected bill details
+  const selectedBillDetails = newPayment.billId
+    ? BillArray.find((bill) => bill.id === newPayment.billId)
     : null;
 
   // Format backend error message for better display
@@ -492,7 +504,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3">
-          <h2 className="text-sm font-bold text-gray-900">Select Invoices</h2>
+          <h2 className="text-xl font-bold text-gray-900">Select Bill</h2>
           <button
             onClick={() => {
               setShowDetails(!showDetails);
@@ -600,30 +612,35 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-              {/* Invoice Selection */}
+              {/* Bill Selection */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Select Invoice *
+                  Select Bill *
                 </label>
                 <select
-                  value={newPayment.invoiceId}
-                  onChange={handleInvoiceChange}
+                  value={newPayment.billId}
+                  onChange={handleBillChange}
                   className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
                   disabled={!!selectedPayment}
                 >
-                  <option value="">Select Invoice</option>
-                  {invoiceArray.map((invoice) => {
-                    const paid = getTotalPaidForInvoice(invoice.id);
-                    const balance = getRemainingBalance(invoice.id);
+                  <option value="">Select Bill</option>
+                  {BillArray.map((bill) => {
+                    const paidFromDB = getAlreadyPaidFromDB(bill.id);
+                    const remainingBalance = getRemainingBalance(bill.id);
                     const statusIcon =
-                      balance <= 0 ? "✓ " : paid > 0 ? "⚠ " : "○ ";
+                      remainingBalance <= 0
+                        ? "✓ "
+                        : paidFromDB > 0
+                        ? "⚠ "
+                        : "○ ";
 
                     return (
-                      <option key={invoice.id} value={invoice.id}>
+                      <option key={bill.id} value={bill.id}>
                         {statusIcon}
-                        {invoice.invoiceNumber} - {invoice.client} -{" "}
-                        {formatCurrency(invoice.grandTotal)}
+                        {bill.billNumber} - {bill.vendor} -{" "}
+                        {formatCurrency(bill.grandTotal)} (Due:{" "}
+                        {formatCurrency(bill.amountDue)})
                       </option>
                     );
                   })}
@@ -681,40 +698,66 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                   min="0"
                   step="0.01"
                 />
-                {selectedInvoiceDetails && (
+                {selectedBillDetails && (
                   <div className="mt-1 text-xs text-gray-500 space-y-0.5">
                     <div className="flex justify-between">
-                      <span>Invoice Total:</span>
+                      <span>Original Bill Total:</span>
                       <span className="font-semibold">
-                        {formatCurrency(selectedInvoiceDetails.grandTotal)}
+                        {formatCurrency(selectedBillDetails.grandTotal)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Already Paid:</span>
+                      <span>Already Paid (from DB):</span>
                       <span>
                         {formatCurrency(
-                          getTotalPaidForInvoice(newPayment.invoiceId, selectedPayment?.id)
+                          getAlreadyPaidFromDB(newPayment.billId)
                         )}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Remaining Balance:</span>
+                      <span>Already Paid (from Payments):</span>
+                      <span>
+                        {formatCurrency(
+                          getTotalPaidForBill(
+                            newPayment.billId,
+                            selectedPayment?.id
+                          )
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>DB Amount Due:</span>
+                      <span className="font-semibold text-blue-600">
+                        {formatCurrency(selectedBillDetails.amountDue)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Remaining Balance (calculated):</span>
                       <span
                         className={
-                          getRemainingBalance(newPayment.invoiceId, selectedPayment?.id) <= 0
+                          getRemainingBalance(
+                            newPayment.billId,
+                            selectedPayment?.id
+                          ) <= 0
                             ? "text-green-600 font-semibold"
                             : "text-red-600 font-semibold"
                         }
                       >
                         {formatCurrency(
-                          getRemainingBalance(newPayment.invoiceId, selectedPayment?.id)
+                          getRemainingBalance(
+                            newPayment.billId,
+                            selectedPayment?.id
+                          )
                         )}
                       </span>
                     </div>
                     {selectedPayment && (
                       <div className="flex justify-between italic text-gray-400">
                         <span>Editing Payment:</span>
-                        <span>{selectedPayment.id} ({formatCurrency(selectedPayment.amount)})</span>
+                        <span>
+                          {selectedPayment.id} (
+                          {formatCurrency(selectedPayment.amount)})
+                        </span>
                       </div>
                     )}
                   </div>
@@ -798,7 +841,7 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
             <thead className="bg-gray-500">
               <tr>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client / Invoice
+                  Vendor / Bill
                 </th>
                 <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Date
@@ -841,27 +884,32 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                 </tr>
               ) : (
                 filteredPayments.map((payment) => {
-                  const relatedInvoice = invoiceArray.find(
-                    (inv) => inv.id === payment.invoiceId
+                  const relatedBill = BillArray.find(
+                    (bill) => bill.id === payment.billId
                   );
-                  const totalPaid = getTotalPaidForInvoice(payment.invoiceId);
-                  const remainingBalance = relatedInvoice
-                    ? relatedInvoice.grandTotal - totalPaid
+                  const totalPaid = getTotalPaidForBill(payment.billId);
+                  // Use grandTotal for calculations
+                  const remainingBalance = relatedBill
+                    ? relatedBill.grandTotal - totalPaid
                     : 0;
 
                   return (
                     <tr key={payment.id} className="hover:bg-gray-500">
                       <td className="px-2 py-1">
                         <div className="text-xs font-medium text-gray-900">
-                          {payment.client}
+                          {payment.vendor}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {payment.invoiceNumber}
-                          {relatedInvoice && (
+                          {payment.billNumber}
+                          {relatedBill && (
                             <div className="text-xs text-gray-400 mt-0.5 space-y-0.5">
                               <div>
                                 <span className="font-medium">Total:</span>{" "}
-                                {formatCurrency(relatedInvoice.grandTotal)}
+                                {formatCurrency(relatedBill.grandTotal)}
+                              </div>
+                              <div>
+                                <span className="font-medium">DB Due:</span>{" "}
+                                {formatCurrency(relatedBill.amountDue)}
                               </div>
                               <div>
                                 <span className="font-medium">Balance:</span>{" "}
@@ -875,8 +923,8 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
                                   {formatCurrency(remainingBalance)}
                                 </span>
                               </div>
-                              <div className="italic text-orange-50 border-lime-100 ">
-                                {relatedInvoice.invoiceStatus}
+                              <div className="italic text-orange-50 border-lime-100">
+                                {relatedBill.status}
                               </div>
                             </div>
                           )}
@@ -932,4 +980,4 @@ const InvoicePaymentsInterface: React.FC<InvoicePaymentsInterfaceProps> = ({
   );
 };
 
-export default InvoicePaymentsInterface;
+export default BillPaymentsInterface;

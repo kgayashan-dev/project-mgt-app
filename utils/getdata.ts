@@ -23,16 +23,14 @@ const fetchData = async (
       },
       signal: controller.signal,
     });
-
     clearTimeout(timeoutId);
-
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
 
-    console.log(data)
+    // console.log(data)
     return { success: true, data };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
@@ -45,7 +43,6 @@ const fetchData = async (
     return { success: false, message };
   }
 };
-
 
 export const getBankData = () =>
   fetchData("/project_pulse/BankAccount/getAllBankAccounts", "Bank data");
@@ -63,10 +60,15 @@ export const getAllProjects = () =>
   fetchData("/project_pulse/Project/getAllProjects", "project data");
 
 export const getAllTeamMembers = () =>
-  fetchData("/project_pulse/TeamMembers/getAllTeamMembers", "team members data");
+  fetchData(
+    "/project_pulse/TeamMembers/getAllTeamMembers",
+    "team members data"
+  );
 export const getAllActiveTeamMembers = () =>
-  fetchData("/project_pulse/TeamMembers/getActiveTeamMembers", "team members data");
-
+  fetchData(
+    "/project_pulse/TeamMembers/getActiveTeamMembers",
+    "team members data"
+  );
 
 // Other data functions
 export const getQuotatoinData = () =>
@@ -88,8 +90,6 @@ export const getItems = () =>
 
 export const getAllPayments = () =>
   fetchData("/project_pulse/Payment/getAllPayments", "payments data");
-
-
 
 export const getAllVendors = () =>
   fetchData("/project_pulse/Vendor/getAllVendors", "vendors data");
@@ -120,7 +120,6 @@ export async function getInvoicesByClientId(clientId: string) {
     const data = await response.json();
     return data;
   } catch (error) {
-
     throw error;
   }
 }
@@ -147,14 +146,11 @@ export async function getPaymentByTypeBill(type = "bill_payment") {
 
     const data = await response.json();
 
-
     return data;
   } catch (error) {
-
     throw error;
   }
 }
-
 
 export async function getPaymentsByTypeInv(type = "invoice_payment") {
   try {
@@ -178,17 +174,13 @@ export async function getPaymentsByTypeInv(type = "invoice_payment") {
 
     const data = await response.json();
 
-    console.log(data,"data datdadtatd ")
+    console.log(data, "data datdadtatd ");
     return data;
   } catch (error) {
     // console.error("Error fetching invoices:", error);
     throw error;
   }
 }
-
-
-
-
 
 // utils/getdata.ts (add this function)
 export async function getInvoiceById(invoiceId: string) {
@@ -248,7 +240,6 @@ export const getCompanyAData = async (
     return null;
   }
 };
-
 
 export const getCompanyADataOfQuotaion = async (
   quotaionId: string
