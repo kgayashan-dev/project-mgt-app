@@ -725,3 +725,45 @@ ORDER BY name;
 PRINT '=====================================';
 
 
+
+
+SELECT name FROM sys.table_types 
+WHERE schema_id = SCHEMA_ID('dbo')
+AND (name LIKE '%ProjectService%' OR name LIKE '%ProjectTeam%');
+
+
+SELECT * from Payments
+
+
+
+-- Create PaymentType table
+CREATE TABLE [dbo].[PaymentType] (
+    [PtID] INT NOT NULL PRIMARY KEY,
+    [Description] NVARCHAR(50) NOT NULL,
+    [Id] NVARCHAR(20) NOT NULL UNIQUE  -- Format: PMT0000001
+);
+GO
+
+-- Insert default payment types
+INSERT INTO [dbo].[PaymentType] ([PtID], [Description], [Id])
+VALUES 
+    (0, 'bill_payment', 'PMT0000001'),
+    (1, 'invoice_payment', 'PMT0000002');
+GO
+
+-- Optional: Create a stored procedure to generate ID automatically
+CREATE OR ALTER PROCEDURE [dbo].[sp_GeneratePaymentTypeId]
+AS
+BEGIN
+    DECLARE @NewId NVARCHAR(20);
+    
+    SELECT TOP 1 @NewId = 'PMT' + RIGHT('0000000' + 
+               CAST(ISNULL(MAX(CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)), 0) + 1 AS NVARCHAR(7)), 7)
+    FROM PaymentType;
+    
+    SELECT @NewId AS GeneratedPaymentTypeId;
+END
+GO
+
+
+SELECT * from PaymentType
