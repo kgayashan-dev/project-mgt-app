@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Plus,
   X,
@@ -14,11 +14,13 @@ import {
   Save,
   Clock,
   Edit,
+  FileText,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SearchableSelect from "@/components/SearchableSelect";
+import QuotationSelectionModal from "@/components/QuotationSelectModel";
 
-// Types (same as before)
+// Types
 interface Service {
   id?: number;
   description: string;
@@ -46,6 +48,31 @@ interface Client {
   businessType: string;
 }
 
+interface Quotation {
+  id: string;
+  quotationNumber: string;
+  quotationDate: string;
+  clientId: string;
+  companyID?: string;
+  discountPercentage: number;
+  discountAmount: number;
+  subtotal: number;
+  totalTax: number;
+  terms?: string;
+  grandTotal: number;
+  status?: string;
+  qItems?: {
+    id: number;
+    description: string;
+    quotationId: string;
+    unit: string;
+    qty: number;
+    rate: number;
+  }[];
+  ClientName?: string;
+  Items?: any[];
+}
+
 interface ProjectData {
   id: string;
   projectName: string;
@@ -63,13 +90,16 @@ interface ProjectData {
     name?: string;
     role: string;
   }>;
+  quotationId?: string;
+  quotationNumber?: string;
 }
 
 interface EditProjectProps {
   clients: Client[];
   teamMembers: TeamMember[];
   projectId: string;
-  initialProjectData?: ProjectData; // Add this prop
+  initialProjectData?: ProjectData;
+  quotations?: Quotation[];
 }
 
 type ProjectType = "flat-rate" | "hourly";
@@ -79,6 +109,7 @@ const EditProject: React.FC<EditProjectProps> = ({
   teamMembers,
   projectId,
   initialProjectData,
+  quotations = [],
 }) => {
   const router = useRouter();
 
@@ -87,23 +118,44 @@ const EditProject: React.FC<EditProjectProps> = ({
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<TeamMember[]>(
     []
   );
-  const [projectName, setProjectName] = useState("");
-  const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [flatRate, setFlatRate] = useState("0.00");
-  const [totalHours, setTotalHours] = useState("0");
-  const [status, setStatus] = useState("Active");
-  const [isProjectTypeOpen, setIsProjectTypeOpen] = useState(false);
+  const [projectName, setProjectName] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [flatRate, setFlatRate] = useState<string>("0.00");
+  const [totalHours, setTotalHours] = useState<string>("0");
+  const [status, setStatus] = useState<string>("Active");
+  const [isProjectTypeOpen, setIsProjectTypeOpen] = useState<boolean>(false);
   const [selectedType, setSelectedType] = useState<ProjectType>("flat-rate");
   const [services, setServices] = useState<Service[]>([
     { description: "", hours: 0, rate: 0 },
   ]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(!initialProjectData); // Only fetch if no initial data
-  const [showTeamMemberModal, setShowTeamMemberModal] = useState(false);
-  const [searchTeamMember, setSearchTeamMember] = useState("");
-  const [newMemberRole, setNewMemberRole] = useState("Team Member");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isFetching, setIsFetching] = useState<boolean>(!initialProjectData);
+  const [showTeamMemberModal, setShowTeamMemberModal] =
+    useState<boolean>(false);
+  const [searchTeamMember, setSearchTeamMember] = useState<string>("");
+  const [newMemberRole, setNewMemberRole] = useState<string>("Team Member");
+  const [showQuotationModal, setShowQuotationModal] = useState<boolean>(false);
+  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(
+    null
+  );
+  const [searchQuotation, setSearchQuotation] = useState<string>("");
+
+  // Filtered quotations
+  const filteredQuotations = useMemo(() => {
+    if (!searchQuotation.trim()) {
+      return quotations;
+    }
+    const searchLower = searchQuotation.toLowerCase();
+    return quotations.filter(
+      (q) =>
+        q.quotationNumber?.toLowerCase().includes(searchLower) ||
+        (q.ClientName && q.ClientName.toLowerCase().includes(searchLower)) ||
+        q.clientId?.toLowerCase().includes(searchLower) ||
+        (q.terms && q.terms.toLowerCase().includes(searchLower))
+    );
+  }, [searchQuotation, quotations]);
 
   // Status options
   const statusOptions = ["Active", "On Hold", "Completed", "Cancelled"];
@@ -115,30 +167,233 @@ const EditProject: React.FC<EditProjectProps> = ({
   ];
 
   // Convert clients to SearchableSelect format
-  const clientOptions = clients.map((client: Client) => ({
-    value: client.id,
-    label: `${client.name} (${client.id}) - ${client.businessType}`,
-  }));
+  const clientOptions = useMemo(
+    () =>
+      clients.map((client: Client) => ({
+        value: client.id,
+        label: `${client.name} (${client.id}) - ${client.businessType}`,
+      })),
+    [clients]
+  );
 
   // Convert status options to SearchableSelect format
-  const statusSelectOptions = statusOptions.map((status) => ({
-    value: status,
-    label: status,
-  }));
+  const statusSelectOptions = useMemo(
+    () =>
+      statusOptions.map((status) => ({
+        value: status,
+        label: status,
+      })),
+    []
+  );
 
-  // Use initial data if provided
+  // Helper function to safely format dates
+  const formatDateForInput = useCallback(
+    (dateString: string | Date | undefined | null): string => {
+      if (!dateString) {
+        const today = new Date().toISOString().split("T")[0];
+        return today;
+      }
+
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+          throw new Error("Invalid date");
+        }
+        return date.toISOString().split("T")[0];
+      } catch (error) {
+        console.warn("Error formatting date:", dateString, error);
+        const today = new Date().toISOString().split("T")[0];
+        return today;
+      }
+    },
+    []
+  );
+
+  // Populate form with existing data
+  const populateForm = useCallback(
+    (project: ProjectData) => {
+      console.log("Populating form with:", project);
+
+      // Set basic fields
+      setProjectName(project.projectName || "");
+      setDescription(project.description || "");
+
+      // Set dates
+      const startDateValue = formatDateForInput(project.startDate);
+      setStartDate(startDateValue);
+
+      let endDateValue = formatDateForInput(project.endDate);
+
+      // Ensure end date is not before start date
+      const start = new Date(startDateValue);
+      const end = new Date(endDateValue);
+      if (end < start) {
+        const newEnd = new Date(start);
+        newEnd.setDate(start.getDate() + 30);
+        endDateValue = newEnd.toISOString().split("T")[0];
+      }
+      setEndDate(endDateValue);
+
+      // Set numeric values
+      setFlatRate(project.flatRate?.toString() || "0.00");
+      setTotalHours(project.totalHours?.toString() || "0");
+      setStatus(project.status || "Active");
+
+      // Determine project type based on services
+      const hasServices = project.services && project.services.length > 0;
+      const hasHourlyServices =
+        hasServices &&
+        project.services.some((s) => (s.hours || 0) > 0 && (s.rate || 0) > 0);
+
+      setSelectedType(hasHourlyServices ? "hourly" : "flat-rate");
+
+      // Set services
+      if (project.services && project.services.length > 0) {
+        const safeServices = project.services.map((service) => ({
+          id: service.id || 0,
+          description: service.description || "",
+          hours: service.hours || 0,
+          rate: service.rate || 0,
+        }));
+        setServices(safeServices);
+      } else {
+        setServices([{ description: "", hours: 0, rate: 0 }]);
+      }
+
+      // Set client
+      const foundClient = clients.find((c) => c.id === project.clientId);
+      if (foundClient) {
+        setClient(foundClient);
+      } else {
+        console.warn(
+          `Client with ID ${project.clientId} not found in clients list`
+        );
+      }
+
+      // Set team members
+      if (project.teamMembers && project.teamMembers.length > 0) {
+        const populatedMembers = project.teamMembers
+          .map((member) => {
+            const fullMember = teamMembers.find(
+              (tm) => tm.memId === member.memId
+            );
+            return {
+              memId: member.memId || "",
+              name:
+                fullMember?.name || member.name || member.memId || "Unknown",
+              email: fullMember?.email || "",
+              phone: fullMember?.phone || "",
+              department: fullMember?.department || "",
+              role: member.role || "Team Member",
+              isActive: fullMember?.isActive || true,
+            };
+          })
+          .filter(
+            (member): member is TeamMember =>
+              member !== undefined && member.memId !== undefined
+          );
+
+        setSelectedTeamMembers(populatedMembers);
+      } else {
+        setSelectedTeamMembers([]);
+      }
+
+      // Set quotation if exists
+      if (project.quotationId) {
+        const foundQuotation = quotations.find(
+          (q) => q.id === project.quotationId
+        );
+        if (foundQuotation) {
+          setSelectedQuotation(foundQuotation);
+        }
+      }
+    },
+    [clients, teamMembers, quotations, formatDateForInput]
+  );
+
+  // Initialize form with data
   useEffect(() => {
     if (initialProjectData) {
       populateForm(initialProjectData);
       setIsFetching(false);
     } else {
-      // Fallback to fetching data if initial data is not provided
       fetchProjectData();
     }
   }, [initialProjectData]);
 
-  // Fallback function to fetch project data
-  const fetchProjectData = async () => {
+  // Handle quotation selection
+  const handleSelectQuotation = useCallback(
+    (quotation: Quotation) => {
+      setSelectedQuotation(quotation);
+
+      const selectedClient = clients.find((c) => c.id === quotation.clientId);
+      if (selectedClient) {
+        setClient(selectedClient);
+      }
+
+      setProjectName(`Project from ${quotation.quotationNumber || ""}`);
+      setDescription(
+        `Project created from quotation ${quotation.quotationNumber}${
+          quotation.terms ? ` - Terms: ${quotation.terms}` : ""
+        }`
+      );
+
+      const items = quotation.qItems || quotation.Items || [];
+      if (items && items.length > 0) {
+        const newServices = items.map((item: any) => ({
+          description: item.description || item.Description || "",
+          hours: item.qty || item.Quantity || 1,
+          rate: item.rate || item.UnitPrice || 0,
+        }));
+        setServices(newServices);
+
+        const totalHrs = newServices.reduce(
+          (total, service) => total + (service.hours || 0),
+          0
+        );
+        setTotalHours(totalHrs.toString());
+      } else {
+        const newServices = [
+          {
+            description: `Services from quotation ${quotation.quotationNumber}`,
+            hours: 1,
+            rate: quotation.grandTotal || 0,
+          },
+        ];
+        setServices(newServices);
+        setTotalHours("1");
+      }
+
+      setFlatRate(quotation.grandTotal?.toFixed(2) || "0.00");
+
+      if (quotation.quotationDate) {
+        const date = new Date(quotation.quotationDate);
+        setStartDate(date.toISOString().split("T")[0]);
+
+        const endDate = new Date(date);
+        endDate.setDate(endDate.getDate() + 30);
+        setEndDate(endDate.toISOString().split("T")[0]);
+      }
+
+      setTimeout(() => {
+        setShowQuotationModal(false);
+      }, 500);
+    },
+    [clients]
+  );
+
+  // Clear quotation selection
+  const clearQuotationSelection = useCallback(() => {
+    setSelectedQuotation(null);
+    setProjectName("");
+    setDescription("");
+    setServices([{ description: "", hours: 0, rate: 0 }]);
+    setFlatRate("0.00");
+    setTotalHours("0");
+  }, []);
+
+  // Fetch project data
+  const fetchProjectData = useCallback(async () => {
     if (!projectId) return;
 
     try {
@@ -167,189 +422,155 @@ const EditProject: React.FC<EditProjectProps> = ({
     } finally {
       setIsFetching(false);
     }
-  };
-
-  // Populate form with existing data
-  const populateForm = (project: ProjectData) => {
-    console.log("Populating form with:", project);
-
-    setProjectName(project.projectName);
-    setDescription(project.description || "");
-
-    // Format dates
-    const start = new Date(project.startDate);
-    const end = new Date(project.endDate);
-    setStartDate(start.toISOString().split("T")[0]);
-    setEndDate(end.toISOString().split("T")[0]);
-
-    setFlatRate(project.flatRate.toString());
-    setTotalHours(project.totalHours.toString());
-    setStatus(project.status);
-
-    // Determine project type based on services
-    // If project has services with hours/rate, it's hourly, otherwise flat-rate
-    const hasServices = project.services && project.services.length > 0;
-    const hasHourlyServices =
-      hasServices && project.services.some((s) => s.hours > 0 && s.rate > 0);
-
-    setSelectedType(hasHourlyServices ? "hourly" : "flat-rate");
-
-    // Set services - use empty array if no services
-    if (project.services && project.services.length > 0) {
-      setServices(project.services);
-    } else {
-      setServices([{ description: "", hours: 0, rate: 0 }]);
-    }
-
-    // Set client
-    const foundClient = clients.find((c) => c.id === project.clientId);
-    if (foundClient) {
-      setClient(foundClient);
-    } else {
-      console.warn(
-        `Client with ID ${project.clientId} not found in clients list`
-      );
-    }
-
-    // Set team members
-    if (project.teamMembers && project.teamMembers.length > 0) {
-      const populatedMembers = project.teamMembers
-        .map((member) => {
-          const fullMember = teamMembers.find(
-            (tm) => tm.memId === member.memId
-          );
-          return {
-            memId: member.memId,
-            name: fullMember?.name || member.name || member.memId,
-            email: fullMember?.email || "",
-            phone: fullMember?.phone || "",
-            department: fullMember?.department || "",
-            role: member.role,
-            isActive: fullMember?.isActive || true,
-          };
-        })
-        .filter((member) => member); // Remove undefined entries
-
-      setSelectedTeamMembers(populatedMembers);
-    } else {
-      setSelectedTeamMembers([]);
-    }
-  };
+  }, [projectId, router]);
 
   // Filter team members based on search
-  const filteredTeamMembers = teamMembers.filter(
-    (member) =>
-      member.name.toLowerCase().includes(searchTeamMember.toLowerCase()) ||
-      member.memId.toLowerCase().includes(searchTeamMember.toLowerCase()) ||
-      member.role.toLowerCase().includes(searchTeamMember.toLowerCase())
+  const filteredTeamMembers = useMemo(
+    () =>
+      teamMembers.filter(
+        (member) =>
+          member.name?.toLowerCase().includes(searchTeamMember.toLowerCase()) ||
+          member.memId
+            ?.toLowerCase()
+            .includes(searchTeamMember.toLowerCase()) ||
+          member.role?.toLowerCase().includes(searchTeamMember.toLowerCase())
+      ),
+    [teamMembers, searchTeamMember]
   );
 
   // Handle client selection from SearchableSelect
-  const handleClientSelect = (clientId: string) => {
-    const selectedClient = clients.find((client) => client.id === clientId);
-    setClient(selectedClient || null);
-  };
+  const handleClientSelect = useCallback(
+    (clientId: string) => {
+      const selectedClient = clients.find((client) => client.id === clientId);
+      setClient(selectedClient || null);
+    },
+    [clients]
+  );
 
   // Calculate total hours for hourly projects
-  const calculateTotalHours = () => {
+  const calculateTotalHours = useCallback(() => {
     return services.reduce((total, service) => total + (service.hours || 0), 0);
-  };
+  }, [services]);
 
   // Calculate total cost
-  const calculateTotalCost = () => {
+  const calculateTotalCost = useCallback(() => {
     if (selectedType === "flat-rate") {
       return parseFloat(flatRate) || 0;
     } else {
       return services.reduce(
-        (total, service) => total + service.hours * service.rate,
+        (total, service) => total + (service.hours || 0) * (service.rate || 0),
         0
       );
     }
-  };
+  }, [selectedType, flatRate, services]);
+
+  // Calculate service total
+  const calculateServiceTotal = useCallback((hours: number, rate: number) => {
+    return hours * rate;
+  }, []);
 
   // Handle service changes
-  const handleServiceChange = (
-    index: number,
-    field: keyof Service,
-    value: string | number
-  ) => {
-    const updatedServices = [...services];
-    const service = updatedServices[index];
+  const handleServiceChange = useCallback(
+    (index: number, field: keyof Service, value: string | number) => {
+      setServices((prevServices) => {
+        const updatedServices = [...prevServices];
+        const service = updatedServices[index];
 
-    if (field === "hours" || field === "rate") {
-      service[field] =
-        typeof value === "string" ? parseFloat(value) || 0 : value;
-    } else if (field === "description") {
-      service.description = value as string;
-    }
-    setServices(updatedServices);
+        if (field === "hours" || field === "rate") {
+          service[field] =
+            typeof value === "string" ? parseFloat(value) || 0 : value;
+        } else if (field === "description") {
+          service.description = (value as string) || "";
+        }
 
-    // Update total hours for hourly projects
-    if (selectedType === "hourly") {
-      setTotalHours(calculateTotalHours().toString());
-    }
-  };
+        // Ensure service object properties are never undefined
+        if (!service.description) service.description = "";
+        if (service.hours === undefined || service.hours === null)
+          service.hours = 0;
+        if (service.rate === undefined || service.rate === null)
+          service.rate = 0;
+
+        return updatedServices;
+      });
+    },
+    []
+  );
 
   // Add new service
-  const addService = () => {
-    setServices([...services, { description: "", hours: 0, rate: 0 }]);
-  };
+  const addService = useCallback(() => {
+    setServices((prev) => [...prev, { description: "", hours: 0, rate: 0 }]);
+  }, []);
 
   // Delete service
-  const deleteService = (index: number) => {
-    if (services.length > 1) {
-      const newServices = services.filter((_, i) => i !== index);
-      setServices(newServices);
-    }
-  };
+  const deleteService = useCallback((index: number) => {
+    setServices((prev) => {
+      if (prev.length > 1) {
+        return prev.filter((_, i) => i !== index);
+      }
+      return prev;
+    });
+  }, []);
 
   // Add team member
-  const addTeamMember = (member: TeamMember) => {
-    if (!selectedTeamMembers.some((m) => m.memId === member.memId)) {
-      setSelectedTeamMembers([...selectedTeamMembers, { ...member }]);
-    }
-  };
+  const addTeamMember = useCallback((member: TeamMember) => {
+    setSelectedTeamMembers((prev) => {
+      if (!prev.some((m) => m.memId === member.memId)) {
+        return [...prev, { ...member }];
+      }
+      return prev;
+    });
+  }, []);
 
   // Remove team member
-  const removeTeamMember = (memId: string) => {
-    setSelectedTeamMembers(
-      selectedTeamMembers.filter((member) => member.memId !== memId)
+  const removeTeamMember = useCallback((memId: string) => {
+    setSelectedTeamMembers((prev) =>
+      prev.filter((member) => member.memId !== memId)
     );
-  };
+  }, []);
 
   // Update team member role
-  const updateTeamMemberRole = (memId: string, role: string) => {
-    setSelectedTeamMembers(
-      selectedTeamMembers.map((member) =>
-        member.memId === memId ? { ...member, role } : member
+  const updateTeamMemberRole = useCallback((memId: string, role: string) => {
+    setSelectedTeamMembers((prev) =>
+      prev.map((member) =>
+        member.memId === memId
+          ? { ...member, role: role || "Team Member" }
+          : member
       )
     );
-  };
+  }, []);
 
   // Handle project type selection
-  const handleSelect = (type: ProjectType) => {
+  const handleSelect = useCallback((type: ProjectType) => {
     setSelectedType(type);
     setIsProjectTypeOpen(false);
-    // Reset values based on type
-    if (type === "flat-rate") {
-    } else {
-      // When switching to hourly, calculate total hours from services
-      setTotalHours(calculateTotalHours().toString());
-    }
-  };
+  }, []);
 
   // Format currency
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = useCallback((amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 2,
     }).format(amount);
-  };
+  }, []);
+
+  // Format date
+  const formatDate = useCallback((dateString: string) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  }, []);
 
   // Handle update project
-  const handleUpdate = async () => {
-    // Validation
+  const handleUpdate = useCallback(async () => {
     if (!projectName.trim()) {
       alert("Please enter a project name");
       return;
@@ -378,22 +599,22 @@ const EditProject: React.FC<EditProjectProps> = ({
         selectedType === "hourly"
           ? calculateTotalHours()
           : parseInt(totalHours) || 0,
-      status,
+      status: status || "Active",
       services: services
         .map((service) => ({
           id: service.id || 0,
-          description: service.description,
-          hours: service.hours,
-          rate: service.rate,
+          description: service.description || "",
+          hours: service.hours || 0,
+          rate: service.rate || 0,
         }))
-        .filter((service) => service.description.trim() !== ""), // Filter out empty services
+        .filter((service) => service.description.trim() !== ""),
       teamMembers: selectedTeamMembers.map((member) => ({
         memId: member.memId,
-        role: member.role,
+        role: member.role || "Team Member",
       })),
+      quotationId: selectedQuotation?.id || "",
+      // quotationNumber: selectedQuotation?.quotationNumber || "",
     };
-
-    // console.log('Sending update data:', projectData);
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -410,33 +631,47 @@ const EditProject: React.FC<EditProjectProps> = ({
       );
 
       const result = await response.json();
-      // console.log('Update response:', result);
 
       if (response.ok) {
         alert(`✅ ${result.message}!`);
-        router.push(`/user/projects`); // Redirect to project detail page
+        router.push(`/user/projects`);
       } else {
         alert(`❌ Error: ${result.message}\n Msg: ${result.error}`);
       }
     } catch (error) {
-      // console.warn("Error updating project:", error);
       alert("❌ Failed to update project. Please try again. " + error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [
+    projectName,
+    client,
+    startDate,
+    endDate,
+    flatRate,
+    selectedType,
+    calculateTotalHours,
+    totalHours,
+    status,
+    services,
+    selectedTeamMembers,
+    selectedQuotation,
+    projectId,
+    description,
+    router,
+  ]);
 
   // Calculate project duration in days
-  const calculateDuration = () => {
+  const calculateDuration = useCallback(() => {
     if (!startDate || !endDate) return 0;
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
+  }, [startDate, endDate]);
 
   // Handle cancel
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (
       window.confirm(
         "Are you sure you want to cancel? Any unsaved changes will be lost."
@@ -444,7 +679,7 @@ const EditProject: React.FC<EditProjectProps> = ({
     ) {
       router.back();
     }
-  };
+  }, [router]);
 
   // Show loading state
   if (isFetching) {
@@ -499,11 +734,51 @@ const EditProject: React.FC<EditProjectProps> = ({
         </div>
       </div>
 
+      {/* Quotation Selection Button */}
+      <div className="mb-6">
+        <button
+          onClick={() => setShowQuotationModal(true)}
+          className="inline-flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium"
+        >
+          <FileText size={18} />
+          Select from Quotation
+        </button>
+
+        {selectedQuotation && (
+          <div className="m-3 inline-flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <FileText className="text-blue-600" size={20} />
+            <div className="flex-1">
+              <p className="font-medium text-gray-900">
+                Selected: {selectedQuotation.id}
+              </p>
+              <p className="text-sm text-gray-600">
+                Client:{" "}
+                {selectedQuotation.ClientName ||
+                  selectedQuotation.clientId ||
+                  "N/A"}{" "}
+                • Amount: {formatCurrency(selectedQuotation.grandTotal || 0)}
+              </p>
+              <p className="text-xs text-gray-500">
+                Date: {formatDate(selectedQuotation.quotationDate || "")} •
+                Status: {selectedQuotation.status || "N/A"}
+              </p>
+            </div>
+            <button
+              onClick={clearQuotationSelection}
+              className="text-red-600 hover:text-red-700"
+              title="Remove quotation"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Left Column - Main Form */}
         <div className="flex-1 bg-white rounded-xl shadow-md p-4">
-          {/* Client Selection - Using SearchableSelect */}
+          {/* Client Selection */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-sm font-semibold text-gray-800">Client</h2>
@@ -523,14 +798,15 @@ const EditProject: React.FC<EditProjectProps> = ({
                   <div>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-medium">
-                        {client.initials}
+                        {client.initials || "?"}
                       </div>
                       <div>
                         <h3 className="font-medium text-gray-900">
-                          {client.name}
+                          {client.name || "Unknown Client"}
                         </h3>
                         <p className="text-xs text-gray-500">
-                          {client.businessType} • {client.location}
+                          {client.businessType || "N/A"} •{" "}
+                          {client.location || "N/A"}
                         </p>
                       </div>
                     </div>
@@ -538,13 +814,13 @@ const EditProject: React.FC<EditProjectProps> = ({
                       <div>
                         <p className="text-xs text-gray-500">Email</p>
                         <p className="text-xs font-medium">
-                          {client.contactEmail}
+                          {client.contactEmail || "N/A"}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500">Phone</p>
                         <p className="text-xs font-medium">
-                          {client.phoneNumber}
+                          {client.phoneNumber || "N/A"}
                         </p>
                       </div>
                     </div>
@@ -560,7 +836,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                   <div className="flex-1">
                     <SearchableSelect
                       options={clientOptions}
-                      value={client !== null ? client.id : ""}
+                      value={client?.id || ""}
                       onChange={handleClientSelect}
                       placeholder="Select a client..."
                       label="Assign Client"
@@ -601,13 +877,15 @@ const EditProject: React.FC<EditProjectProps> = ({
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-800 font-medium">
-                        {member.name.charAt(0)}
+                        {(member.name || "?").charAt(0)}
                       </div>
                       <div>
-                        <p className="font-medium">{member.name}</p>
+                        <p className="font-medium">
+                          {member.name || "Unknown Member"}
+                        </p>
                         <div className="flex items-center gap-2 mt-1">
                           <select
-                            value={member.role}
+                            value={member.role || "Team Member"}
                             onChange={(e) =>
                               updateTeamMemberRole(member.memId, e.target.value)
                             }
@@ -741,7 +1019,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                     value={
                       selectedType === "hourly"
                         ? calculateTotalHours()
-                        : totalHours
+                        : totalHours || "0"
                     }
                     onChange={(e) => setTotalHours(e.target.value)}
                     readOnly={selectedType === "hourly"}
@@ -751,7 +1029,7 @@ const EditProject: React.FC<EditProjectProps> = ({
               </div>
             </div>
 
-            {/* Status - Using SearchableSelect */}
+            {/* Status */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-2">
                 Status
@@ -788,7 +1066,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                   <div className="flex justify-between items-start mb-3">
                     <input
                       type="text"
-                      value={service.description}
+                      value={service.description || ""}
                       onChange={(e) =>
                         handleServiceChange(
                           index,
@@ -817,6 +1095,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                       <input
                         type="number"
                         min="0"
+                        step="0.5"
                         value={service.hours || ""}
                         onChange={(e) =>
                           handleServiceChange(index, "hours", e.target.value)
@@ -841,9 +1120,15 @@ const EditProject: React.FC<EditProjectProps> = ({
                     </div>
                   </div>
 
-                  {service.hours > 0 && service.rate > 0 && (
+                  {(service.hours || 0) > 0 && (service.rate || 0) > 0 && (
                     <div className="mt-3 text-right text-xs text-gray-600">
-                      Total: {formatCurrency(service.hours * service.rate)}
+                      Total:{" "}
+                      {formatCurrency(
+                        calculateServiceTotal(
+                          service.hours || 0,
+                          service.rate || 0
+                        )
+                      )}
                     </div>
                   )}
                 </div>
@@ -876,11 +1161,8 @@ const EditProject: React.FC<EditProjectProps> = ({
                           Project Type
                         </h3>
                         <p className="text-blue-600 text-sm">
-                          {
-                            projectTypes.find(
-                              (type) => type.id === selectedType
-                            )?.label
-                          }
+                          {projectTypes.find((type) => type.id === selectedType)
+                            ?.label || "Select Type"}
                         </p>
                       </div>
                     </div>
@@ -931,7 +1213,7 @@ const EditProject: React.FC<EditProjectProps> = ({
                 Project Summary
               </h3>
               <div className="space-y-3">
-                <div className="flex justify-between text-sm ">
+                <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Duration</span>
                   <span className="font-medium">
                     {calculateDuration()} days
@@ -952,9 +1234,17 @@ const EditProject: React.FC<EditProjectProps> = ({
                   <span className="font-medium">
                     {selectedType === "hourly"
                       ? calculateTotalHours()
-                      : totalHours}
+                      : totalHours || "0"}
                   </span>
                 </div>
+                {selectedQuotation && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Source Quotation</span>
+                    <span className="font-medium text-blue-600">
+                      {selectedQuotation.quotationNumber || "N/A"}
+                    </span>
+                  </div>
+                )}
                 <div className="pt-3 border-t">
                   <div className="flex justify-between items-center text-md">
                     <span className="text-gray-900 font-medium">
@@ -971,13 +1261,26 @@ const EditProject: React.FC<EditProjectProps> = ({
         </div>
       </div>
 
+      {/* Quotation Selection Modal */}
+      <QuotationSelectionModal
+        showModal={showQuotationModal}
+        onClose={() => setShowQuotationModal(false)}
+        quotations={filteredQuotations}
+        selectedQuotation={selectedQuotation}
+        onSelectQuotation={handleSelectQuotation}
+        isLoading={false}
+        searchValue={searchQuotation}
+        onSearchChange={setSearchQuotation}
+        onSearchSubmit={() => {}}
+      />
+
       {/* Team Member Modal */}
       {showTeamMemberModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b">
               <div className="flex justify-between items-center">
-                <h2 className="text-sm font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   Add Team Members
                 </h2>
                 <button
@@ -1020,17 +1323,18 @@ const EditProject: React.FC<EditProjectProps> = ({
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-medium text-sm">
-                          {member.name.charAt(0)}
+                          {(member.name || "?").charAt(0)}
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-900">
-                            {member.name}
+                            {member.name || "Unknown Member"}
                           </h4>
                           <p className="text-xs text-gray-600">
-                            {member.role} • {member.department}
+                            {member.role || "N/A"} •{" "}
+                            {member.department || "N/A"}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {member.email}
+                            {member.email || "N/A"}
                           </p>
                         </div>
                       </div>

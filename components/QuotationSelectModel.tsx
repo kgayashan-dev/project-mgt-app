@@ -1,5 +1,13 @@
 "use client";
-import { Search, X, Loader2, FileText, CheckCircle, DollarSign, Calendar } from "lucide-react";
+import {
+  Search,
+  X,
+  Loader2,
+  FileText,
+  CheckCircle,
+  DollarSign,
+  Calendar,
+} from "lucide-react";
 
 // Update interface to match your actual API response
 interface Quotation {
@@ -217,7 +225,7 @@ const QuotationSelectionModal = ({
                         <FileText className="w-4 h-4 text-blue-500" />
                         <div>
                           <span className="text-sm font-semibold text-gray-900">
-                            {quotation.quotationNumber}
+                            {quotation.quotationNumber}& {quotation.id}
                           </span>
                           {quotation.terms && (
                             <p className="text-xs text-gray-500 truncate max-w-[200px]">
@@ -248,10 +256,15 @@ const QuotationSelectionModal = ({
                           </span>
                         </div>
                         <div className="text-xs text-gray-500">
-                          <div>Subtotal: {formatCurrency(quotation.subtotal)}</div>
+                          <div>
+                            Subtotal: {formatCurrency(quotation.subtotal)}
+                          </div>
                           <div>Tax: {formatCurrency(quotation.totalTax)}</div>
                           {quotation.discountAmount > 0 && (
-                            <div>Discount: -{formatCurrency(quotation.discountAmount)}</div>
+                            <div>
+                              Discount: -
+                              {formatCurrency(quotation.discountAmount)}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -264,7 +277,8 @@ const QuotationSelectionModal = ({
                             {formatDate(quotation.quotationDate)}
                           </p>
                           <p className="text-xs text-gray-500">
-                            Expires: {calculateExpiryDate(quotation.quotationDate)}
+                            Expires:{" "}
+                            {calculateExpiryDate(quotation.quotationDate)}
                           </p>
                         </div>
                       </div>
@@ -283,7 +297,13 @@ const QuotationSelectionModal = ({
                         )}
                         <div className="flex gap-2">
                           <span className="text-gray-500">Tax Rate:</span>
-                          <span>{calculateTaxPercentage(quotation.subtotal, quotation.totalTax)}%</span>
+                          <span>
+                            {calculateTaxPercentage(
+                              quotation.subtotal,
+                              quotation.totalTax
+                            )}
+                            %
+                          </span>
                         </div>
                       </div>
                     </td>
