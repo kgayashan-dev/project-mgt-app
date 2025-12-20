@@ -1,0 +1,173 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- Stored Procedure: Create Bill (Updated with Image fields)
+ALTER   PROCEDURE [dbo].[sp_CreateBill]
+    @Id NVARCHAR(50) = NULL,
+    @BillNumber NVARCHAR(50),
+    @CompanyName NVARCHAR(100),
+    @VendorId NVARCHAR(50),
+    @IssueDate DATETIME2,
+    @DueDate DATETIME2,
+    @EmailAddress NVARCHAR(100) = NULL,
+    @PhoneNumber NVARCHAR(20) = NULL,
+    @TotalOutstanding DECIMAL(18,2) = 0,
+    @SubTotal DECIMAL(18,2) = 0,
+    @Tax DECIMAL(18,2) = 0,
+    @Status NVARCHAR(50),
+    @GrandTotal DECIMAL(18,2) = 0,
+    @AmountDue DECIMAL(18,2) = 0,
+    @TotalTax DECIMAL(18,2) = 0,
+    @Remarks NVARCHAR(MAX) = NULL, -- Added parameter
+    @ImagePath NVARCHAR(500) = NULL, -- Added parameter
+    @ImageUrl NVARCHAR(500) = NULL, -- Added parameter
+    @Items dbo.BillItemDetailsType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @NewId NVARCHAR(50);
+    DECLARE @MaxId INT;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Validate Vendor exists
+        IF NOT EXISTS(SELECT 1 FROM Vendors WHERE id = @VendorId)
+            THROW 50001, 'Vendor does not exist.', 1;
+        
+        -- Generate Bill ID in BIL000001 format when empty string or NULL is provided
+        IF @Id IS NULL OR @Id = ''
+        BEGIN
+            -- Get the maximum numeric part from existing Bill IDs safely
+            SELECT @MaxId = ISNULL(MAX(
+                    CASE 
+                        WHEN Id LIKE 'BIL[0-9]%' 
+                        THEN TRY_CAST(SUBSTRING(Id, 4, LEN(Id)) AS INT)
+                        ELSE 0 
+                    END
+                ), 0)
+            FROM Bills;
+
+            SET @NewId = 'BIL' + RIGHT('0000000' + CAST(@MaxId + 1 AS NVARCHAR(7)), 7);
+        END
+        ELSE
+        BEGIN
+            SET @NewId = @Id;
+        END
+
+        -- Insert into Bills table with new columns
+        INSERT INTO Bills
+        (
+            Id, 
+            BillNumber, 
+            CompanyName, 
+            VendorId, 
+            IssueDate, 
+            DueDate,
+            EmailAddress, 
+            PhoneNumber, 
+            TotalOutstanding, 
+            SubTotal, 
+            Tax,
+            GrandTotal, 
+            AmountDue, 
+            TotalTax, 
+            Status,
+            Remarks,  -- New column
+            ImagePath, -- New column
+            ImageUrl,  -- New column
+            CreatedDate,
+            ModifiedDate
+        )
+        VALUES
+        (
+            @NewId, 
+            @BillNumber, 
+            @CompanyName, 
+            @VendorId, 
+            @IssueDate, 
+            @DueDate,
+            @EmailAddress, 
+            @PhoneNumber, 
+            @TotalOutstanding, 
+            @SubTotal, 
+            @Tax,
+            @GrandTotal, 
+            @AmountDue, 
+            @TotalTax, 
+            @Status,
+            @Remarks,  -- New value
+            @ImagePath, -- New value
+            @ImageUrl,  -- New value
+            GETDATE(),  -- Added CreatedDate
+            GETDATE()   -- Added ModifiedDate
+        );
+
+        -- Insert Bill Items
+        INSERT INTO BillItems
+        (BillId, Description, Category, Rate, Qty, Total)
+        SELECT @NewId, Description, Category, Rate, Qty, Total
+        FROM @Items;
+
+        COMMIT TRANSACTION;
+        
+        -- Return the generated ID
+        SELECT @NewId AS GeneratedBillId;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+
+
+-- Example for sp_GetAllBills
+ALTER PROCEDURE [dbo].[sp_GetAllBills]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        b.Id,
+        b.BillNumber,
+        b.CompanyName,
+        b.VendorId,
+        b.IssueDate,
+        b.DueDate,
+        b.EmailAddress,
+        b.PhoneNumber,
+        b.TotalOutstanding,
+        b.SubTotal,
+        b.Tax,
+        b.Status,
+        b.GrandTotal,
+        b.AmountDue,
+        b.TotalTax,
+        b.Remarks, -- Include new column
+        b.ImagePath, -- Include new column
+        b.ImageUrl, -- Include new column
+        b.CreatedDate,
+        b.ModifiedDate,
+        bi.Id AS ItemId,
+        bi.Description,
+        bi.Category,
+        bi.Rate,
+        bi.Qty,
+        bi.Total
+    FROM Bills b
+    LEFT JOIN BillItems bi ON b.Id = bi.BillId
+    ORDER BY b.IssueDate DESC, b.BillNumber;
+END
+GO
+
+
+
+
+SELECT * from Bills
+

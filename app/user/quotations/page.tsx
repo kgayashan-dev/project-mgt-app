@@ -1,8 +1,9 @@
 // page.tsx
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 import Quotations from "./Quotation";
 import { getQuotatoinData } from "@/utils/getdata";
+// import SearchQuotation from "@/components/SearchQuotation";
 
 export default function QuotationPage() {
   const [quotationData, setQuotation] = useState([]);
@@ -27,6 +28,11 @@ export default function QuotationPage() {
 
   return (
     <div>
+      {/* <div>
+        <SearchQuotation />
+      </div> */}
+        {/* <SearchQuotation /> */}
+
       <Quotations quotationData={quotationData} />
     </div>
   );

@@ -1,11 +1,12 @@
+// components/EditQuotationForm.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaTrashAlt } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-// import { getCompanyData } from "@/utils/getdata";
 type Row = {
   description: string;
   rate: number;
@@ -47,24 +48,64 @@ interface CompanyData {
   country: string;
 }
 
-interface QuotationData {
+interface QuotationItem {
+  id: number;
+  description: string;
+  unit: string;
+  qty: number;
+  rate: number;
+  quotationId: string;
+  total?: number;
+  tax?: number;
+  taxAmount?: number;
+}
+
+interface InitialQuotation {
   id: string;
   quotationNumber: string;
+  quotationDate: string;
+  clientId: string;
+  companyID: string; // Note: uppercase 'ID'
+  discountPercentage: number;
+  discountAmount: number;
+  subtotal: number;
+  totalTax: number;
+  terms: string;
+  grandTotal: number;
+  qItems: QuotationItem[];
+  status?: string;
+  createdDate?: string;
+  reference?: string;
+  dueDate?: string;
+  clientLocation?: string;
+  notes?: string;
 }
 
-interface NewQuotationProps {
+interface EditQuotationProps {
   initialData: Client[];
   bankData: BankAccount[];
-  quotationData: QuotationData[];
+  initialQuotation: InitialQuotation; // Changed to match prop name
   companyData: CompanyData[];
+  quotationId: string;
 }
-
-const QuotationForm: React.FC<NewQuotationProps> = ({
+   const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const EditQuotationForm: React.FC<EditQuotationProps> = ({
   initialData,
   bankData,
-  // quotationData,
+  initialQuotation,
   companyData,
+  quotationId,
 }) => {
+  const router = useRouter();
+  
+  console.log("Received props:", {
+    initialQuotation,
+    companyData,
+    quotationId,
+    clientCount: initialData.length,
+    bankCount: bankData.length
+  });
+
   // File upload state
   const [file, setFile] = useState<File | null>(null);
   const [html2pdf, setHtml2pdf] = useState<any>(null);
@@ -72,32 +113,15 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
 
   // Client form state
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(
-    null
-  );
-  const [QuotationDate, setQuotationDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [QuotationDueDate, setQuotationDueDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [QuotationNumber, setQuotationNumber] = useState("0000001");
+  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
+  const [quotationDate, setQuotationDate] = useState<string>("");
+  const [quotationDueDate, setQuotationDueDate] = useState<string>("");
+  const [quotationNumber, setQuotationNumber] = useState("");
   const [reference, setReference] = useState("No");
   const [selectedBankAccount, setSelectedBankAccount] = useState<string>("");
-  // const [selectedQuotation, setSelectedQuotation] = useState<string>("");
 
   // Table state
-  const [rows, setRows] = useState<Row[]>([
-    {
-      description: "",
-      rate: 0,
-      tax: 0,
-      qty: 0,
-      total: 0,
-      unit: "",
-      taxAmount: 0,
-    },
-  ]);
+  const [rows, setRows] = useState<Row[]>([]);
   const [subtotal, setSubtotal] = useState(0);
   const [totalTax, setTotalTax] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
@@ -108,35 +132,125 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   const [taxPercentage, setTaxPercentage] = useState(0);
 
   // Edit states
-  const [isQuotationNumberEditing, setIsQuotationNumberEditing] =
-    useState(false);
+  const [isQuotationNumberEditing, setIsQuotationNumberEditing] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
-  const [isAdditionalInfoEditing, setIsAdditionalInfoEditing] = useState(true);
-  const [isDescriptionEditing, setIsDescriptionEditing] = useState(true);
-  const [isRateEditing, setIsRateEditing] = useState(true);
-  const [isUnitEditing, setIsUnitEditing] = useState(true);
-  const [isQtyEditing, setIsQtyEditing] = useState(true);
-  const [isDiscountEditing, setIsDiscountEditing] = useState(true);
-  const [isTaxEditing, setIsTaxEditing] = useState(true);
-  const [isReferenceEditing, setIsReferenceEditing] = useState(true);
+  const [isAdditionalInfoEditing, setIsAdditionalInfoEditing] = useState(false);
+  const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
+  const [isRateEditing, setIsRateEditing] = useState(false);
+  const [isUnitEditing, setIsUnitEditing] = useState(false);
+  const [isQtyEditing, setIsQtyEditing] = useState(false);
+  const [isDiscountEditing, setIsDiscountEditing] = useState(false);
+  const [isTaxEditing, setIsTaxEditing] = useState(false);
+  const [isReferenceEditing, setIsReferenceEditing] = useState(false);
 
   // Bank selection state
   const [showBankSelection, setShowBankSelection] = useState(true);
 
-  // Get selected bank account details
-  const selectedBank = bankData.find((bank) => bank.id === selectedBankAccount);
-
-  // Get selected quotation details
-  // const selectedQuotationData = quotationData.find(
-  //   (q) => q.id === selectedQuotation
-  // );
-
-  // Auto-select first company if available
+  // Initialize form with quotation data
   useEffect(() => {
-    if (companyData.length > 0 && !selectedCompany) {
-      setSelectedCompany(companyData[0]);
+    if (initialQuotation) {
+      console.log("Initializing form with initialQuotation:", initialQuotation);
+      
+      // Set basic quotation data
+      setQuotationNumber(initialQuotation.quotationNumber || "");
+      
+      // Format dates
+      const formattedDate = initialQuotation.quotationDate 
+        ? new Date(initialQuotation.quotationDate).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
+      setQuotationDate(formattedDate);
+      
+      // Use dueDate from API or default to 30 days from quotation date
+      const dueDate = initialQuotation.dueDate 
+        ? new Date(initialQuotation.dueDate).toISOString().split('T')[0]
+        : new Date(new Date(formattedDate).setDate(new Date(formattedDate).getDate() + 30)).toISOString().split('T')[0];
+      setQuotationDueDate(dueDate);
+      
+      setTerms(initialQuotation.terms || "");
+      setDiscountPercentage(initialQuotation.discountPercentage || 0);
+      setDiscountAmount(initialQuotation.discountAmount || 0);
+      setSubtotal(initialQuotation.subtotal || 0);
+      setTotalTax(initialQuotation.totalTax || 0);
+      setGrandTotal(initialQuotation.grandTotal || 0);
+      setReference(initialQuotation.reference || "No");
+      
+      // Calculate tax percentage
+      if (initialQuotation.subtotal && initialQuotation.totalTax && initialQuotation.subtotal > 0) {
+        const calculatedTaxPercentage = (initialQuotation.totalTax / initialQuotation.subtotal) * 100;
+        setTaxPercentage(calculatedTaxPercentage);
+      } else {
+        setTaxPercentage(0);
+      }
+
+      // Set rows from quotation items
+      if (initialQuotation.qItems && initialQuotation.qItems.length > 0) {
+        const formattedRows = initialQuotation.qItems.map(item => {
+          const itemTotal = item.total || (item.rate || 0) * (item.qty || 0);
+          const itemTax = item.tax || taxPercentage;
+          const itemTaxAmount = item.taxAmount || (itemTotal * itemTax) / 100;
+          
+          return {
+            description: item.description || "",
+            rate: item.rate || 0,
+            tax: itemTax,
+            qty: item.qty || 0,
+            total: itemTotal,
+            unit: item.unit || "",
+            taxAmount: itemTaxAmount
+          };
+        });
+        setRows(formattedRows);
+        console.log("Set rows:", formattedRows);
+      } else {
+        // Initialize with one empty row if no items
+        setRows([{
+          description: "",
+          rate: 0,
+          tax: taxPercentage,
+          qty: 0,
+          total: 0,
+          unit: "",
+          taxAmount: 0
+        }]);
+      }
+
+      // Find and set selected client
+      const client = initialData.find(client => client.id === initialQuotation.clientId);
+      if (client) {
+        setSelectedClient(client);
+        console.log("Set selected client:", client);
+      } else {
+        console.log("Client not found for ID:", initialQuotation.clientId);
+      }
+
+      // Find and set selected company
+      const company = companyData.find(company => company.id === initialQuotation.companyID);
+      if (company) {
+        setSelectedCompany(company);
+        console.log("Set selected company:", company);
+      } else {
+        console.log("Company not found for ID:", initialQuotation.companyID);
+        console.log("Available companies:", companyData);
+      }
+
+      // Auto-select first bank account
+      if (bankData.length > 0) {
+        setSelectedBankAccount(bankData[0].id);
+      }
     }
-  }, [companyData, selectedCompany]);
+  }, [initialQuotation, initialData, companyData, bankData]);
+
+  // Auto-select first company if available and none selected
+  useEffect(() => {
+    if (companyData.length > 0 && !selectedCompany && initialQuotation) {
+      const company = companyData.find(company => company.id === initialQuotation.companyID);
+      if (company) {
+        setSelectedCompany(company);
+      } else {
+        setSelectedCompany(companyData[0]);
+      }
+    }
+  }, [companyData, selectedCompany, initialQuotation]);
 
   // Dynamically import html2pdf on client side only
   useEffect(() => {
@@ -144,13 +258,6 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
       setHtml2pdf(() => module.default);
     });
   }, []);
-
-  // Auto-select first bank account if available
-  useEffect(() => {
-    if (bankData.length > 0 && !selectedBankAccount) {
-      setSelectedBankAccount(bankData[0].id);
-    }
-  }, [bankData, selectedBankAccount]);
 
   // Calculate totals including discount
   useEffect(() => {
@@ -162,8 +269,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     });
 
     // Calculate discount amount
-    const calculatedDiscountAmount =
-      (calculatedSubtotal * discountPercentage) / 100;
+    const calculatedDiscountAmount = (calculatedSubtotal * discountPercentage) / 100;
     setDiscountAmount(calculatedDiscountAmount);
 
     // Calculate tax on discounted amount
@@ -172,9 +278,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
 
     setSubtotal(calculatedSubtotal);
     setTotalTax(calculatedTax);
-    setGrandTotal(
-      calculatedSubtotal - calculatedDiscountAmount + calculatedTax
-    );
+    setGrandTotal(calculatedSubtotal - calculatedDiscountAmount + calculatedTax);
   }, [rows, discountPercentage, taxPercentage]);
 
   // File upload handling
@@ -215,7 +319,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
       {
         description: "",
         rate: 0,
-        tax: 0,
+        tax: taxPercentage,
         qty: 0,
         total: 0,
         unit: "",
@@ -225,12 +329,13 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   };
 
   const deleteRow = (index: number) => {
-    setRows(rows.filter((_, rowIndex) => rowIndex !== index));
+    if (rows.length > 1) {
+      setRows(rows.filter((_, rowIndex) => rowIndex !== index));
+    }
   };
 
-  // Save Quotation function
-  // Save Quotation function
-  const saveQuotation = async () => {
+  // Update Quotation function
+  const updateQuotation = async () => {
     if (!selectedClient) {
       alert("Please select a client");
       return;
@@ -249,47 +354,46 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     setLoading(true);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-      // MATCH THE REQUIRED JSON FORMAT EXACTLY
-      const QuotationData = {
-        id: "", // Will be generated by backend
-        quotationNumber: QuotationNumber, // Changed from quotationNo to quotationNumber
-        quotationDate: new Date(QuotationDate).toISOString(),
-        clientId: selectedClient.id, // Changed from clientID to clientId (lowercase 'd')
-        companyID: selectedCompany.id,
+
+      const updatedQuotationData = {
+        id: quotationId,
+        clientName: selectedClient.name,
+        quotationNumber: quotationNumber,
+        quotationDate: new Date(quotationDate).toISOString(),
+        dueDate: new Date(quotationDueDate).toISOString(),
+        clientId: selectedClient.id,
+        companyID: selectedCompany.id, // Note: uppercase 'ID'
         discountPercentage: discountPercentage,
         discountAmount: discountAmount,
         subtotal: subtotal,
         totalTax: totalTax,
-        terms: terms, // Add terms field
+        terms: terms,
         grandTotal: grandTotal,
-        qItems: rows.map((row) => ({
-          // Changed from items to qItems
-          id: 0, // Must be integer 0, not index
+        reference: reference,
+        qItems: rows.map((row, index) => ({
+          id: initialQuotation.qItems[index]?.id || 0,
           description: row.description,
-          quotationId: "", // Will be set by backend
+          quotationId: quotationId,
           unit: row.unit,
           qty: row.qty,
           rate: row.rate,
-          // Removed total field as it's not in the required format
         })),
-        // Removed createdDate and status as they're not in the required format
       };
 
-      console.log(
-        "Sending Quotation data:",
-        JSON.stringify(QuotationData, null, 2)
-      );
+    //   console.log(
+    //     "Updating Quotation data:",
+    //     JSON.stringify(updatedQuotationData, null, 2)
+    //   );
 
       const response = await fetch(
-        `${API_URL}/project_pulse/Quotation/postQuotation`,
+        `${API_URL}/project_pulse/Quotation/updateQuotation/${quotationId}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(QuotationData),
+          body: JSON.stringify(updatedQuotationData),
         }
       );
 
@@ -297,26 +401,23 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
         const errorText = await response.text();
         console.error("Error response:", errorText);
         throw new Error(
-          `Failed to save Quotation: ${response.status} - ${errorText}`
+          `Failed to update Quotation: ${response.status} - ${errorText}`
         );
       }
 
       const result = await response.json();
-      console.log("Success response:", result);
+      console.log("Update response:", result);
 
-      if (result.message === "Quotation saved successfully.") {
-        alert("Quotation saved successfully!");
-        console.log("Generated Quotation ID:", result.QuotationId);
-
-        // Optional: Redirect to Quotations list or clear form
-        // window.location.href = "/user/Quotations";
+      if (result.message === "Quotation updated successfully." || result.success) {
+        alert("Quotation updated successfully!");
+        router.push("/user/quotations");
       } else {
-        throw new Error(result.message || "Failed to save Quotation");
+        throw new Error(result.message || "Failed to update Quotation");
       }
     } catch (error) {
-      console.error("Error saving Quotation:", error);
+      console.log("Error updating Quotation:", error);
       alert(
-        `Error saving Quotation: ${
+        `Error updating Quotation: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
@@ -325,22 +426,70 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
     }
   };
 
+  // Delete Quotation function
+//   const deleteQuotation = async () => {
+//     if (!confirm("Are you sure you want to delete this quotation? This action cannot be undone.")) {
+//       return;
+//     }
+
+//     setLoading(true);
+
+//     try {
+   
+
+//       const response = await fetch(
+//         `${API_URL}/project_pulse/Quotation/deleteQuotation/${quotationId}`,
+//         {
+//           method: "DELETE",
+//         }
+//       );
+
+//       if (!response.ok) {
+//         const errorText = await response.text();
+//         throw new Error(`Failed to delete quotation: ${response.status} - ${errorText}`);
+//       }
+
+//       const result = await response.json();
+//       console.log("Delete response:", result);
+
+//       if (result.message === "Quotation deleted successfully." || result.success) {
+//         alert("Quotation deleted successfully!");
+//         router.push("/user/quotations");
+//       } else {
+//         throw new Error(result.message || "Failed to delete quotation");
+//       }
+//     } catch (error) {
+//       console.error("Error deleting quotation:", error);
+//       alert(
+//         `Error deleting quotation: ${
+//           error instanceof Error ? error.message : "Unknown error"
+//         }`
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
   // Generate PDF
-  const clickPdf = (QuotationNum: string, QuotationDt: string) => {
+  const clickPdf = (quotationNum: string, quotationDt: string) => {
     if (!html2pdf) {
       alert("PDF generator is still loading. Please try again in a moment.");
       return;
     }
 
-    // Hide bank selection before generating PDF
     setShowBankSelection(false);
 
-    // Small delay to ensure DOM updates
     setTimeout(() => {
-      const element = document.getElementById("Quotation-content");
+      const element = document.getElementById("quotation-content");
+      if (!element) {
+        alert("Cannot find quotation content to generate PDF");
+        setShowBankSelection(true);
+        return;
+      }
+
       const opt = {
         margin: 0.25,
-        filename: `${QuotationNum}_${QuotationDt}_Quotation.pdf`,
+        filename: `${quotationNum}_${quotationDt}_Quotation.pdf`,
         html2canvas: { scale: 2 },
         jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
       };
@@ -354,37 +503,47 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
         })
         .catch((error: any) => {
           console.error("Error generating PDF:", error);
+          alert("Failed to generate PDF: " + error.message);
         })
         .finally(() => {
-          // Show bank selection again after PDF generation
           setShowBankSelection(true);
         });
     }, 100);
   };
 
+  // Get selected bank account details
+  const selectedBank = bankData.find((bank) => bank.id === selectedBankAccount);
+
   return (
     <div className="flex flex-col m-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-lg font-bold text-navy-900">New Quotation</h1>
+        <h1 className="text-lg font-bold text-navy-900">Edit Quotation #{quotationNumber || initialQuotation?.quotationNumber}</h1>
         <div className="flex gap-2">
           <Link
-            href={"/user/Quotations"}
+            href={"/user/quotations"}
             className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded border border-gray-300"
           >
             Cancel
           </Link>
+          {/* <button
+            onClick={deleteQuotation}
+            disabled={loading}
+            className="px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? "Deleting..." : "Delete"}
+          </button> */}
           <button
-            onClick={saveQuotation}
+            onClick={updateQuotation}
             disabled={loading}
             className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? "Saving..." : "Save"}
+            {loading ? "Saving..." : "Save Changes"}
           </button>
           <button
-            onClick={() => clickPdf(QuotationNumber, QuotationDate)}
+            onClick={() => clickPdf(quotationNumber, quotationDate)}
             disabled={!html2pdf}
-            className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {html2pdf ? "Save as PDF" : "Loading PDF..."}
           </button>
@@ -392,7 +551,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
       </div>
 
       <div
-        id="Quotation-content"
+        id="quotation-content"
         className="max-w-6xl w-full p-4 bg-white rounded-lg shadow border border-gray-200"
       >
         {/* File Upload and Company Info */}
@@ -423,39 +582,37 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
           </div>
 
           <div className="text-right">
-            <div className="text-right">
-              <select
-                value={selectedCompany?.id || ""}
-                onChange={(e) => {
-                  const selected = companyData.find(
-                    (company) => company.id === e.target.value
-                  );
-                  setSelectedCompany(selected || null);
-                }}
-                className="w-48 p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select Company</option>
-                {companyData.map((company) => (
-                  <option key={company.id} value={company.id}>
-                    {company.companyName}
-                  </option>
-                ))}
-              </select>
-              {selectedCompany && (
-                <div className="mt-2 text-xs text-gray-600">
-                  <div className="font-semibold">
-                    {selectedCompany.companyName}
-                  </div>
-                  <div>{selectedCompany.email}</div>
-                  <div>{selectedCompany.phoneNumber}</div>
-                  {selectedCompany.address && (
-                    <div>
-                      {selectedCompany.address}, {selectedCompany.city}
-                    </div>
-                  )}
+            <select
+              value={selectedCompany?.id || ""}
+              onChange={(e) => {
+                const selected = companyData.find(
+                  (company) => company.id === e.target.value
+                );
+                setSelectedCompany(selected || null);
+              }}
+              className="w-48 p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Select Company</option>
+              {companyData.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.companyName}
+                </option>
+              ))}
+            </select>
+            {selectedCompany && (
+              <div className="mt-2 text-xs text-gray-600">
+                <div className="font-semibold">
+                  {selectedCompany.companyName}
                 </div>
-              )}
-            </div>
+                <div>{selectedCompany.email}</div>
+                <div>{selectedCompany.phoneNumber}</div>
+                {selectedCompany.address && (
+                  <div>
+                    {selectedCompany.address}, {selectedCompany.city}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -468,10 +625,10 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
             </label>
             {!selectedClient ? (
               <select
-                value={selectedClient || ""}
+                value={selectedClient?.id || ""}
                 onChange={(e) => {
                   const selected = initialData.find(
-                    (clientOption) => clientOption.name === e.target.value
+                    (clientOption) => clientOption.id === e.target.value
                   );
                   setSelectedClient(selected || null);
                 }}
@@ -479,7 +636,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
               >
                 <option value="">Select a Client</option>
                 {initialData.map((clientOption) => (
-                  <option key={clientOption.id} value={clientOption.name}>
+                  <option key={clientOption.id} value={clientOption.id}>
                     {clientOption.name}
                   </option>
                 ))}
@@ -536,7 +693,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
               </label>
               <input
                 type="date"
-                value={QuotationDate}
+                value={quotationDate}
                 onChange={(e) => setQuotationDate(e.target.value)}
                 className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -548,7 +705,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
               </label>
               <input
                 type="date"
-                value={QuotationDueDate}
+                value={quotationDueDate}
                 onChange={(e) => setQuotationDueDate(e.target.value)}
                 className="w-full p-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -564,7 +721,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
               {isQuotationNumberEditing ? (
                 <input
                   type="text"
-                  value={QuotationNumber}
+                  value={quotationNumber}
                   placeholder="Quotation Number..."
                   onChange={(e) => setQuotationNumber(e.target.value)}
                   onBlur={() => setIsQuotationNumberEditing(false)}
@@ -575,7 +732,7 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                   onClick={() => setIsQuotationNumberEditing(true)}
                   className="cursor-pointer p-1.5 text-xs rounded hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-300"
                 >
-                  {QuotationNumber || "Quotation Number"}
+                  {quotationNumber || "Quotation Number"}
                 </p>
               )}
             </div>
@@ -601,22 +758,20 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                 </p>
               )}
             </div>
-            {/* Quotation and Amount Due Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* Amount Due */}
-              <div className="flex justify-end">
-                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                  <p className="text-xs text-gray-600 mb-0.5">
-                    Amount Due (LKR)
-                  </p>
-                  <h1 className="text-lg font-bold text-blue-800">
-                    Rs.{" "}
-                    {grandTotal.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </h1>
-                </div>
+            
+            {/* Amount Due Section */}
+            <div className="flex justify-end mt-4">
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <p className="text-xs text-gray-600 mb-0.5">
+                  Amount Due (LKR)
+                </p>
+                <h1 className="text-lg font-bold text-blue-800">
+                  Rs.{" "}
+                  {grandTotal.toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </h1>
               </div>
             </div>
           </div>
@@ -763,8 +918,9 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
                   <td className="p-2 text-center">
                     <button
                       onClick={() => deleteRow(index)}
-                      className="text-red-400   group-hover:opacity-100 hover:text-red-600 transition-all duration-200  rounded text-xs"
+                      className="text-red-400 hover:text-red-600 transition-all duration-200 rounded text-xs"
                       title="Delete row"
+                      disabled={rows.length <= 1}
                     >
                       <FaTrashAlt />
                     </button>
@@ -943,4 +1099,4 @@ const QuotationForm: React.FC<NewQuotationProps> = ({
   );
 };
 
-export default QuotationForm;
+export default EditQuotationForm;

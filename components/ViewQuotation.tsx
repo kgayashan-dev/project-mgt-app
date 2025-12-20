@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
@@ -62,13 +63,13 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
     subtotal,
     clientAddress,
     totalTax,
-    phoneNumber,
-    emailAddress,
+    // phoneNumber,
+    // emailAddress,
     grandTotal,
     additionalInfo,
     quotationNumber,
     quotationDate,
-    clientName,
+    // clientName,
     table = [],
     terms = [],
   } = quoteArray;
@@ -76,15 +77,15 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
   // File upload state
   const [file, setFile] = useState<File | null>(null);
   const [referenceVal, setReference] = useState<string>(reference);
-  const [discountPercentage, setDiscountPercentage] = useState<number>(
-    quoteArray.discountPercentage
-  );
+  // const [discountPercentage, setDiscountPercentage] = useState<number>(
+  //   quoteArray.discountPercentage
+  // );
   const [discountAmount, setDiscountAmount] = useState<number>(
     quoteArray.discountAmount
   );
-  const [taxPercentage, setTaxPercentage] = useState<number>(
-    quoteArray.taxPercentage
-  );
+  // const [taxPercentage, setTaxPercentage] = useState<number>(
+  //   quoteArray.taxPercentage
+  // );
   const [termsState, setTerms] = useState<string | string[]>(terms);
 
   const [rows, setRows] = useState<Row[]>(table);
@@ -97,7 +98,7 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
   };
 
   const [company, setCompany] = useState<CompanyClientDetails | null>(null);
-  const [companyLoading, setCompanyLoading] = useState(true);
+  // const [companyLoading, setCompanyLoading] = useState(true);
   // console.log(quoteArray, "Q array")
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -128,8 +129,8 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
       .then(() => {
         console.log("PDF generated successfully!");
       })
-      .catch((error) => {
-        console.error("Error generating PDF:", error);
+      .catch((error : undefined) => {
+        console.warn("Error generating PDF:", error);
       });
   };
 
@@ -138,17 +139,17 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
     const fetchCompanyData = async () => {
       if (id) {
         try {
-          setCompanyLoading(true);
+          // setCompanyLoading(true);
           const companyData = await getCompanyADataOfQuotaion(id);
-          console.log(companyData, "Fetched company data");
+          // console.log(companyData, "Fetched company data");
           setCompany(companyData);
         } catch (error) {
-          console.error("Error fetching company:", error);
+          console.warn("Error fetching company:", error);
         } finally {
-          setCompanyLoading(false);
+          // setCompanyLoading(false);
         }
       } else {
-        setCompanyLoading(false);
+        // setCompanyLoading(false);
       }
     };
 
@@ -199,21 +200,12 @@ const ViewQuotation: React.FC<QuotationDetailPageProps> = ({ quoteArray }) => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-lg font-bold text-navy-900">View Quotation</h1>
         <div className="flex gap-3">
-          <Link
-            href={"/user/quotations"}
-            className="px-4 py-2 text-gray-600 rounded hover:bg-gray-200"
-          >
-            Cancel
-          </Link>
-          <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            Save
-          </button>
-
+         
           <button
             onClick={clickPdf}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
-            Save as PDF
+            Take a PDF
           </button>
         </div>
       </div>

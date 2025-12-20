@@ -1,12 +1,23 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  Search, Filter, Plus, Download, 
-  Eye, Edit, Copy, FileText,
-  DollarSign, User,
- CheckCircle, Clock, XCircle
+import {
+  Search,
+  Plus,
+  Download,
+  Eye,
+  Edit,
+  Copy,
+  FileText,
+  User,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Send,
+  AlertCircle,
+  XCircle as XCircleIcon,
 } from "lucide-react";
+import CommonSearchPopup from "@/components/CommonSearchPopup";
 
 interface QuotationItem {
   id: number;
@@ -33,6 +44,8 @@ interface Quotation {
   notes: string;
   qItems: QuotationItem[];
   status?: "Draft" | "Sent" | "Accepted" | "Expired" | "Cancelled";
+  companyName?: string;
+  dueDate?: string;
 }
 
 interface QuotationsProps {
@@ -41,9 +54,12 @@ interface QuotationsProps {
 
 const Quotations = ({ quotationData }: QuotationsProps) => {
   const router = useRouter();
-  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchType, setSearchType] = useState<'quotation' | 'invoice'>('quotation');
   const [searchQuery, setSearchQuery] = useState("");
-  const [quotations, setQuotations] = useState<Quotation[]>(quotationData || []);
+  const [quotations, setQuotations] = useState<Quotation[]>(
+    quotationData || []
+  );
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
   const [selectedQuotations, setSelectedQuotations] = useState<string[]>([]);
@@ -55,34 +71,41 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
 
   // Filter quotations based on search query and filters
   const filteredQuotations = quotations.filter((quotation) => {
-    const matchesSearch = 
+    const matchesSearch =
       quotation.clientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quotation.quotationNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      quotation.clientId?.toLowerCase().includes(searchQuery.toLowerCase());
+      quotation.quotationNumber
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      quotation.clientId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (quotation.companyName && 
+        quotation.companyName.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesStatus = statusFilter === "all" || quotation.status === statusFilter;
-    
-    const matchesDate = dateFilter === "all" || true; // Add date filtering logic
-    
+    const matchesStatus =
+      statusFilter === "all" || quotation.status === statusFilter;
+
+    const matchesDate = dateFilter === "all" || true;
+
     return matchesSearch && matchesStatus && matchesDate;
   });
 
   // Format date for display
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
   };
 
-  // Format currency for display
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-IN", {
       minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -94,9 +117,9 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
   // Handle quotation selection
   const handleSelectQuotation = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedQuotations(prev => 
-      prev.includes(id) 
-        ? prev.filter(quoteId => quoteId !== id)
+    setSelectedQuotations((prev) =>
+      prev.includes(id)
+        ? prev.filter((quoteId) => quoteId !== id)
         : [...prev, id]
     );
   };
@@ -104,45 +127,105 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
   // Get status badge color
   const getStatusColor = (status?: string) => {
     switch (status) {
-      case "Accepted": return "bg-green-100 text-green-800";
-      case "Sent": return "bg-blue-100 text-blue-800";
-      case "Draft": return "bg-gray-100 text-gray-800";
-      case "Expired": return "bg-yellow-100 text-yellow-800";
-      case "Cancelled": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "Accepted":
+        return "bg-green-100 text-green-800";
+      case "Sent":
+        return "bg-blue-100 text-blue-800";
+      case "Draft":
+        return "bg-gray-100 text-gray-800";
+      case "Expired":
+        return "bg-yellow-100 text-yellow-800";
+      case "Cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   // Get status icon
   const getStatusIcon = (status?: string) => {
     switch (status) {
-      case "Accepted": return <CheckCircle className="w-3 h-3" />;
-      case "Sent": return <FileText className="w-3 h-3" />;
-      case "Draft": return <FileText className="w-3 h-3" />;
-      case "Expired": return <Clock className="w-3 h-3" />;
-      case "Cancelled": return <XCircle className="w-3 h-3" />;
-      default: return <FileText className="w-3 h-3" />;
+      case "Accepted":
+        return <CheckCircle className="w-3 h-3" />;
+      case "Sent":
+        return <Send className="w-3 h-3" />;
+      case "Draft":
+        return <FileText className="w-3 h-3" />;
+      case "Expired":
+        return <Clock className="w-3 h-3" />;
+      case "Cancelled":
+        return <XCircle className="w-3 h-3" />;
+      default:
+        return <FileText className="w-3 h-3" />;
     }
   };
 
   // Calculate statistics
   const totalQuotations = quotations.length;
-  const totalAmount = quotations.reduce((sum, quote) => sum + quote.grandTotal, 0);
+  const totalAmount = quotations.reduce(
+    (sum, quote) => sum + quote.grandTotal,
+    0
+  );
   const averageAmount = totalQuotations > 0 ? totalAmount / totalQuotations : 0;
-  // const draftCount = quotations.filter(q => q.status === "Draft").length;
-  // const sentCount = quotations.filter(q => q.status === "Sent").length;
-  const acceptedCount = quotations.filter(q => q.status === "Accepted").length;
+  const acceptedCount = quotations.filter(
+    (q) => q.status === "Accepted"
+  ).length;
+  const draftCount = quotations.filter((q) => q.status === "Draft").length;
+  const sentCount = quotations.filter((q) => q.status === "Sent").length;
+  const expiredCount = quotations.filter((q) => q.status === "Expired").length;
+
+  // Calculate total accepted amount
+  const acceptedAmount = quotations
+    .filter((q) => q.status === "Accepted")
+    .reduce((sum, quote) => sum + quote.grandTotal, 0);
+
+  // Calculate total draft amount
+  const draftAmount = quotations
+    .filter((q) => q.status === "Draft")
+    .reduce((sum, quote) => sum + quote.grandTotal, 0);
+
+  // Calculate total sent amount
+  const sentAmount = quotations
+    .filter((q) => q.status === "Sent")
+    .reduce((sum, quote) => sum + quote.grandTotal, 0);
+
+  // Calculate total filtered amount
+  const filteredTotal = filteredQuotations.reduce(
+    (sum, quote) => sum + quote.grandTotal,
+    0
+  );
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setDateFilter("all");
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white p-3">
+      <div className=" mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quotations</h1>
-            <p className="text-gray-600 mt-2">Manage and track your quotations</p>
+            <div className="flex justify-normal gap-3">
+              <h1 className="text-2xl font-bold text-gray-900">Quotations</h1>
+              <button
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={() => {
+                  setSearchType("quotation");
+                  setIsSearchOpen(true);
+                }}
+              >
+                <Search size={20} />
+                {/* <span className="hidden sm:inline">Search Quotations</span> */}
+              </button>
+            </div>
+            <p className="text-gray-600 mt-2">
+              Manage and track your quotations
+            </p>
           </div>
-          
+
           <div className="flex gap-3">
             <button
               onClick={() => router.push("/user/quotations/new")}
@@ -154,13 +237,15 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Main Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Quotations</p>
-                <p className="text-3xl font-bold text-gray-900">{totalQuotations}</p>
+                <p className="text-xs text-gray-600">Total Quotations</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {totalQuotations}
+                </p>
               </div>
               <div className="p-2 bg-blue-100 rounded-lg">
                 <FileText className="w-6 h-6 text-blue-600" />
@@ -168,35 +253,41 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Amount</p>
-                <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
+                <p className="text-xs text-gray-600">Total Amount</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {formatCurrency(totalAmount)}
+                </p>
               </div>
               <div className="p-2 bg-green-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-green-600" />
+                {/* <DollarSign className="w-6 h-6 text-green-600" /> */}
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Average Amount</p>
-                <p className="text-3xl font-bold text-gray-900">{formatCurrency(averageAmount)}</p>
+                <p className="text-xs text-gray-600">Average Amount</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {formatCurrency(averageAmount)}
+                </p>
               </div>
               <div className="p-2 bg-purple-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-purple-600" />
+                {/* <DollarSign className="w-6 h-6 text-purple-600" /> */}
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Accepted</p>
-                <p className="text-3xl font-bold text-gray-900">{acceptedCount}</p>
+                <p className="text-xs text-gray-600">Accepted</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {acceptedCount}
+                </p>
               </div>
               <div className="p-2 bg-green-100 rounded-lg">
                 <CheckCircle className="w-6 h-6 text-green-600" />
@@ -205,8 +296,67 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
           </div>
         </div>
 
+        {/* Additional Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-xs font-medium text-gray-600">Draft</p>
+                <p className="text-xl font-bold text-gray-600">
+                  {draftCount} ({formatCurrency(draftAmount)})
+                </p>
+              </div>
+              <div className="p-2 bg-gray-50 rounded-lg">
+                <FileText className="w-5 h-5 text-gray-500" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-xs font-medium text-gray-600">Sent</p>
+                <p className="text-xl font-bold text-blue-600">
+                  {sentCount} ({formatCurrency(sentAmount)})
+                </p>
+              </div>
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Send className="w-5 h-5 text-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-xs font-medium text-gray-600">Accepted</p>
+                <p className="text-xl font-bold text-green-600">
+                  {acceptedCount} ({formatCurrency(acceptedAmount)})
+                </p>
+              </div>
+              <div className="p-2 bg-green-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-xs font-medium text-gray-600">Expired</p>
+                <p className="text-xl font-bold text-yellow-600">
+                  {expiredCount}
+                </p>
+              </div>
+              <div className="p-2 bg-yellow-50 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-yellow-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Filters and Search */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
@@ -216,11 +366,19 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search by client, quotation number, or ID..."
+                  placeholder="Search by client, quotation number, company, or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <XCircleIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -229,7 +387,7 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
               >
                 <option value="all">All Status</option>
                 <option value="Draft">Draft</option>
@@ -242,7 +400,7 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
               >
                 <option value="all">All Time</option>
                 <option value="today">Today</option>
@@ -250,78 +408,13 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                 <option value="month">This Month</option>
                 <option value="year">This Year</option>
               </select>
-
-              <button
-                onClick={() => setIsAdvancedSearchOpen(!isAdvancedSearchOpen)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 flex items-center gap-2"
-              >
-                <Filter className="w-5 h-5" />
-                More Filters
-              </button>
             </div>
           </div>
-
-          {/* Advanced Search Panel */}
-          {isAdvancedSearchOpen && (
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Amount Range
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      className="w-full px-3 py-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      className="w-full px-3 py-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    From Date
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full px-3 py-2 border border-gray-300 rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    To Date
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full px-3 py-2 border border-gray-300 rounded"
-                  />
-                </div>
-              </div>
-              <div className="mt-4 flex justify-end gap-3">
-                <button
-                  onClick={() => setIsAdvancedSearchOpen(false)}
-                  className="px-4 py-2 text-gray-700 hover:text-gray-900"
-                >
-                  Clear
-                </button>
-                <button
-                  onClick={() => setIsAdvancedSearchOpen(false)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Bulk Actions */}
         {selectedQuotations.length > 0 && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center">
+          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                 <FileText className="w-4 h-4 text-blue-600" />
@@ -330,7 +423,7 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                 <p className="font-medium text-blue-900">
                   {selectedQuotations.length} quotation(s) selected
                 </p>
-                <p className="text-sm text-blue-700">
+                <p className="text-xs text-blue-700">
                   Apply actions to selected items
                 </p>
               </div>
@@ -344,7 +437,11 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                 <Download className="w-4 h-4" />
                 Export
               </button>
-              <button 
+              <button className="px-4 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 flex items-center gap-2">
+                <Send className="w-4 h-4" />
+                Send
+              </button>
+              <button
                 onClick={() => setSelectedQuotations([])}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
@@ -398,8 +495,20 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
               <div className="px-6 py-12 text-center">
                 <div className="text-gray-500">
                   <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-lg font-medium">No quotations found</p>
-                  <p className="text-sm">Try adjusting your search or create a new quotation</p>
+                  <p className="text-sm font-medium">No quotations found</p>
+                  <p className="text-xs">
+                    {searchQuery || statusFilter !== "all"
+                      ? "Try adjusting your search or filters"
+                      : "Create your first quotation to get started"}
+                  </p>
+                  {(searchQuery || statusFilter !== "all") && (
+                    <button
+                      onClick={clearFilters}
+                      className="mt-4 px-4 py-2 text-blue-600 hover:text-blue-800 underline text-xs"
+                    >
+                      Clear all filters
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -408,7 +517,7 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                   key={quotation.id}
                   className="group hover:bg-gray-100 transition-colors"
                 >
-                  <div 
+                  <div
                     onClick={() => handleRowClick(quotation.id)}
                     className="grid grid-cols-12 gap-4 px-6 py-4 cursor-pointer"
                   >
@@ -431,10 +540,17 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                         </div>
                         <div>
                           <p className="font-medium text-gray-900 group-hover:text-blue-600">
-                            {quotation.clientName || quotation.clientId || "No Client"}
+                            {quotation.clientName ||
+                              quotation.clientId ||
+                              "No Client"}
                           </p>
                           <p className="text-xs text-gray-500">
                             {quotation.emailAddress || "No email"}
+                            {quotation.companyName && (
+                              <span className="block mt-1">
+                                {quotation.companyName}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -442,21 +558,35 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
 
                     {/* Quotation Details */}
                     <div className="col-span-2">
-                      <div className="font-mono text-sm font-medium text-gray-900">
+                      <div className="font-mono text-xs font-medium text-gray-900">
                         {quotation.quotationNumber}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
                         {quotation.qItems.length} items
                       </div>
+                      {quotation.notes && (
+                        <div className="text-xs text-gray-500 truncate max-w-[150px]">
+                          {quotation.notes}
+                        </div>
+                      )}
                     </div>
 
                     {/* Date & Status */}
                     <div className="col-span-2">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-xs text-gray-900">
                         {formatDate(quotation.quotationDate)}
                       </div>
+                      {quotation.dueDate && (
+                        <div className="text-xs text-gray-500">
+                          Valid until: {formatDate(quotation.dueDate)}
+                        </div>
+                      )}
                       <div className="mt-1">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(quotation.status)}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            quotation.status
+                          )}`}
+                        >
                           {getStatusIcon(quotation.status)}
                           {quotation.status || "Draft"}
                         </span>
@@ -468,8 +598,12 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                       <div className="font-medium text-gray-900">
                         {formatCurrency(quotation.grandTotal)}
                       </div>
+                      <div className="text-xs text-gray-500">
+                        {formatCurrency(quotation.subtotal)} +{" "}
+                        {formatCurrency(quotation.totalTax)} tax
+                      </div>
                       {quotation.discountAmount > 0 && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-green-600">
                           -{formatCurrency(quotation.discountAmount)} discount
                         </div>
                       )}
@@ -491,7 +625,9 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            router.push(`/user/quotations/${quotation.id}/edit`);
+                            router.push(
+                              `/user/quotations/${quotation.id}/edit`
+                            );
                           }}
                           className="p-2 text-gray-400 hover:text-yellow-600 rounded-lg hover:bg-yellow-50"
                           title="Edit"
@@ -515,23 +651,30 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
               ))
             )}
           </div>
+
+          {/* Table Footer */}
+          {filteredQuotations.length > 0 && (
+            <div className="px-6 py-3 bg-gray-100 border-t border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="text-xs text-gray-700">
+                  Showing {filteredQuotations.length} of {quotations.length}{" "}
+                  quotations
+                </div>
+                <div className="text-xs font-medium text-gray-900">
+                  Total: {formatCurrency(filteredTotal)}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Footer Stats */}
-        <div className="mt-6 flex justify-between items-center text-sm text-gray-500">
-          <div>
-            Showing {filteredQuotations.length} of {quotations.length} quotations
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100">
-              Previous
-            </button>
-            <span>Page 1 of 1</span>
-            <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100">
-              Next
-            </button>
-          </div>
-        </div>
+        {/* Common Search Popup */}
+        <CommonSearchPopup
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          searchType={searchType}
+          title={searchType === "quotation" ? "Search Quotations" : "Search Invoices"}
+        />
       </div>
     </div>
   );

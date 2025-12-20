@@ -1,0 +1,65 @@
+CREATE OR ALTER PROCEDURE [dbo].[sp_SearchQuotations]
+    @SearchTerm NVARCHAR(200) = NULL,
+    @ClientId NVARCHAR(50) = NULL,
+    @ClientName NVARCHAR(100) = NULL,
+    @QuotationId NVARCHAR(50) = NULL,
+    @QuotationNumber NVARCHAR(50) = NULL,
+    @CompanyId NVARCHAR(50) = NULL,
+    @FromDate DATETIME = NULL,
+    @ToDate DATETIME = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT DISTINCT
+        q.Id,
+        q.QuotationNumber,
+        q.QuotationDate,
+        q.ClientId,
+        c.Name as ClientName,
+        q.CompanyId,
+        comp.CompanyName,
+        q.DiscountPercentage,
+        q.DiscountAmount,
+        q.Subtotal,
+        q.TotalTax,
+        q.GrandTotal,
+        q.Terms,
+        q.Status,
+        q.CreatedDate
+    FROM Quotations q
+    LEFT JOIN Clients c ON q.ClientId = c.Id
+    LEFT JOIN CompanyData comp ON q.CompanyId = comp.Id
+    WHERE 
+        (@SearchTerm IS NULL OR 
+         q.QuotationNumber LIKE '%' + @SearchTerm + '%' OR
+         c.Name LIKE '%' + @SearchTerm + '%' OR
+         q.Id LIKE '%' + @SearchTerm + '%' OR
+         c.Id LIKE '%' + @SearchTerm + '%' OR
+         comp.CompanyName LIKE '%' + @SearchTerm + '%')
+        
+        AND (@ClientId IS NULL OR q.ClientId LIKE '%' + @ClientId + '%')
+        AND (@ClientName IS NULL OR c.Name LIKE '%' + @ClientName + '%')
+        AND (@QuotationId IS NULL OR q.Id LIKE '%' + @QuotationId + '%')
+        AND (@QuotationNumber IS NULL OR q.QuotationNumber LIKE '%' + @QuotationNumber + '%')
+        AND (@CompanyId IS NULL OR q.CompanyId LIKE '%' + @CompanyId + '%')
+        
+        AND (@FromDate IS NULL OR q.QuotationDate >= @FromDate)
+        AND (@ToDate IS NULL OR q.QuotationDate <= @ToDate)
+    
+    ORDER BY q.QuotationDate DESC;
+END
+
+
+
+EXEC sp_SearchQuotations "CID0000003"
+
+
+-- select * from Quotations
+-- select * from Clients
+
+
+Alter table Quotations add Status varchar(50)
+
+
+CID0000003

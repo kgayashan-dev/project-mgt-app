@@ -55,7 +55,7 @@ export default async function Page() {
 
 
   return (
-    <div className="pt-8">
+    <div>
       {/* Passing the transformed data into the AllInvoiceData component */}
       <AllInvoiceData invoiceArray={transformedInvoices} />
     </div>
