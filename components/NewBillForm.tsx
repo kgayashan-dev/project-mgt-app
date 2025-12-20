@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { FaTrashAlt } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import SearchableSelect from "./SearchableSelect";
 
 type Row = {
   description: string;
@@ -22,22 +23,21 @@ interface Vendor {
   address: string;
 }
 
+interface Category {
+  categoryId: string;
+  catDescription: string;
+}
 interface ViewvendorArrayProps {
   vendorArray: Vendor[];
+  categoryArray: Category[];
 }
-
-const categories = [
-  "Services",
-  "Products",
-  "Materials",
-  "Labor",
-  "Equipment",
-  "Other",
-];
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
+const NewBillPage: React.FC<ViewvendorArrayProps> = ({
+  vendorArray,
+  categoryArray,
+}) => {
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [billNumber, setBillNumber] = useState("");
@@ -199,7 +199,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
         totalOutstanding: amountDue,
         subTotal: subtotal,
         tax: taxPercentage,
-        status: "Completed",
+        status: "Draft",
         grandTotal,
         amountDue,
         totalTax,
@@ -208,7 +208,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
           id: index + 1,
           billId: "", // Will be populated by backend
           description: row.description,
-          category: row.category,
+          categoryId: row.category,
           rate: row.rate,
           qty: row.qty,
           total: row.total,
@@ -225,22 +225,17 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
         body: JSON.stringify(billData),
       });
 
-      const responseText = await response.text();
-      console.log("Raw response:", responseText);
+      const data = await response.json();
+      console.log("Raw response:", data.message);
 
-      let responseData;
-      try {
-        responseData = JSON.parse(responseText);
-      } catch {
-        throw new Error(responseText || "Invalid response from server");
-      }
-
+      alert(data.error || data.message);
+     
       if (!response.ok) {
         const responseText = await response.json();
-        console.log(responseText.message,'resp mes');
+
         throw new Error(
-          responseData.message ||
-            `HTTP ${response.status}: ${response.statusText}`
+          responseText.error ||
+            `HTTP ${response.status}: ${responseText.error}`
         );
       }
 
@@ -251,7 +246,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
         router.push("/user/bills");
       }, 2000);
     } catch (error) {
-      console.error("Error creating bill:", error);
+      
       setError(
         error instanceof Error ? error.message : "Failed to create bill"
       );
@@ -591,20 +586,18 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({ vendorArray }) => {
                     />
                   </td>
                   <td className="p-3">
-                    <select
+                    <SearchableSelect
+                      options={categoryArray.map((cat) => ({
+                        value: cat.categoryId,
+                        label: cat.catDescription,
+                      }))}
                       value={row.category}
-                      onChange={(e) =>
-                        handleInputChange(index, "category", e.target.value)
+                      onChange={(value) =>
+                        handleInputChange(index, "category", value)
                       }
-                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
+                      // placeholder="Select category"
+                      className="w-full"
+                    />
                   </td>
                   <td className="p-3">
                     <input

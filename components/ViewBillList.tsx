@@ -354,7 +354,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                       className="hover:bg-gray-100  transition-colors cursor-pointer"
                       onClick={() => handleViewBill(bill.id)}
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-1">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <User className="w-4 h-4 text-gray-400" />
@@ -378,7 +378,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                         </div>
                       </td>
                       
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-1">
                         <div className="space-y-1">
                           <div>
                             <span className="text-xs text-gray-500">Issued:</span>
@@ -393,7 +393,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                         </div>
                       </td>
                       
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-1">
                         <div className="space-y-1">
                           <div className="text-xs font-semibold text-gray-900">
                             {formatCurrency(bill.grandTotal)}
@@ -408,13 +408,13 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                         </div>
                       </td>
                       
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-1">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
                           {status}
                         </span>
                       </td>
                       
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-1">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={(e) => {
