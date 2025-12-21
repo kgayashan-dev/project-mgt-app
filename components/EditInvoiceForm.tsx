@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
@@ -728,7 +729,7 @@ const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
             </label>
             {!selectedClient ? (
               <select
-                value={selectedClient?.id || ""}
+                value=""
                 onChange={(e) => {
                   const selected = initialData.find(
                     (clientOption) => clientOption.id === e.target.value

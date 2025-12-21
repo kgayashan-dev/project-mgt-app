@@ -657,7 +657,8 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
             </label>
             {!selectedClient ? (
               <select
-                value={selectedClient?.id || ""}
+                // value={selectedClient?.id || ""}
+                value={""}
                 onChange={(e) => {
                   const selected = initialData.find(
                     (clientOption) => clientOption.id === e.target.value
