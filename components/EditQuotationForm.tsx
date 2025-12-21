@@ -88,7 +88,7 @@ interface EditQuotationProps {
   companyData: CompanyData[];
   quotationId: string;
 }
-   const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const EditQuotationForm: React.FC<EditQuotationProps> = ({
   initialData,
   bankData,
@@ -97,13 +97,13 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
   quotationId,
 }) => {
   const router = useRouter();
-  
+
   console.log("Received props:", {
     initialQuotation,
     companyData,
     quotationId,
     clientCount: initialData.length,
-    bankCount: bankData.length
+    bankCount: bankData.length,
   });
 
   // File upload state
@@ -113,7 +113,9 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
 
   // Client form state
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyData | null>(
+    null
+  );
   const [quotationDate, setQuotationDate] = useState<string>("");
   const [quotationDueDate, setQuotationDueDate] = useState<string>("");
   const [quotationNumber, setQuotationNumber] = useState("");
@@ -132,7 +134,8 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
   const [taxPercentage, setTaxPercentage] = useState(0);
 
   // Edit states
-  const [isQuotationNumberEditing, setIsQuotationNumberEditing] = useState(false);
+  const [isQuotationNumberEditing, setIsQuotationNumberEditing] =
+    useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [isAdditionalInfoEditing, setIsAdditionalInfoEditing] = useState(false);
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
@@ -150,22 +153,28 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
   useEffect(() => {
     if (initialQuotation) {
       console.log("Initializing form with initialQuotation:", initialQuotation);
-      
+
       // Set basic quotation data
       setQuotationNumber(initialQuotation.quotationNumber || "");
-      
+
       // Format dates
-      const formattedDate = initialQuotation.quotationDate 
-        ? new Date(initialQuotation.quotationDate).toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0];
+      const formattedDate = initialQuotation.quotationDate
+        ? new Date(initialQuotation.quotationDate).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0];
       setQuotationDate(formattedDate);
-      
+
       // Use dueDate from API or default to 30 days from quotation date
-      const dueDate = initialQuotation.dueDate 
-        ? new Date(initialQuotation.dueDate).toISOString().split('T')[0]
-        : new Date(new Date(formattedDate).setDate(new Date(formattedDate).getDate() + 30)).toISOString().split('T')[0];
+      const dueDate = initialQuotation.dueDate
+        ? new Date(initialQuotation.dueDate).toISOString().split("T")[0]
+        : new Date(
+            new Date(formattedDate).setDate(
+              new Date(formattedDate).getDate() + 30
+            )
+          )
+            .toISOString()
+            .split("T")[0];
       setQuotationDueDate(dueDate);
-      
+
       setTerms(initialQuotation.terms || "");
       setDiscountPercentage(initialQuotation.discountPercentage || 0);
       setDiscountAmount(initialQuotation.discountAmount || 0);
@@ -173,10 +182,15 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
       setTotalTax(initialQuotation.totalTax || 0);
       setGrandTotal(initialQuotation.grandTotal || 0);
       setReference(initialQuotation.reference || "No");
-      
+
       // Calculate tax percentage
-      if (initialQuotation.subtotal && initialQuotation.totalTax && initialQuotation.subtotal > 0) {
-        const calculatedTaxPercentage = (initialQuotation.totalTax / initialQuotation.subtotal) * 100;
+      if (
+        initialQuotation.subtotal &&
+        initialQuotation.totalTax &&
+        initialQuotation.subtotal > 0
+      ) {
+        const calculatedTaxPercentage =
+          (initialQuotation.totalTax / initialQuotation.subtotal) * 100;
         setTaxPercentage(calculatedTaxPercentage);
       } else {
         setTaxPercentage(0);
@@ -184,11 +198,11 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
 
       // Set rows from quotation items
       if (initialQuotation.qItems && initialQuotation.qItems.length > 0) {
-        const formattedRows = initialQuotation.qItems.map(item => {
+        const formattedRows = initialQuotation.qItems.map((item) => {
           const itemTotal = item.total || (item.rate || 0) * (item.qty || 0);
           const itemTax = item.tax || taxPercentage;
           const itemTaxAmount = item.taxAmount || (itemTotal * itemTax) / 100;
-          
+
           return {
             description: item.description || "",
             rate: item.rate || 0,
@@ -196,26 +210,30 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
             qty: item.qty || 0,
             total: itemTotal,
             unit: item.unit || "",
-            taxAmount: itemTaxAmount
+            taxAmount: itemTaxAmount,
           };
         });
         setRows(formattedRows);
         console.log("Set rows:", formattedRows);
       } else {
         // Initialize with one empty row if no items
-        setRows([{
-          description: "",
-          rate: 0,
-          tax: taxPercentage,
-          qty: 0,
-          total: 0,
-          unit: "",
-          taxAmount: 0
-        }]);
+        setRows([
+          {
+            description: "",
+            rate: 0,
+            tax: taxPercentage,
+            qty: 0,
+            total: 0,
+            unit: "",
+            taxAmount: 0,
+          },
+        ]);
       }
 
       // Find and set selected client
-      const client = initialData.find(client => client.id === initialQuotation.clientId);
+      const client = initialData.find(
+        (client) => client.id === initialQuotation.clientId
+      );
       if (client) {
         setSelectedClient(client);
         console.log("Set selected client:", client);
@@ -224,7 +242,9 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
       }
 
       // Find and set selected company
-      const company = companyData.find(company => company.id === initialQuotation.companyID);
+      const company = companyData.find(
+        (company) => company.id === initialQuotation.companyID
+      );
       if (company) {
         setSelectedCompany(company);
         console.log("Set selected company:", company);
@@ -243,7 +263,9 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
   // Auto-select first company if available and none selected
   useEffect(() => {
     if (companyData.length > 0 && !selectedCompany && initialQuotation) {
-      const company = companyData.find(company => company.id === initialQuotation.companyID);
+      const company = companyData.find(
+        (company) => company.id === initialQuotation.companyID
+      );
       if (company) {
         setSelectedCompany(company);
       } else {
@@ -269,7 +291,8 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
     });
 
     // Calculate discount amount
-    const calculatedDiscountAmount = (calculatedSubtotal * discountPercentage) / 100;
+    const calculatedDiscountAmount =
+      (calculatedSubtotal * discountPercentage) / 100;
     setDiscountAmount(calculatedDiscountAmount);
 
     // Calculate tax on discounted amount
@@ -278,7 +301,9 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
 
     setSubtotal(calculatedSubtotal);
     setTotalTax(calculatedTax);
-    setGrandTotal(calculatedSubtotal - calculatedDiscountAmount + calculatedTax);
+    setGrandTotal(
+      calculatedSubtotal - calculatedDiscountAmount + calculatedTax
+    );
   }, [rows, discountPercentage, taxPercentage]);
 
   // File upload handling
@@ -354,8 +379,6 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
     setLoading(true);
 
     try {
-
-
       const updatedQuotationData = {
         id: quotationId,
         clientName: selectedClient.name,
@@ -381,10 +404,10 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
         })),
       };
 
-    //   console.log(
-    //     "Updating Quotation data:",
-    //     JSON.stringify(updatedQuotationData, null, 2)
-    //   );
+      //   console.log(
+      //     "Updating Quotation data:",
+      //     JSON.stringify(updatedQuotationData, null, 2)
+      //   );
 
       const response = await fetch(
         `${API_URL}/project_pulse/Quotation/updateQuotation/${quotationId}`,
@@ -408,7 +431,10 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
       const result = await response.json();
       console.log("Update response:", result);
 
-      if (result.message === "Quotation updated successfully." || result.success) {
+      if (
+        result.message === "Quotation updated successfully." ||
+        result.success
+      ) {
         alert("Quotation updated successfully!");
         router.push("/user/quotations");
       } else {
@@ -428,15 +454,17 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
 
   // Delete Quotation function
   const deleteQuotation = async () => {
-    if (!confirm("Are you sure you want to delete this quotation? This action cannot be undone.")) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this quotation? This action cannot be undone."
+      )
+    ) {
       return;
     }
 
     setLoading(true);
 
     try {
-   
-
       const response = await fetch(
         `${API_URL}/project_pulse/Quotation/deleteQuotation/${quotationId}`,
         {
@@ -446,14 +474,16 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to delete quotation: ${response.status} - ${errorText}`);
+        throw new Error(
+          `Failed to delete quotation: ${response.status} - ${errorText}`
+        );
       }
 
       const result = await response.json();
-      console.log("Delete response:", result);
+      // console.log("Delete response:", result);
 
-      if (result.message === "Quotation deleted successfully." || result.success) {
-        alert("Quotation deleted successfully!");
+      if (result.success) {
+        alert(result.message);
         router.push("/user/quotations");
       } else {
         throw new Error(result.message || "Failed to delete quotation");
@@ -518,7 +548,9 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
     <div className="flex flex-col m-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-lg font-bold text-navy-900">Edit Quotation #{quotationNumber || initialQuotation?.quotationNumber}</h1>
+        <h1 className="text-lg font-bold text-navy-900">
+          Edit Quotation #{quotationNumber || initialQuotation?.quotationNumber}
+        </h1>
         <div className="flex gap-2">
           <Link
             href={"/user/quotations"}
@@ -758,13 +790,11 @@ const EditQuotationForm: React.FC<EditQuotationProps> = ({
                 </p>
               )}
             </div>
-            
+
             {/* Amount Due Section */}
             <div className="flex justify-end mt-4">
               <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                <p className="text-xs text-gray-600 mb-0.5">
-                  Amount Due (LKR)
-                </p>
+                <p className="text-xs text-gray-600 mb-0.5">Amount Due (LKR)</p>
                 <h1 className="text-lg font-bold text-blue-800">
                   Rs.{" "}
                   {grandTotal.toLocaleString("en-IN", {
