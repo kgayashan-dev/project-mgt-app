@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-
 // Types
 interface BillItem {
   id: number;
@@ -68,9 +67,9 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
     let overdue = 0;
     let outstanding = 0;
 
-    bills.forEach(bill => {
+    bills.forEach((bill) => {
       outstanding += bill.totalOutstanding;
-      
+
       // Check if bill is overdue
       if (bill.status !== "Paid" && bill.dueDate) {
         const dueDate = new Date(bill.dueDate);
@@ -91,20 +90,15 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(bill =>
-        bill.billNumber.toLowerCase().includes(query) ||
-        bill.companyName.toLowerCase().includes(query) ||
-        bill.vendorId.toLowerCase().includes(query)
+      result = result.filter(
+        (bill) =>
+          bill.billNumber.toLowerCase().includes(query) ||
+          bill.companyName.toLowerCase().includes(query) ||
+          bill.vendorId.toLowerCase().includes(query)
       );
     }
 
     // Filter by status
-    if (selectedStatus !== "all") {
-      result = result.filter(bill => {
-        const billStatus = getBillStatus(bill);
-        return billStatus === selectedStatus;
-      });
-    }
 
     setFilteredBills(result);
   }, [searchQuery, selectedStatus, bills]);
@@ -113,32 +107,32 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
     router.push("/user/bills/new");
   };
 
-  const getBillStatus = (bill: Bill): string => {
-    if (bill.amountDue === 0 || bill.totalOutstanding === 0) {
-      return "Paid";
-    }
+  // const getBillStatus = (bill: Bill): string => {
+  //   if (bill.amountDue === 0 || bill.totalOutstanding === 0) {
+  //     return "Paid";
+  //   }
 
-    const now = new Date();
-    const dueDate = new Date(bill.dueDate);
+  //   const now = new Date();
+  //   const dueDate = new Date(bill.dueDate);
 
-    if (dueDate < now && bill.amountDue > 0) {
-      return "Overdue";
-    }
+  //   if (dueDate < now && bill.amountDue > 0) {
+  //     return "Overdue";
+  //   }
 
-    if (bill.amountDue > 0 && bill.amountDue < bill.grandTotal) {
-      return "Partial";
-    }
+  //   if (bill.amountDue > 0 && bill.amountDue < bill.grandTotal) {
+  //     return "Partial";
+  //   }
 
-    return "Pending";
-  };
+  //   return "Pending";
+  // };
 
   const formatDate = (dateString: string): string => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
+      return date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
       });
     } catch {
       return "Invalid Date";
@@ -194,7 +188,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
           <h1 className="text-lg font-bold text-gray-900">Bills</h1>
           <p className="text-gray-600 mt-1">Manage and track your bills</p>
         </div>
-        
+
         <div className="relative mt-4 md:mt-0">
           <button
             onClick={() => setShowDropdown(!showDropdown)}
@@ -203,7 +197,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             <span className="font-medium">New Bill</span>
             <ChevronDown className="w-4 h-4" />
           </button>
-          
+
           {showDropdown && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10 border border-gray-200 py-2">
               <button
@@ -261,25 +255,41 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedStatus("all")}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === "all" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 text-xs rounded-full ${
+                  selectedStatus === "all"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
               >
                 All
               </button>
               <button
                 onClick={() => setSelectedStatus("Pending")}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === "Pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 text-xs rounded-full ${
+                  selectedStatus === "Pending"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
               >
                 Pending
               </button>
               <button
                 onClick={() => setSelectedStatus("Overdue")}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === "Overdue" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 text-xs rounded-full ${
+                  selectedStatus === "Overdue"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
               >
                 Overdue
               </button>
               <button
                 onClick={() => setSelectedStatus("Paid")}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === "Paid" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                className={`px-3 py-1.5 text-xs rounded-full ${
+                  selectedStatus === "Paid"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
               >
                 Paid
               </button>
@@ -306,10 +316,12 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <FileText className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">No bills found</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">
+              No bills found
+            </h3>
             <p className="text-gray-600 mb-4">
-              {searchQuery || selectedStatus !== "all" 
-                ? "Try adjusting your search or filter" 
+              {searchQuery || selectedStatus !== "all"
+                ? "Try adjusting your search or filter"
                 : "Get started by creating your first bill"}
             </p>
             {!searchQuery && selectedStatus === "all" && (
@@ -345,12 +357,13 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredBills.map((bill) => {
-                  const status = getBillStatus(bill);
-                  const categories = [...new Set(bill.table.map(item => item.category))];
-                  
+                  const categories = [
+                    ...new Set(bill.table.map((item) => item.category)),
+                  ];
+
                   return (
-                    <tr 
-                      key={bill.id} 
+                    <tr
+                      key={bill.id}
                       className="hover:bg-gray-100  transition-colors cursor-pointer"
                       onClick={() => handleViewBill(bill.id)}
                     >
@@ -366,7 +379,10 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                             <MegaphoneIcon className="w-4 h-4 text-gray-400" />
                             <div className="flex gap-1">
                               {categories.map((cat, idx) => (
-                                <span key={idx} className="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                                <span
+                                  key={idx}
+                                  className="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded"
+                                >
                                   {cat}
                                 </span>
                               ))}
@@ -377,22 +393,30 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                           </div>
                         </div>
                       </td>
-                      
+
                       <td className="px-2 py-1">
                         <div className="space-y-1">
                           <div>
-                            <span className="text-xs text-gray-500">Issued:</span>
-                            <div className="text-xs font-medium">{formatDate(bill.issueDate)}</div>
+                            <span className="text-xs text-gray-500">
+                              Issued:
+                            </span>
+                            <div className="text-xs font-medium">
+                              {formatDate(bill.issueDate)}
+                            </div>
                           </div>
                           <div>
                             <span className="text-xs text-gray-500">Due:</span>
-                            <div className={`text-xs font-medium ${status === "Overdue" ? "text-red-600" : ""}`}>
+                            <div
+                              className={`text-xs font-medium ${
+                                status === "Overdue" ? "text-red-600" : ""
+                              }`}
+                            >
                               {formatDate(bill.dueDate)}
                             </div>
                           </div>
                         </div>
                       </td>
-                      
+
                       <td className="px-2 py-1">
                         <div className="space-y-1">
                           <div className="text-xs font-semibold text-gray-900">
@@ -403,17 +427,23 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                           </div>
                           <div className="text-xs">
                             <span className="text-gray-600">Due: </span>
-                            <span className="font-medium">{formatCurrency(bill.amountDue)}</span>
+                            <span className="font-medium">
+                              {formatCurrency(bill.amountDue)}
+                            </span>
                           </div>
                         </div>
                       </td>
-                      
+
                       <td className="px-2 py-1">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
-                          {status}
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            bill.status || "Pending"
+                          )}`}
+                        >
+                          {bill.status}
                         </span>
                       </td>
-                      
+
                       <td className="px-2 py-1">
                         <div className="flex items-center gap-2">
                           <button
@@ -463,6 +493,5 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
     </div>
   );
 };
-
 
 export default BillsPage;

@@ -17,7 +17,6 @@ BEGIN
         ClientVendor NVARCHAR(200),
         TransactionDate DATETIME
     );
-    
     -- REVENUE: Paid invoices
     INSERT INTO #PnLResults
     SELECT 

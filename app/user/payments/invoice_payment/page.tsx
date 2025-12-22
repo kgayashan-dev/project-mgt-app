@@ -73,8 +73,8 @@ export default async function Page({
 
     return (
       <div className="pt-8">
-        <div className="mb-4 pl-3    ">
-          <h1 className="font-bold text-xl">Bill Payment Settlement</h1>
+        <div className="mb-4 pl-3">
+          <h1 className="font-bold text-xl"> Invoice Payment Settlement</h1>
         </div>
         {isArchived ? (
           <ArchivedIncome />

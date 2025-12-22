@@ -34,7 +34,7 @@ export default async function Page() {
 
   const data = response.data;
 
-  console.log(data)
+  // console.log(data)
   // Transform the API data to match the component's expected format
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const transformedInvoices = data.map((invoice: any) => ({

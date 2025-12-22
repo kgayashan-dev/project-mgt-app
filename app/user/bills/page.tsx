@@ -3,7 +3,6 @@ import ViewBillList from "@/components/ViewBillList";
 import { getAllBills } from "@/utils/getdata";
 import { useEffect, useState } from "react";
 
-
 interface BillItem {
   id: number;
   billId: string;
@@ -58,8 +57,6 @@ export default function BillsListPage() {
 
     fetchBills();
   }, []);
-
-
 
   if (loading) {
     return (

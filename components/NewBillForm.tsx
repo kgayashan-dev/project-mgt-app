@@ -208,7 +208,7 @@ const NewBillPage: React.FC<ViewvendorArrayProps> = ({
           id: index + 1,
           billId: "", // Will be populated by backend
           description: row.description,
-          categoryId: row.category,
+          categoryID: row.category,
           rate: row.rate,
           qty: row.qty,
           total: row.total,
