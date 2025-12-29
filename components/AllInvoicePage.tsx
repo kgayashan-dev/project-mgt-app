@@ -19,6 +19,7 @@ import {
   Receipt,
 } from "lucide-react";
 import CommonSearchPopup from "../components/CommonSearchPopup";
+import { formatCurrencyOrNA } from "@/utils/converts";
 
 // Define types for invoice status and structure
 type InvoiceStatus = "Paid" | "Partial" | "Overdue" | "Draft" | "Pending";
@@ -247,7 +248,7 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
               <div>
                 <p className="text-xs text-gray-600">Total Amount</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCurrency(totalAmount)}
+                  {totalAmount.toString() ?  formatCurrencyOrNA(totalAmount) : "N/A"}
                 </p>
               </div>
               <div className="p-2 bg-green-100 rounded-lg">
@@ -261,7 +262,7 @@ const AllInvoicePage = ({ invoiceArray }: AllInvoicePageProps) => {
               <div>
                 <p className="text-xs text-gray-600">Average Amount</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCurrency(averageAmount)}
+                {averageAmount.toString() ?  formatCurrencyOrNA(averageAmount) : "N/A"}
                 </p>
               </div>
               <div className="p-2 bg-blue-100 rounded-lg">
