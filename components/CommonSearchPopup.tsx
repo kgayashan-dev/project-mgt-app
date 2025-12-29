@@ -57,8 +57,8 @@ const CommonSearchPopup = ({
 
   const getDetailRoute = (id: string) => {
     return searchType === 'quotation' 
-      ? `/quotations/${id}`
-      : `/invoices/${id}`;
+      ? `/user/quotations/${id}`
+      : `/user/invoices/${id}`;
   };
 
   const getPlaceholderText = () => {
