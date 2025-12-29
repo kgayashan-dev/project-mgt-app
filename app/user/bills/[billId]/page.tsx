@@ -50,7 +50,6 @@ async function getBillData(id: string): Promise<BillData | null> {
     });
 
     if (!res.ok) {
-      console.error(`Failed to fetch bill: ${res.status} ${res.statusText}`);
       return null;
     }
 
@@ -75,9 +74,7 @@ export default async function Page({ params }: { params: { billId: string } }) {
     console.log("Bill Data:", data);
 
     if (!data) {
-      return (
-        <div className="p-4 text-red-500">Bill not found</div>
-      );
+      return <div className="p-4 text-red-500">Bill not found</div>;
     }
 
     return (

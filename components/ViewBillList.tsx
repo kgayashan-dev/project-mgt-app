@@ -15,6 +15,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { formatCurrencyOrNA } from "@/utils/converts";
 
 // Types
 interface BillItem {
@@ -139,14 +140,6 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
     }
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat("en-LK", {
-      style: "currency",
-      currency: "LKR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -223,7 +216,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             <div>
               <p className="text-xs text-gray-600">Overdue</p>
               <p className="text-lg font-bold text-red-600 mt-1">
-                {formatCurrency(overdueAmount)}
+                {formatCurrencyOrNA(overdueAmount)}
               </p>
             </div>
             <div className="bg-red-50 p-2 rounded-full">
@@ -237,7 +230,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             <div>
               <p className="text-xs text-gray-600">Total Outstanding</p>
               <p className="text-lg font-bold text-gray-900 mt-1">
-                {formatCurrency(totalOutstanding)}
+                {formatCurrencyOrNA(totalOutstanding)}
               </p>
             </div>
             <div className="bg-blue-50 p-2 rounded-full">
@@ -245,6 +238,21 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             </div>
           </div>
         </div>
+         <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-600">Total Expenses</p>
+              <p className="text-lg font-bold text-gray-900 mt-1">
+                {formatCurrencyOrNA(grandTotal += )}
+              </p>
+            </div>
+            <div className="bg-blue-50 p-2 rounded-full">
+              <DollarSign className="w-5 h-5 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+
       </div>
 
       {/* Filters and Search */}
@@ -420,15 +428,15 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                       <td className="px-2 py-1">
                         <div className="space-y-1">
                           <div className="text-xs font-semibold text-gray-900">
-                            {formatCurrency(bill.grandTotal)}
+                            {formatCurrencyOrNA(bill.grandTotal)}
                           </div>
                           <div className="text-xs text-gray-600">
-                            Tax: {formatCurrency(bill.totalTax)}
+                            Tax: {formatCurrencyOrNA(bill.totalTax)}
                           </div>
                           <div className="text-xs">
                             <span className="text-gray-600">Due: </span>
                             <span className="font-medium">
-                              {formatCurrency(bill.amountDue)}
+                              {formatCurrencyOrNA(bill.amountDue)}
                             </span>
                           </div>
                         </div>

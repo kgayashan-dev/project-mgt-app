@@ -18,6 +18,7 @@ import {
   XCircle as XCircleIcon,
 } from "lucide-react";
 import CommonSearchPopup from "@/components/CommonSearchPopup";
+import { formatCurrencyOrNA } from "@/utils/converts";
 
 interface QuotationItem {
   id: number;
@@ -55,7 +56,9 @@ interface QuotationsProps {
 const Quotations = ({ quotationData }: QuotationsProps) => {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchType, setSearchType] = useState<'quotation' | 'invoice'>('quotation');
+  const [searchType, setSearchType] = useState<"quotation" | "invoice">(
+    "quotation"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [quotations, setQuotations] = useState<Quotation[]>(
     quotationData || []
@@ -77,8 +80,10 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
         .toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
       quotation.clientId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (quotation.companyName && 
-        quotation.companyName.toLowerCase().includes(searchQuery.toLowerCase()));
+      (quotation.companyName &&
+        quotation.companyName
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()));
 
     const matchesStatus =
       statusFilter === "all" || quotation.status === statusFilter;
@@ -102,12 +107,6 @@ const Quotations = ({ quotationData }: QuotationsProps) => {
     }
   };
 
-const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
 
   // Handle row click to navigate to the quotation detail page
   const handleRowClick = (quotationId: string) => {
@@ -258,7 +257,9 @@ const formatCurrency = (amount: number) => {
               <div>
                 <p className="text-xs text-gray-600">Total Amount</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCurrency(totalAmount)}
+                  {totalAmount.toString()
+                    ? formatCurrencyOrNA(totalAmount)
+                    : "N/A"}
                 </p>
               </div>
               <div className="p-2 bg-green-100 rounded-lg">
@@ -272,7 +273,9 @@ const formatCurrency = (amount: number) => {
               <div>
                 <p className="text-xs text-gray-600">Average Amount</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCurrency(averageAmount)}
+                  {averageAmount.toString()
+                    ? formatCurrencyOrNA(averageAmount)
+                    : "N/A"}
                 </p>
               </div>
               <div className="p-2 bg-purple-100 rounded-lg">
@@ -303,7 +306,7 @@ const formatCurrency = (amount: number) => {
               <div>
                 <p className="text-xs font-medium text-gray-600">Draft</p>
                 <p className="text-xl font-bold text-gray-600">
-                  {draftCount} ({formatCurrency(draftAmount)})
+                  {draftCount} ({formatCurrencyOrNA(draftAmount)})
                 </p>
               </div>
               <div className="p-2 bg-gray-50 rounded-lg">
@@ -317,7 +320,7 @@ const formatCurrency = (amount: number) => {
               <div>
                 <p className="text-xs font-medium text-gray-600">Sent</p>
                 <p className="text-xl font-bold text-blue-600">
-                  {sentCount} ({formatCurrency(sentAmount)})
+                  {sentCount} ({formatCurrencyOrNA(sentAmount)})
                 </p>
               </div>
               <div className="p-2 bg-blue-50 rounded-lg">
@@ -331,7 +334,7 @@ const formatCurrency = (amount: number) => {
               <div>
                 <p className="text-xs font-medium text-gray-600">Accepted</p>
                 <p className="text-xl font-bold text-green-600">
-                  {acceptedCount} ({formatCurrency(acceptedAmount)})
+                  {acceptedCount} ({formatCurrencyOrNA(acceptedAmount)})
                 </p>
               </div>
               <div className="p-2 bg-green-50 rounded-lg">
@@ -588,7 +591,7 @@ const formatCurrency = (amount: number) => {
                           )}`}
                         >
                           {getStatusIcon(quotation.status)}
-                          {quotation.status || "Draft"}
+                          {quotation.status }
                         </span>
                       </div>
                     </div>
@@ -596,15 +599,15 @@ const formatCurrency = (amount: number) => {
                     {/* Amount */}
                     <div className="col-span-2 text-right">
                       <div className="font-medium text-gray-900">
-                        {formatCurrency(quotation.grandTotal)}
+                        {formatCurrencyOrNA(quotation.grandTotal)}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {formatCurrency(quotation.subtotal)} +{" "}
-                        {formatCurrency(quotation.totalTax)} tax
+                        {formatCurrencyOrNA(quotation.subtotal)} +{" "}
+                        {formatCurrencyOrNA(quotation.totalTax)} tax
                       </div>
                       {quotation.discountAmount > 0 && (
                         <div className="text-xs text-green-600">
-                          -{formatCurrency(quotation.discountAmount)} discount
+                          -{formatCurrencyOrNA(quotation.discountAmount)} discount
                         </div>
                       )}
                     </div>
@@ -661,7 +664,7 @@ const formatCurrency = (amount: number) => {
                   quotations
                 </div>
                 <div className="text-xs font-medium text-gray-900">
-                  Total: {formatCurrency(filteredTotal)}
+                  Total: {formatCurrencyOrNA(filteredTotal)}
                 </div>
               </div>
             </div>
@@ -673,7 +676,9 @@ const formatCurrency = (amount: number) => {
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
           searchType={searchType}
-          title={searchType === "quotation" ? "Search Quotations" : "Search Invoices"}
+          title={
+            searchType === "quotation" ? "Search Quotations" : "Search Invoices"
+          }
         />
       </div>
     </div>
