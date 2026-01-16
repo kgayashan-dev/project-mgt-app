@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useEffect } from "react";
 // import { AiOutlineUser, AiOutlineLogout } from "react-icons/ai";
-import { AiOutlineLogout } from "react-icons/ai";
+import { AiOutlineLogout, AiOutlineUser } from "react-icons/ai";
 // import { FiGift } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
@@ -13,32 +13,21 @@ const LogOutModal: React.FC<LogOutModalProps> = ({ onClose }) => {
   const router = useRouter();
   const modalRef = useRef<HTMLDivElement | null>(null); // Ref to the modal element˝
 
-  // const menuItems = [
-  //   {
-  //     id: 1,
-  //     label: "Account Profile",
-  //     href: "/user/profile",
-  //     icon: <AiOutlineUser size={20} />,
-  //   },
-  //   {
-  //     id: 2,
-  //     label: "Billing and Upgrade",
-  //     href: "/billing",
-  //     icon: <MdOutlineUpgrade size={20} />,
-  //   },
-  //   {
-  //     id: 3,
-  //     label: "Refer a Friend",
-  //     href: "/refer",
-  //     icon: <FiGift size={20} />,
-  //   },
-  // ];
+  const menuItems = [
+    {
+      id: 1,
+      label: "Account Profile",
+      href: "/user/profile",
+      icon: <AiOutlineUser size={20} />,
+    },
+
+  ];
 
   // Redirect function that navigates to the correct href
-  // const reDirect = (href: string) => {
-  //   router.push(href); // Navigate to the specified route
-  //   onClose(); // Close the modal after navigation
-  // };
+  const reDirect = (href: string) => {
+    router.push(href); // Navigate to the specified route
+    onClose(); // Close the modal after navigation
+  };
   // Close modal if clicked outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -72,7 +61,7 @@ const LogOutModal: React.FC<LogOutModalProps> = ({ onClose }) => {
         </div>
       </div>
       <ul className="mt-4 space-y-3">
-        {/* {menuItems.map((item) => (
+        {menuItems.map((item) => (
           <li
             key={item.id}
             className="flex items-center gap-2 text-gray-700 cursor-pointer hover:text-gray-900"
@@ -85,7 +74,7 @@ const LogOutModal: React.FC<LogOutModalProps> = ({ onClose }) => {
               <span>{item.label}</span>
             </button>
           </li>
-        ))} */}
+        ))}
         <li
           onClick={() => {
             localStorage.clear();

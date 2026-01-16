@@ -4,8 +4,6 @@
 import { useState, useEffect, useRef, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
-
-
 export interface LoginRequest {
   Username: string;
   password: string;
@@ -36,11 +34,7 @@ export interface AuthResponse {
   success: boolean;
 }
 
-
-
-
-
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ;
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function LoginModal() {
   const router = useRouter();
@@ -61,7 +55,7 @@ export default function LoginModal() {
 
     try {
       const loginRequest: LoginRequest = { Username, password };
-      
+
       const response = await fetch(`${API_URL}/project_pulse/Auth/login`, {
         method: "POST",
         headers: {
@@ -76,7 +70,7 @@ export default function LoginModal() {
         // Store token and user data
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        
+
         // Redirect to dashboard or home page
         router.push("/user/dashboard");
         alert("Login successful!");
@@ -93,7 +87,7 @@ export default function LoginModal() {
   };
 
   const handleClose = () => {
-    router.back();
+    dialogRef.current?.close();
   };
 
   return (
@@ -153,9 +147,25 @@ export default function LoginModal() {
             >
               {isLoading ? (
                 <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Signing In...
                 </span>

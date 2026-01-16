@@ -25,6 +25,8 @@ export interface AuthContextType {
   updateUser: (userData: Partial<User>) => void
 }
 
+
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ;
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const useAuth = () => {
@@ -75,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const verifyToken = async (token: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/project_pulse/Auth/profile`, {
+      const response = await fetch(`${API_URL}/project_pulse/Auth/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
