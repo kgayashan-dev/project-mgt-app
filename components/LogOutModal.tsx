@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from "react";
 import { AiOutlineLogout } from "react-icons/ai";
 // import { FiGift } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 interface LogOutModalProps {
   onClose: () => void; // onClose is a function with no parameters and returns void
@@ -58,6 +59,21 @@ const LogOutModal: React.FC<LogOutModalProps> = ({ onClose }) => {
     };
   }, [onClose]);
 
+  const logOut = async () => {
+    const response = await fetch(`${API_URL}/project_pulse/Auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      localStorage.removeItem("token");
+      router.push("/");
+    } else {
+      alert("Failed to log out. Please try again.");
+    }
+  };
   return (
     <div
       ref={modalRef}
@@ -87,10 +103,7 @@ const LogOutModal: React.FC<LogOutModalProps> = ({ onClose }) => {
           </li>
         ))} */}
         <li
-          onClick={() => {
-            localStorage.clear();
-            router.push("/");
-          }}
+          onClick={logOut}
           className="flex items-center gap-2 text-gray-700 cursor-pointer hover:text-gray-900"
         >
           <AiOutlineLogout size={20} />
