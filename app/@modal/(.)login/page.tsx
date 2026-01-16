@@ -40,7 +40,7 @@ export interface AuthResponse {
 
 
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ;
 
 export default function LoginModal() {
   const router = useRouter();
@@ -78,7 +78,8 @@ export default function LoginModal() {
         localStorage.setItem("user", JSON.stringify(data.user));
         
         // Redirect to dashboard or home page
-        router.push("/dashboard");
+        router.push("/user/dashboard");
+        alert("Login successful!");
         handleClose();
       } else {
         setError(data.message || "Invalid credentials");

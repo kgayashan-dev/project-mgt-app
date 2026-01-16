@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SearchPopup from "@/components/SearchPopup";
 import { FaSearch } from "react-icons/fa";
 import LogOutModal from "./LogOutModal";
 const DashboardNavBar = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+
+  useEffect(() => {
+    const toke = localStorage.getItem("token");
+    if (!toke) {
+      window.location.href = "/";
+    }
+  }, []);
 
   const onClose = () => {
     setShowProfilePopup(false);
