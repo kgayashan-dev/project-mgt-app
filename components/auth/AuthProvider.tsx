@@ -119,7 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("user");
     setToken(null);
     setUser(null);
-    router.push("/login");
+    router.push("/");
   };
 
   const checkAuth = async (): Promise<boolean> => {
