@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // app/bills/page.tsx (or wherever your page is)
 "use client";
 import React, { useState, useEffect } from "react";
@@ -15,6 +16,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { formatCurrencyOrNA } from "@/utils/converts";
 
 // Types
 interface BillItem {
@@ -49,6 +51,8 @@ interface Bill {
 }
 
 interface BillListProps {
+
+
   bills: Bill[];
 }
 
@@ -60,15 +64,18 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [overdueAmount, setOverdueAmount] = useState(0);
   const [totalOutstanding, setTotalOutstanding] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
 
   // Calculate totals on component mount
   useEffect(() => {
     const now = new Date();
     let overdue = 0;
     let outstanding = 0;
+    let total = 0;
 
     bills.forEach((bill) => {
       outstanding += bill.totalOutstanding;
+      total += bill.grandTotal;
 
       // Check if bill is overdue
       if (bill.status !== "Paid" && bill.dueDate) {
@@ -81,6 +88,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
 
     setOverdueAmount(overdue);
     setTotalOutstanding(outstanding);
+    setGrandTotal(total);
   }, [bills]);
 
   // Filter bills based on search and status
@@ -137,15 +145,6 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
     } catch {
       return "Invalid Date";
     }
-  };
-
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat("en-LK", {
-      style: "currency",
-      currency: "LKR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
   };
 
   const getStatusColor = (status: string): string => {
@@ -217,13 +216,13 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-600">Overdue</p>
               <p className="text-lg font-bold text-red-600 mt-1">
-                {formatCurrency(overdueAmount)}
+                {formatCurrencyOrNA(overdueAmount)}
               </p>
             </div>
             <div className="bg-red-50 p-2 rounded-full">
@@ -237,7 +236,20 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             <div>
               <p className="text-xs text-gray-600">Total Outstanding</p>
               <p className="text-lg font-bold text-gray-900 mt-1">
-                {formatCurrency(totalOutstanding)}
+                {formatCurrencyOrNA(totalOutstanding)}
+              </p>
+            </div>
+            <div className="bg-blue-50 p-2 rounded-full">
+              <DollarSign className="w-5 h-5 text-blue-600" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-600">Total Expenses</p>
+              <p className="text-lg font-bold text-gray-900 mt-1">
+                {formatCurrencyOrNA(grandTotal)}
               </p>
             </div>
             <div className="bg-blue-50 p-2 rounded-full">
@@ -247,7 +259,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
         </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* Filters and Search
       <div className="bg-white rounded-lg shadow mb-6 p-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
@@ -266,12 +278,12 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
               <button
                 onClick={() => setSelectedStatus("Pending")}
                 className={`px-3 py-1.5 text-xs rounded-full ${
-                  selectedStatus === "Pending"
+                  selectedStatus === "Partial"
                     ? "bg-yellow-100 text-yellow-700"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Pending
+                Partial
               </button>
               <button
                 onClick={() => setSelectedStatus("Overdue")}
@@ -307,7 +319,7 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Bills Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -420,15 +432,15 @@ const BillsPage: React.FC<BillListProps> = ({ bills }) => {
                       <td className="px-2 py-1">
                         <div className="space-y-1">
                           <div className="text-xs font-semibold text-gray-900">
-                            {formatCurrency(bill.grandTotal)}
+                            {formatCurrencyOrNA(bill.grandTotal)}
                           </div>
                           <div className="text-xs text-gray-600">
-                            Tax: {formatCurrency(bill.totalTax)}
+                            Tax: {formatCurrencyOrNA(bill.totalTax)}
                           </div>
                           <div className="text-xs">
                             <span className="text-gray-600">Due: </span>
                             <span className="font-medium">
-                              {formatCurrency(bill.amountDue)}
+                              {formatCurrencyOrNA(bill.amountDue)}
                             </span>
                           </div>
                         </div>

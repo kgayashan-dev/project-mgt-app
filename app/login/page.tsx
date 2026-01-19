@@ -26,8 +26,8 @@ export default function LoginModal() {
   };
 
   const handleClose = () => {
-    // dialogRef.current?.close();
-    router.back();
+    dialogRef.current?.close();
+    // router.back();
   };
 
   return (

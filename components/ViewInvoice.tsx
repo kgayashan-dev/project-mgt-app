@@ -396,9 +396,9 @@ const ViewInvoice: React.FC<InvoiceDetailPageProps> = ({ invoiceArray }) => {
               <span className="regular-12 leading-tight">
                 InvoiceNo: {invoiceNumber}
               </span>
-              <span className="regular-12 leading-tight">
+              {/* <span className="regular-12 leading-tight">
                 PO No: {invoiceNumber}
-              </span>
+              </span> */}
               <span className="regular-12 leading-tight">
                 Date: {invoiceDate}
               </span>

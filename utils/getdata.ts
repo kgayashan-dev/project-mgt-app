@@ -23,6 +23,11 @@ const fetchData = async (
       },
       signal: controller.signal,
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
     clearTimeout(timeoutId);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -96,15 +101,8 @@ export const getAllVendors = () =>
 export const getAllBills = () =>
   fetchData("/project_pulse/Bill/getAllBills", "bill data");
 
-
-
 export const getDashboardData = () =>
   fetchData("/project_pulse/Dashboard/getData", "dashboard data");
-
-
-
-
-
 
 // utils/getdata.ts (add this function)
 export async function getInvoicesByClientId(clientId: string) {

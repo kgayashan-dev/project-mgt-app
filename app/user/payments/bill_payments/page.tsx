@@ -116,7 +116,7 @@ export default async function Page({
       </div>
     );
   } catch (error) {
-    console.error("Error in page component:", error);
+    console.warn("Error in page component:", error);
     return (
       <div className="pt-8 flex justify-center items-center min-h-96">
         <div className="text-center">

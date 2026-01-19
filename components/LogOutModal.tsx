@@ -1,8 +1,8 @@
 "use client";
 import React, { useRef, useEffect } from "react";
-import { AiOutlineUser, AiOutlineLogout } from "react-icons/ai";
-import { MdOutlineUpgrade } from "react-icons/md";
-import { FiGift } from "react-icons/fi";
+// import { AiOutlineUser, AiOutlineLogout } from "react-icons/ai";
+import { AiOutlineLogout, AiOutlineUser } from "react-icons/ai";
+// import { FiGift } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
 interface LogOutModalProps {
@@ -20,18 +20,7 @@ const LogOutModal: React.FC<LogOutModalProps> = ({ onClose }) => {
       href: "/user/profile",
       icon: <AiOutlineUser size={20} />,
     },
-    {
-      id: 2,
-      label: "Billing and Upgrade",
-      href: "/billing",
-      icon: <MdOutlineUpgrade size={20} />,
-    },
-    {
-      id: 3,
-      label: "Refer a Friend",
-      href: "/refer",
-      icon: <FiGift size={20} />,
-    },
+
   ];
 
   // Redirect function that navigates to the correct href
@@ -86,7 +75,13 @@ const LogOutModal: React.FC<LogOutModalProps> = ({ onClose }) => {
             </button>
           </li>
         ))}
-        <li className="flex items-center gap-2 text-gray-700 cursor-pointer hover:text-gray-900">
+        <li
+          onClick={() => {
+            localStorage.clear();
+            router.push("/");
+          }}
+          className="flex items-center gap-2 text-gray-700 cursor-pointer hover:text-gray-900"
+        >
           <AiOutlineLogout size={20} />
           <span>Log Out</span>
         </li>
